@@ -1,0 +1,74 @@
+{
+  "adversary_model": "single forger without station keys; colluding multi-site adversaries and key compromise are OUT OF SCOPE at H1 (see docs/h1-spec.md)",
+  "aggregate": "PASS",
+  "benchmark_id": "H1",
+  "certificate_version": "1",
+  "claim_class": "ENGINEERING_REFERENCE",
+  "empirical_claim": "NONE",
+  "execution_tier": "BENCHMARK",
+  "gates": [
+    {
+      "description": "exact light-cone geometry kernel",
+      "gate": "H1-A",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    },
+    {
+      "description": "receipt authenticity round-trip",
+      "gate": "H1-B",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    },
+    {
+      "description": "cone certificate + standalone verifier",
+      "gate": "H1-C",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    },
+    {
+      "description": "causal ledger admissibility / concurrency",
+      "gate": "H1-D",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    },
+    {
+      "description": "negative controls REJECTED with witnesses",
+      "gate": "H1-E",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    }
+  ],
+  "heuristic_warnings": [
+    {
+      "location": "horizon/stations.py",
+      "warning": "HMAC with demo-derived symmetric keys stands in for signatures; key distribution trusted"
+    },
+    {
+      "location": "horizon/simulate.py",
+      "warning": "arrival times computed, not measured; simulator excluded from trusted path"
+    }
+  ],
+  "program": "HorizonProtocol",
+  "promotion_allowed": false,
+  "python_version": "3.12.3",
+  "source_hashes": {
+    "horizon/__init__.py": "513a2bd5e2c85ba7c6fb372a429cd2cab8430c5389302f9d2c929618ab48d29e",
+    "horizon/certificate.py": "102e1f2a3a2f3d047b6f07968ea73db776bf9b08a1291513c0919264e9f4e75e",
+    "horizon/events.py": "be117a3145df1a89d44bab130391b35e502bddb2fbdfa69430bea578a29cbda2",
+    "horizon/geometry.py": "d9e7a851b2284a963f7ca7b43f6e99a57408406093aed85ef7fcf4caec1c0240",
+    "horizon/ledger.py": "84d9fa3b1f9a7a02498e00a23c1c931f60cf6835f93a4a80e2b4d090ee026494",
+    "horizon/simulate.py": "a6b1760848f0a6b7f821999e7820d912b3edc741ddac834c4f38ef708ce7d1ce",
+    "horizon/stations.py": "25d3ab2d40fd20d7fcad81b25e43c17e7f1385ed3acd52cb7dd8af31b2755830"
+  },
+  "unit_convention": {
+    "c": 299792458,
+    "c_units": "nm/ns (exact integer)",
+    "position": "nanometers (int)",
+    "time": "nanoseconds (int)"
+  }
+}
