@@ -1,0 +1,11 @@
+{
+  "_comment": "Real cloud-region approximate coordinates (lat, lon, alt_m). Frame origin = aws-us-east-1 (N. Virginia). Positions convert to exact nm on the local ENU lattice at build time via horizon.geo_frame.",
+  "frame_origin": {"name": "aws-us-east-1", "llh": [38.9445, -77.4558, 90.0]},
+  "quantization_nm": 1,
+  "nodes": [
+    {"id": "us-east-1",      "llh": [38.9445, -77.4558, 90.0],   "u_ns": 5000000, "clock": "NTP"},
+    {"id": "us-west-2",      "llh": [45.8399, -119.7006, 100.0], "u_ns": 5000000, "clock": "NTP"},
+    {"id": "eu-west-1",      "llh": [53.4129, -8.2439, 80.0],    "u_ns": 5000000, "clock": "NTP"},
+    {"id": "ap-southeast-1", "llh": [1.3197, 103.7065, 15.0],    "u_ns": 5000000, "clock": "NTP"}
+  ]
+}

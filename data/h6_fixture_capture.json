@@ -1,0 +1,79 @@
+{
+  "event": {
+    "claimed_emit_pos_nm": [
+      0,
+      0,
+      0
+    ],
+    "claimed_emit_time_ns": 1000000000,
+    "payload_hash": "47c7629634391741d35a7a746c3f2e66bf4cd64119d75919bd79f2ef9831e72e"
+  },
+  "fixture_origin": "SYNTHETIC_CONSISTENT",
+  "geo_frame": {
+    "geodesy": "WGS84 ellipsoid -> ECEF -> ENU, quantized to nm lattice",
+    "origin_llh": [
+      38.9445,
+      -77.4558,
+      90.0
+    ],
+    "origin_name": "aws-us-east-1",
+    "quantization_nm": 1
+  },
+  "receipts": [
+    {
+      "body": {
+        "payload_hash": "47c7629634391741d35a7a746c3f2e66bf4cd64119d75919bd79f2ef9831e72e",
+        "recv_time_ns": 1066801469,
+        "station_id": "ap-southeast-1",
+        "station_pos_nm": [
+          -129343986459683,
+          4141602460298120,
+          -11236384117105394
+        ]
+      },
+      "mac": "cb7eae28b8d58f3d1323cfbfcda5ecb8a0f268ec985ea1fc1c7a4c8761eb8e2a"
+    },
+    {
+      "body": {
+        "payload_hash": "47c7629634391741d35a7a746c3f2e66bf4cd64119d75919bd79f2ef9831e72e",
+        "recv_time_ns": 1030119333,
+        "station_id": "eu-west-1",
+        "station_pos_nm": [
+          3561900768196695,
+          3136054046082241,
+          -2113594004365602
+        ]
+      },
+      "mac": "5a13454d9a3c08917e3484c214d11f19043d1fc0ad17df27edcffb032e9cfb04"
+    },
+    {
+      "body": {
+        "payload_hash": "47c7629634391741d35a7a746c3f2e66bf4cd64119d75919bd79f2ef9831e72e",
+        "recv_time_ns": 1001179432,
+        "station_id": "us-east-1",
+        "station_pos_nm": [
+          0,
+          0,
+          0
+        ]
+      },
+      "mac": "b52f4b5a6e15e08eaaf63ed7e870e8a95f6b1ced8879d92582e08a67ab580730"
+    },
+    {
+      "body": {
+        "payload_hash": "47c7629634391741d35a7a746c3f2e66bf4cd64119d75919bd79f2ef9831e72e",
+        "recv_time_ns": 1019754885,
+        "station_id": "us-west-2",
+        "station_pos_nm": [
+          -2992522065482674,
+          1490775140211840,
+          -945167923313490
+        ]
+      },
+      "mac": "f10bc554f7cc7ff610d994347cd15874c5d15ac549ac4fe96c0840b8df7f8f76"
+    }
+  ],
+  "seed": "H6-FROZEN-SEED-v1",
+  "type": "measured_cone_certificate",
+  "version": "1"
+}

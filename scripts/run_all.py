@@ -21,6 +21,10 @@ RUNNERS = [
      "   beacon certified: causal independence only"),
     ("H5", "scripts/run_h5.py", "h5_certificate.json",
      "   real-measurement bridge; APPARATUS_LIMITED honored on marginal fixture"),
+    ("H6", "scripts/run_h6.py", "h6_certificate.json",
+     "   multi-node cone certificates over real geography; same H5 gate reused"),
+    ("MNX1", "scripts/run_mnx.py", "mnx_certificate.json",
+     "   MnemesisOS causal memory; ordering matches the ledger edge-for-edge"),
 ]
 
 
