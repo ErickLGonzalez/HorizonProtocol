@@ -2,7 +2,8 @@
 import unittest
 from horizon.commitment import (DT_RESP_NS, DT_ROUND_NS, K_SUSTAIN, SITE_1,
                                 SITE_2, isolation_gate, response_in_window,
-                                verify_reveal, verify_transcript_chain)
+                                sustained_isolation_gate, verify_reveal,
+                                verify_transcript_chain)
 from horizon.commit_sim import HONEST, run_session
 
 
@@ -27,9 +28,16 @@ class TestSustainedRun(unittest.TestCase):
             self.assertEqual(
                 isolation_gate(SITE_1, SITE_2, DT_RESP_NS)["verdict"], "PASS")
 
+    def test_cross_round_isolation(self):
+        # the frozen schedule must ALSO be isolated across consecutive
+        # rounds at alternating sites, not just within a single window
+        res = sustained_isolation_gate(SITE_1, SITE_2, DT_ROUND_NS, DT_RESP_NS)
+        self.assertEqual(res["verdict"], "PASS")
+        self.assertLess(res["dt_round_plus_resp_ns"], res["one_way_light_time_ns"])
+
     def test_chain_verifies_at_reveal(self):
         res = verify_reveal(self.sess["rounds"], self.sess["reveal"]["b"],
-                            self.sess["reveal"]["secrets"])
+                            self.sess["reveal"]["secrets"], K_SUSTAIN)
         self.assertEqual(res["verdict"], "ADMITTED")
 
     def test_transcript_hash_chain(self):

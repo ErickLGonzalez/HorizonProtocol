@@ -23,7 +23,7 @@ SITE_1 = (0, 0, 0)                          # nm
 SITE_2 = (30_000_000_000_000, 0, 0)         # nm  (30 km along x)
 DT_RESP_NS = 50_000                         # response window (ns)
 K_SUSTAIN = 8                               # sustain rounds
-DT_ROUND_NS = 90_000                        # round period (ns)
+DT_ROUND_NS = 40_000                        # round period (ns)
 SEED_H2 = "H2-FROZEN-SEED-v1"
 
 
@@ -57,17 +57,32 @@ def sustain_response(ak: int, ak_prev: int, rk: int) -> int:
     return (ak + ak_prev * rk) % P_FIELD
 
 
-def verify_reveal(rounds: list, b: int, secrets: list) -> dict:
+def verify_reveal(rounds: list, b: int, secrets: list, k_sustain: int) -> dict:
     """Recompute every chain equation against the transcript.
 
-    `rounds` is a list of dicts with integer fields "k", "r", "y"
-    (rounds 0..K in order). `secrets` is the revealed a_0..a_K.
-    Verdict: ADMITTED, or REJECTED with the first failing round index
-    and both integer sides as the exact witness.
+    `rounds` is a list of dicts with integer fields "k", "r", "y".
+    `k_sustain` is the protocol's frozen K: rounds must be exactly the
+    contiguous set {0, 1, ..., k_sustain} (no truncation, gaps,
+    duplicates, or reordered/negative indices) before any algebra is
+    checked, else a short or skipped-round transcript could otherwise be
+    ADMITTED. `secrets` is the revealed a_0..a_K. Verdict: ADMITTED, or
+    REJECTED with the first failing round index and both integer sides
+    as the exact witness.
     """
     if b not in (0, 1):
         return {"verdict": "REJECTED",
                 "witness": {"gate": "revealed_bit_domain", "b": b}}
+    expected_count = k_sustain + 1
+    if len(rounds) != expected_count:
+        return {"verdict": "REJECTED",
+                "witness": {"gate": "round_count",
+                            "expected": expected_count, "got": len(rounds)}}
+    ks = [rec["k"] for rec in rounds]
+    if sorted(ks) != list(range(expected_count)):
+        return {"verdict": "REJECTED",
+                "witness": {"gate": "round_sequence",
+                            "expected": list(range(expected_count)),
+                            "got": ks}}
     if len(secrets) != len(rounds):
         return {"verdict": "REJECTED",
                 "witness": {"gate": "secret_count",
@@ -110,6 +125,40 @@ def isolation_gate(site_a, site_b, dt_resp_ns: int) -> dict:
                    "causally isolated per window" if isolated else
                    "response window admits light-speed signalling between "
                    "sites; configuration cannot support the binding claim"),
+    }
+
+
+def sustained_isolation_gate(site_a, site_b, dt_round_ns: int,
+                             dt_resp_ns: int) -> dict:
+    """Causal-isolation precondition across the FULL sustained schedule.
+
+    `isolation_gate` only rules out signalling within a single response
+    window. But rounds recur every `dt_round_ns` at alternating sites, so
+    a signal emitted at the very start of round k's window has until the
+    close of round k+1's window - `dt_round_ns + dt_resp_ns` later - to
+    arrive at the other site. PASS iff that longer interval is ALSO
+    causally inadmissible: NOT causally_admissible(0, site_a,
+    dt_round_ns + dt_resp_ns, site_b). A schedule that fails cannot
+    support cross-round isolation: verdict APPARATUS_LIMITED (refuse to
+    certify, never PASS).
+    """
+    total_ns = dt_round_ns + dt_resp_ns
+    mlt = min_light_time_ns(site_a, site_b)
+    w = admissibility_witness(0, site_a, total_ns, site_b)
+    isolated = not w["admissible"]
+    return {
+        "verdict": "PASS" if isolated else "APPARATUS_LIMITED",
+        "dt_round_ns": int(dt_round_ns),
+        "dt_resp_ns": int(dt_resp_ns),
+        "dt_round_plus_resp_ns": total_ns,
+        "one_way_light_time_ns": mlt,
+        "exact_witness": w,
+        "detail": ("round period plus response window shorter than "
+                   "one-way light time; consecutive rounds at alternating "
+                   "sites remain causally isolated" if isolated else
+                   "round period plus response window admits light-speed "
+                   "signalling between sites before the next round's "
+                   "deadline; schedule cannot support the binding claim"),
     }
 
 

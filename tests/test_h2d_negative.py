@@ -1,7 +1,8 @@
 """H2-D: negative controls - cheat, apparatus, tamper. [SOUND]"""
 import unittest
-from horizon.commitment import (DT_RESP_NS, isolation_gate, verify_reveal,
-                                verify_transcript_chain)
+from horizon.commitment import (DT_RESP_NS, K_SUSTAIN, SITE_1, SITE_2,
+                                isolation_gate, sustained_isolation_gate,
+                                verify_reveal, verify_transcript_chain)
 from horizon.commit_sim import CHEAT_FLIP, HONEST, run_session
 
 
@@ -10,7 +11,7 @@ class TestNegativeControls(unittest.TestCase):
         sess = run_session(CHEAT_FLIP, b=0)
         self.assertNotEqual(sess["reveal"]["b"], 0)  # cheater claims flipped bit
         res = verify_reveal(sess["rounds"], sess["reveal"]["b"],
-                            sess["reveal"]["secrets"])
+                            sess["reveal"]["secrets"], K_SUSTAIN)
         self.assertEqual(res["verdict"], "REJECTED")
         self.assertEqual(res["witness"]["gate"], "chain_consistency")
         # round 0 is self-consistent by construction (a_0 back-solved);
@@ -20,7 +21,7 @@ class TestNegativeControls(unittest.TestCase):
     def test_cheat_flip_other_bit(self):
         sess = run_session(CHEAT_FLIP, b=1)
         res = verify_reveal(sess["rounds"], sess["reveal"]["b"],
-                            sess["reveal"]["secrets"])
+                            sess["reveal"]["secrets"], K_SUSTAIN)
         self.assertEqual(res["verdict"], "REJECTED")
         self.assertEqual(res["witness"]["failing_round"], 1)
 
@@ -32,6 +33,28 @@ class TestNegativeControls(unittest.TestCase):
         # a scenario aggregate must therefore be REJECTED, never PASS
         scenario_aggregate = ("REJECTED" if res["verdict"] != "PASS" else "PASS")
         self.assertEqual(scenario_aggregate, "REJECTED")
+
+    def test_round_period_too_tight_apparatus_limited(self):
+        # a round period long enough to pass the single-window isolation
+        # gate can still let a round-k response reach the other site
+        # inside round k+1's window; the schedule-level gate must catch
+        # this even though isolation_gate alone reports PASS
+        dt_round_too_tight = 90_000  # this repo's original (unsafe) value
+        single_window = isolation_gate(SITE_1, SITE_2, DT_RESP_NS)
+        self.assertEqual(single_window["verdict"], "PASS")
+        res = sustained_isolation_gate(SITE_1, SITE_2, dt_round_too_tight,
+                                       DT_RESP_NS)
+        self.assertEqual(res["verdict"], "APPARATUS_LIMITED")
+        self.assertTrue(res["exact_witness"]["admissible"])
+        scenario_aggregate = ("REJECTED" if res["verdict"] != "PASS" else "PASS")
+        self.assertEqual(scenario_aggregate, "REJECTED")
+
+    def test_truncated_transcript_rejected(self):
+        sess = run_session(HONEST, b=1)
+        res = verify_reveal(sess["rounds"][:-1], sess["reveal"]["b"],
+                            sess["reveal"]["secrets"][:-1], K_SUSTAIN)
+        self.assertEqual(res["verdict"], "REJECTED")
+        self.assertEqual(res["witness"]["gate"], "round_count")
 
     def test_tampered_transcript_rejected(self):
         sess = run_session(HONEST, b=1)

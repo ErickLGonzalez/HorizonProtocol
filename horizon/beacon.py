@@ -29,6 +29,7 @@ EMITTERS = {"E1": E1, "E2": E2, "E3": E3}
 T_EMIT_NS = 1_000_000
 BLOCK_LEN = 32
 SEED_H4 = "H4-FROZEN-SEED-v1"
+MIN_SOURCES = len(EMITTERS)  # frozen construction requires all 3 independent emitters
 
 
 # ---- pairwise spacelike gate ------------------------------------------------
@@ -102,16 +103,22 @@ def verify_beacon(beacon_cert: dict, registries: dict) -> dict:
     """Independently re-verify a beacon certificate from its contents plus
     the public station registry. Gates, in order:
 
-      distinct_sources -> block_binding -> pairwise_spacelike ->
-      cone_certificate -> beacon_value
+      min_sources -> distinct_sources -> block_binding ->
+      pairwise_spacelike -> cone_certificate -> beacon_value
 
     Verdict PASS, or REJECTED with the violated gate and witness
     (propagating inner cone-certificate witnesses).
     """
     per_block = beacon_cert.get("per_block", [])
-    if not per_block:
+
+    # Gate: minimum source count (a certificate combining fewer than the
+    # frozen construction's independent emitters gives no independence
+    # guarantee - a single source trivially has an empty pairwise set and
+    # would otherwise pass every later gate)
+    if len(per_block) < MIN_SOURCES:
         return {"verdict": "REJECTED",
-                "witness": {"gate": "nonempty_blocks"}}
+                "witness": {"gate": "min_sources",
+                            "required": MIN_SOURCES, "got": len(per_block)}}
 
     # Gate: distinct sources
     ids = [b["emitter_id"] for b in per_block]

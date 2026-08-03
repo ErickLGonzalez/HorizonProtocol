@@ -34,8 +34,10 @@ module never imports the simulator; test H2-C asserts this.
 IN SCOPE at H2: a cheating committer who answered rounds honestly (it
 cannot rewrite already-sent responses) and at reveal attempts to open the
 flipped bit with a back-solved `a_0` (role `CHEAT_FLIP`); post-hoc
-transcript tampering; mis-configured apparatus (sites too close for the
-response window).
+transcript tampering; a truncated, gapped, duplicated, or reordered
+round-index sequence submitted at reveal; mis-configured apparatus (sites
+too close for the response window, or a round period tight enough to let
+a round-`k` response reach the other site inside round `k+1`'s window).
 OUT OF SCOPE (deliberately): arbitrary adversaries; any claim that the
 chain algebra is binding in general (indeed, an adversary who back-solves
 the *entire* secret vector satisfies the algebra for either bit — binding
@@ -47,9 +49,11 @@ assumed); station key compromise.
 
 `P_FIELD = 2**61 - 1`; `SITE_1 = (0,0,0)`,
 `SITE_2 = (30_000_000_000_000, 0, 0)` nm (30 km);
-`DT_RESP_NS = 50_000`; `K_SUSTAIN = 8`; `DT_ROUND_NS = 90_000`;
+`DT_RESP_NS = 50_000`; `K_SUSTAIN = 8`; `DT_ROUND_NS = 40_000`;
 seed `"H2-FROZEN-SEED-v1"`. One-way light time is computed with
-`min_light_time_ns`, never hardcoded.
+`min_light_time_ns`, never hardcoded. `DT_ROUND_NS` is chosen so that
+`DT_ROUND_NS + DT_RESP_NS` (90,000 ns) stays below the one-way light time
+(100,070 ns) — see gate H2-B below.
 
 ## 6. Chain algebra
 
@@ -62,35 +66,56 @@ first failing round index and both integer sides as witness.
 ## 7. Gates
 
 - **H2-A (SOUND):** round-trip verifies for `b=0` and `b=1`; flipped-bit
-  reveal REJECTED; single altered `a_k` REJECTED naming round `k`.
-- **H2-B (SOUND):** exact two-sided isolation:
-  `DT_RESP_NS < min_light_time_ns(SITE_1, SITE_2)` — equivalently
-  `NOT causally_admissible(t, SITE_1, t + DT_RESP_NS, SITE_2)` — with the
-  full `admissibility_witness` recorded; converse control
-  `DT_BAD = min_light_time + 1` **is** admissible and yields
-  `APPARATUS_LIMITED`.
+  reveal REJECTED; single altered `a_k` REJECTED naming round `k`; the
+  reveal transcript must be the exact contiguous round set `{0..K_SUSTAIN}`
+  — `verify_reveal` takes the frozen `k_sustain` and REJECTS at gate
+  `round_count` (wrong length, including a truncated honest prefix) or
+  `round_sequence` (duplicate, skipped, negative, or otherwise non-`0..K`
+  indices) before any chain equation is even checked.
+- **H2-B (SOUND):** exact two-sided isolation, at two granularities.
+  Per-window: `DT_RESP_NS < min_light_time_ns(SITE_1, SITE_2)` —
+  equivalently `NOT causally_admissible(t, SITE_1, t + DT_RESP_NS,
+  SITE_2)` — with the full `admissibility_witness` recorded; converse
+  control `DT_BAD = min_light_time + 1` **is** admissible and yields
+  `APPARATUS_LIMITED`. Cross-round (`sustained_isolation_gate`): a single
+  window's isolation is necessary but not sufficient once rounds recur
+  every `DT_ROUND_NS` at alternating sites — a signal emitted at the start
+  of round `k`'s window has until round `k+1`'s window closes,
+  `DT_ROUND_NS + DT_RESP_NS` later, to arrive. PASS iff that longer
+  interval is also inadmissible; converse control with the round period
+  set to the one-way light time (period alone would still pass the
+  per-window gate) yields `APPARATUS_LIMITED`.
 - **H2-C (SOUND):** K sustained rounds on schedule, every response inside
-  its window, sites alternating, chain ADMITTED at reveal, transcript hash
-  chain ADMITTED, `binding_duration_ns = t_reveal − t_commit` recorded,
-  bit-for-bit deterministic rerun.
+  its window, sites alternating, both isolation gates PASS, chain ADMITTED
+  at reveal, transcript hash chain ADMITTED, `binding_duration_ns =
+  t_reveal − t_commit` recorded, bit-for-bit deterministic rerun.
 - **H2-D (SOUND) negative controls:** (1) `CHEAT_FLIP` REJECTED with
   `failing_round = 1`; (2) sites 1 m apart with the same window →
   `APPARATUS_LIMITED`, scenario aggregate REJECTED (refuse to certify,
-  never silently pass); (3) one tampered `y_k` → hash-chain REJECTED
-  naming the round.
+  never silently pass); (3) a round period tight enough to leak a
+  round-`k` response into round `k+1`'s window (this repo's original,
+  since-corrected `DT_ROUND_NS = 90_000`) → `APPARATUS_LIMITED` on the
+  cross-round gate even though the per-window gate alone reports PASS;
+  (4) one tampered `y_k` → hash-chain REJECTED naming the round; (5) a
+  transcript truncated to an honest prefix → REJECTED at `round_count`.
 
 ## 8. Acceptance criteria
 
 `python3 scripts/run_h2.py` exits 0; all four gates PASS; certificate
-written with `field_prime, sites_nm, dt_resp_ns, k_sustain,
-one_way_light_time_ns, binding_duration_ns, isolation_witnesses[]` and
-seed recorded; zero regressions in the H1 suite.
+written with `field_prime, sites_nm, dt_resp_ns, dt_round_ns, k_sustain,
+one_way_light_time_ns, binding_duration_ns, isolation_witnesses[],
+sustained_isolation` and seed recorded; zero regressions in the H1 suite.
 
 ## 9. Registered falsifiers
 
 - F1: any run where a response window ≥ one-way light time yields a PASS
   on the binding/isolation gate → gate defect, file erratum.
+- F1b: any schedule where `DT_ROUND_NS + DT_RESP_NS` ≥ one-way light time
+  yields a PASS on the cross-round isolation gate → gate defect, file
+  erratum.
 - F2: any reveal inconsistency not localized to a round index → defect.
+- F2b: any reveal transcript that is not the exact contiguous round set
+  `{0..K_SUSTAIN}` yet is ADMITTED → gate defect, file erratum.
 - F3: nondeterminism across reruns (differing certificate content with the
   same seed) → defect.
 

@@ -60,6 +60,25 @@ class TestNegativeControls(unittest.TestCase):
         self.assertEqual(res["verdict"], "REJECTED")
         self.assertEqual(res["witness"]["gate"], "distinct_sources")
 
+    def test_too_few_sources_rejected(self):
+        # a single valid block (with its own valid cone certificate) must
+        # not pass just because its trivially-empty pairwise-spacelike set
+        # has nothing to reject - the beacon needs all 3 frozen emitters
+        cert = copy.deepcopy(self.cert)
+        cert["per_block"] = cert["per_block"][:1]
+        cert["beacon_value_hex"] = cert["per_block"][0]["block_hex"]
+        res = verify_beacon(cert, self.reg)
+        self.assertEqual(res["verdict"], "REJECTED")
+        self.assertEqual(res["witness"]["gate"], "min_sources")
+        self.assertEqual(res["witness"]["got"], 1)
+
+    def test_empty_sources_rejected(self):
+        cert = copy.deepcopy(self.cert)
+        cert["per_block"] = []
+        res = verify_beacon(cert, self.reg)
+        self.assertEqual(res["verdict"], "REJECTED")
+        self.assertEqual(res["witness"]["gate"], "min_sources")
+
     def test_failing_inner_cone_certificate_propagates(self):
         # reuse H1-E's FTL forgery: a receipt 1 ns earlier than light permits
         cert = copy.deepcopy(self.cert)

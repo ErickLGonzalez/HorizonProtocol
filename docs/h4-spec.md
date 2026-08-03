@@ -33,8 +33,10 @@ imports neither simulator; test H4-B asserts this by source inspection.
 
 IN SCOPE: a forger without station keys who injects a
 timelike-correlated fourth emitter, tampers with a block after binding,
-submits the same emitter twice, or embeds a cone certificate containing
-an FTL-forged receipt (H1-E's forgery reused).
+submits the same emitter twice, submits fewer sources than the frozen
+construction requires (hoping the trivially-empty pairwise-spacelike set
+of a single source passes by vacuous truth), or embeds a cone certificate
+containing an FTL-forged receipt (H1-E's forgery reused).
 OUT OF SCOPE: statistical adversaries, biased-source attacks, randomness
 extraction quality, station key compromise, clock attacks (L0 assumed).
 
@@ -54,8 +56,12 @@ each emitter, reusing H1's `demo_registry`.
   inadmissible (`CausalLedger.concurrent` is the authoritative
   predicate, imported from the H1 kernel). All pairwise exact witnesses
   recorded in the certificate.
-- **H4-B (SOUND):** each block's SHA-256 is bound into its emission
-  event's payload; each emission event carries a cone certificate that
+- **H4-B (SOUND):** a certificate combining fewer than `MIN_SOURCES`
+  (= 3, the frozen emitter count) blocks is REJECTED at gate
+  `min_sources` before any other check runs — a lone source has an empty
+  pairwise-spacelike set and would otherwise clear every later gate
+  vacuously; each block's SHA-256 is bound into its emission event's
+  payload; each emission event carries a cone certificate that
   independently verifies PASS via `horizon.certificate`; combined beacon
   value = XOR of the three blocks; `verify_beacon(beacon_cert,
   registries)` recomputes everything standalone. Bit-for-bit
@@ -71,7 +77,9 @@ each emitter, reusing H1's `demo_registry`.
   REJECTED at `block_binding`; (3) same emitter twice → REJECTED at
   `distinct_sources`; (4) embedded cone certificate carrying H1-E's FTL
   forgery → REJECTED at `cone_certificate`, propagating the inner
-  `light_cone` witness.
+  `light_cone` witness; (5) only one (or zero) of the three emitters'
+  blocks submitted → REJECTED at `min_sources` naming the required and
+  actual counts.
 
 ## 7. Acceptance criteria
 
@@ -88,6 +96,8 @@ seed; zero regressions in H1/H2/H3 suites.
 - F2: `verify_beacon` importing a simulator module → trusted-path defect.
 - F3: any claim in docs or certificate that H4 certifies statistical
   randomness → firewall breach; retract.
+- F4: a beacon certificate combining fewer than `MIN_SOURCES` blocks that
+  is not REJECTED at `min_sources` → gate defect, file erratum.
 
 ## 9. Claim-scope firewall (verbatim)
 

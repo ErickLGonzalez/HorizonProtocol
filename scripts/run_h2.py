@@ -11,7 +11,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from horizon.commitment import (P_FIELD, SITE_1, SITE_2, DT_RESP_NS,  # noqa: E402
-                                K_SUSTAIN, SEED_H2, isolation_gate)
+                                DT_ROUND_NS, K_SUSTAIN, SEED_H2,
+                                isolation_gate, sustained_isolation_gate)
 from horizon.geometry import min_light_time_ns  # noqa: E402
 from horizon.commit_sim import HONEST, run_session  # noqa: E402
 
@@ -51,6 +52,9 @@ def main():
     iso = isolation_gate(SITE_1, SITE_2, DT_RESP_NS)
     isolation_witnesses = [{"round": rec["k"], "exact_witness": iso["exact_witness"]}
                            for rec in sess["rounds"]]
+    sustained_iso = sustained_isolation_gate(SITE_1, SITE_2, DT_ROUND_NS, DT_RESP_NS)
+    if sustained_iso["verdict"] != "PASS":
+        all_pass = False
 
     src_hashes = {}
     for dirpath, _, files in os.walk(os.path.join(ROOT, "horizon")):
@@ -91,11 +95,13 @@ def main():
         "field_prime": P_FIELD,
         "sites_nm": {"site_1": list(SITE_1), "site_2": list(SITE_2)},
         "dt_resp_ns": DT_RESP_NS,
+        "dt_round_ns": DT_ROUND_NS,
         "k_sustain": K_SUSTAIN,
         "one_way_light_time_ns": one_way,
         "binding_duration_ns": sess["binding_duration_ns"],
         "per_round_transcript_hashes": sess["transcript_hashes"],
         "isolation_witnesses": isolation_witnesses,
+        "sustained_isolation": sustained_iso,
         "source_hashes": src_hashes,
         "python_version": platform.python_version(),
     }
