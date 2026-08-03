@@ -21,7 +21,8 @@ class TestApparatusLimited(unittest.TestCase):
         self.assertEqual(self.cert["fixture_origin"], "SYNTHETIC_CONSISTENT")
 
     def test_one_node_lands_between_the_two_floors(self):
-        res = verify_measured_certificate(self.cert, self.registry, self.node_params)
+        res = verify_measured_certificate(self.cert, self.registry, self.node_params,
+                                          required_station_ids=set(self.registry))
         marginal = [nid for nid, w in res["per_node"].items()
                    if w["verdict"] == "APPARATUS_LIMITED"]
         self.assertEqual(len(marginal), 1)
@@ -30,13 +31,15 @@ class TestApparatusLimited(unittest.TestCase):
         self.assertLess(w["dt_adjusted_ns"], w["typical_floor_ns"])
 
     def test_aggregate_is_apparatus_limited_never_pass(self):
-        res = verify_measured_certificate(self.cert, self.registry, self.node_params)
+        res = verify_measured_certificate(self.cert, self.registry, self.node_params,
+                                          required_station_ids=set(self.registry))
         self.assertEqual(res["verdict"], "APPARATUS_LIMITED")
         self.assertNotEqual(res["verdict"], "PASS")
         self.assertEqual(res["witness"]["gate"], "budget")
 
     def test_other_nodes_still_individually_admitted(self):
-        res = verify_measured_certificate(self.cert, self.registry, self.node_params)
+        res = verify_measured_certificate(self.cert, self.registry, self.node_params,
+                                          required_station_ids=set(self.registry))
         admitted = [nid for nid, w in res["per_node"].items()
                    if w["verdict"] == "ADMITTED"]
         self.assertEqual(len(admitted), len(res["per_node"]) - 1)

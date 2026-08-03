@@ -24,7 +24,8 @@ class TestReplay(unittest.TestCase):
         self.assertNotIn("node_params", self.cert)
 
     def test_replay_all_nodes_admitted(self):
-        res = verify_measured_certificate(self.cert, self.registry, self.node_params)
+        res = verify_measured_certificate(self.cert, self.registry, self.node_params,
+                                          required_station_ids=set(self.registry))
         self.assertEqual(res["verdict"], "PASS")
         self.assertEqual(set(res["per_node"]), set(self.registry))
         for nid, w in res["per_node"].items():

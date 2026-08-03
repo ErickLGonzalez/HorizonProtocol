@@ -37,7 +37,10 @@ module with two defects also found and fixed once already in H5 (see
    cryptographic authentication at all** - a regression relative to every
    other H-series sprint's signed-receipt discipline, since anyone could
    fabricate an arrival record for any node without needing that node's
-   key.
+   key;
+3. it had no equivalent of H4's `distinct_sources`/`min_sources` gates: a
+   certificate repeating one valid record, or dropping a node entirely,
+   was accepted as full multi-node corroboration.
 
 Rather than reproduce a known bug class and a known rigor regression in a
 second module, H6 is integrated as: real geography (`geo_frame`,
@@ -149,7 +152,25 @@ uses no credentials, and writes nothing but a local candidate file.
   forged `node_params` block declaring an enormous uncertainty is
   REJECTED anyway, because the verifier uses only the TRUSTED
   caller-supplied `node_params`; (5) an unknown node id → REJECTED at
-  `known_station`.
+  `known_station`; (6) the same valid, signed receipt duplicated →
+  REJECTED at `distinct_sources`; (7) one node's receipt dropped from an
+  otherwise-honest certificate, verified with `required_station_ids` set
+  to the full real-geography registry → REJECTED at `station_coverage`
+  naming the missing node - a partial-coverage certificate must not be
+  reported PASS as if every declared node had corroborated the event
+  (this check is opt-in per caller via `required_station_ids`; H5's own
+  abstract site rig does not claim universal coverage as a property, so
+  its runner does not request it, but any caller MAY).
+
+  Findings (2), (6), (7) close a gap where an earlier draft of this
+  sprint's own gate module (see section 2) accepted an unauthenticated,
+  uncounted `records` list: it neither verified a receipt was genuinely
+  signed nor rejected a certificate that duplicated or dropped a node.
+  `distinct_sources` is unconditional (applies to every
+  `verify_measured_certificate` caller, H5 included - see
+  `docs/h5-spec.md` falsifier F7); `station_coverage` is opt-in via
+  `required_station_ids`, since not every caller of the shared verifier
+  needs universal-coverage enforcement.
 
 ## 9. Certificate extras
 
@@ -162,7 +183,8 @@ uses no credentials, and writes nothing but a local candidate file.
 
 IN SCOPE: a forger of arrival times without node keys who attempts a
 vacuum-c violation, a post-signing tamper, a node position lie, a forged
-`node_params` block, or an unknown node id.
+`node_params` block, an unknown node id, a duplicated valid receipt, or a
+partial-coverage certificate silently dropping a node.
 OUT OF SCOPE: colluding multi-node adversaries (the classical PV
 impossibility, demonstrated on purpose in H3-C); node key compromise;
 sub-quantization positional lies below the nm lattice; curvature or
@@ -183,6 +205,10 @@ relativistic frame effects beyond the local-ENU Minkowski approximation.
   fixtures → defect.
 - F6: a certificate-embedded `node_params` value of any kind affecting
   `verify_measured_certificate`'s verdict → trust boundary defect.
+- F7: a certificate that repeats a `station_id` across receipts, or that
+  omits any node in `required_station_ids`, reported PASS instead of
+  REJECTED at `distinct_sources`/`station_coverage` respectively → gate
+  defect, file erratum.
 
 ## 12. Claim scope
 

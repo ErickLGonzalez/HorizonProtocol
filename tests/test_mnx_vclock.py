@@ -25,6 +25,17 @@ class TestVClock(unittest.TestCase):
         a = {"n1": 1}
         self.assertFalse(happens_before(a, a))
 
+    def test_zero_padded_equivalent_clocks_are_not_before_each_other(self):
+        # {"n1": 1} and {"n1": 1, "n2": 0} are the SAME logical instant
+        # once missing components are zero-padded (as `leq` already does) -
+        # neither may report happens_before the other, or the partial
+        # order's antisymmetry breaks (see the erratum in vclock.py)
+        a = {"n1": 1}
+        b = {"n1": 1, "n2": 0}
+        self.assertFalse(happens_before(a, b))
+        self.assertFalse(happens_before(b, a))
+        self.assertTrue(concurrent(a, b))
+
 
 if __name__ == "__main__":
     unittest.main()

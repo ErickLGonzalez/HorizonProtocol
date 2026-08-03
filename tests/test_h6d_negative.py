@@ -87,6 +87,39 @@ class TestNegativeControls(unittest.TestCase):
         self.assertEqual(res["verdict"], "REJECTED")
         self.assertEqual(res["witness"]["gate"], "known_station")
 
+    def test_duplicate_node_receipt_rejected(self):
+        # a single valid signed receipt repeated must not pad the apparent
+        # node count while still returning PASS
+        cert = copy.deepcopy(self.cert)
+        cert["receipts"][1] = copy.deepcopy(cert["receipts"][0])
+        res = verify_measured_certificate(cert, self.registry, self.node_params)
+        self.assertEqual(res["verdict"], "REJECTED")
+        self.assertEqual(res["witness"]["gate"], "distinct_sources")
+
+    def test_missing_node_coverage_rejected(self):
+        # H6's claim is corroboration from every declared real-geography
+        # node; dropping one receipt must not still report PASS for the
+        # remaining (individually valid) nodes
+        cert = copy.deepcopy(self.cert)
+        cert["receipts"] = [r for r in cert["receipts"]
+                           if r["body"]["station_id"] != "eu-west-1"]
+        res = verify_measured_certificate(cert, self.registry, self.node_params,
+                                          required_station_ids=set(self.registry))
+        self.assertEqual(res["verdict"], "REJECTED")
+        self.assertEqual(res["witness"]["gate"], "station_coverage")
+        self.assertIn("eu-west-1", res["witness"]["missing"])
+
+    def test_missing_node_coverage_not_enforced_without_required_ids(self):
+        # without an explicit required_station_ids, dropping a node is not
+        # itself a coverage violation (H6's coverage requirement is an
+        # H6-specific claim, not a universal property of the shared gate)
+        cert = copy.deepcopy(self.cert)
+        cert["receipts"] = [r for r in cert["receipts"]
+                           if r["body"]["station_id"] != "eu-west-1"]
+        res = verify_measured_certificate(cert, self.registry, self.node_params)
+        self.assertEqual(res["verdict"], "PASS")
+        self.assertNotIn("eu-west-1", res["per_node"])
+
 
 if __name__ == "__main__":
     unittest.main()

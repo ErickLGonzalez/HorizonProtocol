@@ -56,7 +56,8 @@ def main():
         path = os.path.join(ROOT, "data", name)
         with open(path) as f:
             cert = json.load(f)
-        res = verify_measured_certificate(cert, registry, node_params)
+        res = verify_measured_certificate(cert, registry, node_params,
+                                          required_station_ids=set(registry))
         event_hash = cert["event"]["payload_hash"]
         per_event[f"{origin}:{event_hash}"] = {
             "fixture": name, "verdict": res["verdict"],

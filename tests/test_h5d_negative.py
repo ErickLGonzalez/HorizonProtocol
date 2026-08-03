@@ -114,6 +114,16 @@ class TestNegativeControls(unittest.TestCase):
         self.assertEqual(res["verdict"], "REJECTED")
         self.assertEqual(res["witness"]["gate"], "known_station")
 
+    def test_duplicate_source_rejected(self):
+        # a single valid signed receipt repeated must not pad the apparent
+        # node count while still returning PASS (mirrors H4's beacon
+        # distinct_sources gate)
+        cert = copy.deepcopy(self.cert)
+        cert["receipts"][1] = copy.deepcopy(cert["receipts"][0])
+        res = verify_measured_certificate(cert, self.registry, self.node_params)
+        self.assertEqual(res["verdict"], "REJECTED")
+        self.assertEqual(res["witness"]["gate"], "distinct_sources")
+
 
 if __name__ == "__main__":
     unittest.main()

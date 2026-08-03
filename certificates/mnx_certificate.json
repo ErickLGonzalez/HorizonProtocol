@@ -47,8 +47,8 @@
   "python_version": "3.11.15",
   "source_hashes": {
     "mnemesis/__init__.py": "a60b0bfb183c2bca3184b73375fab37b7c08d410cd5d91230dd4d88ac7f95d0c",
-    "mnemesis/memory.py": "7fe0865b5c298804a6090bf22cd02d9ab904813b262234ac6c348e6fabf184ff",
-    "mnemesis/vclock.py": "6926a60920c13d6ab40d0564f95eb7b6e8a754d13d536e46c11f5c2adb203c93"
+    "mnemesis/memory.py": "d7fd2a72ccca6a3c50c66a9bfa8d334e6ba47afc9d8cdefecbf24dcb363d1b32",
+    "mnemesis/vclock.py": "b2701ba75f3abbfbba8886d58b0ba54051b296ed256df7a91d6062163006e80e"
   },
   "unit_convention": {
     "c": 299792458,

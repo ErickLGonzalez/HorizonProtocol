@@ -53,7 +53,7 @@ fabricates an order the geometry does not certify.
 
 ```bash
 python3 scripts/run_all.py              # runs every H1-H6 + MNX1 gate set + certificate validation
-python3 -m unittest discover tests -v   # 141 tests
+python3 -m unittest discover tests -v   # 149 tests
 python3 scripts/validate_certificates.py
 python3 scripts/demo_mnx.py             # MnemesisOS causal-memory demo, end to end
 ```

@@ -97,6 +97,17 @@ class CausalMemory:
 
     def put(self, key, value, observer, clock, supersedes=()):
         w = Write(key, value, observer, clock, supersedes)
+        if w.wid in self.writes:
+            # idempotent retry: (key, value, observer, clock) hashes to a
+            # wid already recorded. Return the ORIGINAL admission rather
+            # than re-appending to by_key (which would make _frontier see
+            # the same write twice and _get_ falsely report CONFLICT) or
+            # overwriting self.writes (which would silently rewrite an
+            # append-only entry's provenance if this retry declared a
+            # different `supersedes`).
+            existing = self.writes[w.wid]
+            return {"wid": existing.wid, "verdict": "ADMITTED",
+                    "provenance": existing.provenance()}
         # validate claimed supersessions are causally admissible
         for pred_wid in w.preds:
             if pred_wid not in self.writes:
@@ -151,10 +162,16 @@ class CausalMemory:
 
     def resolve(self, key, chosen_wid, observer, clock):
         """Explicit conflict resolution: a new write that supersedes ALL current
-        frontier candidates (must be causally after each)."""
+        frontier candidates (must be causally after each). `chosen_wid` must
+        be one of `key`'s current frontier candidates - not merely any wid
+        that happens to exist in the store, which could belong to a
+        different key entirely or to a write already superseded for this
+        one, and would otherwise let a resolution "choose" a value that was
+        never actually a live candidate for `key`."""
         frontier = self._frontier(key)
         preds = [w.wid for w in frontier]
-        chosen = self.writes.get(chosen_wid)
-        if chosen is None:
-            return {"verdict": "REJECTED", "reason": "unknown_choice"}
+        if chosen_wid not in preds:
+            return {"verdict": "REJECTED", "reason": "not_a_frontier_candidate",
+                    "key": key, "chosen_wid": chosen_wid}
+        chosen = self.writes[chosen_wid]
         return self.put(key, chosen.value, observer, clock, supersedes=preds)

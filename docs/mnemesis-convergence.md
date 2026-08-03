@@ -48,6 +48,20 @@ This is also the Global-Variables fact-store culture made operational:
 append-only, provenance-carrying, with invalidation by causally-later
 writes rather than destruction.
 
+**Errata (fixed, not merely noted):** an earlier version of `resolve`
+looked up `chosen_wid` in the ENTIRE store rather than restricting it to
+`key`'s current frontier candidates, so a write id belonging to a
+different key (or one already superseded) could be "chosen" to resolve a
+conflict it was never actually a candidate for. `resolve` now rejects any
+`chosen_wid` outside the target key's frontier (`not_a_frontier_candidate`).
+Separately, `put` was not idempotent: retrying an identical
+`(key, value, observer, clock)` call re-appended the same write id to the
+key's index (`_frontier` then saw it twice, and `get` could falsely report
+`CONFLICT` against itself) and, if the retry declared a different
+`supersedes`, silently rewrote the original write's provenance - a direct
+violation of "append-only." `put` now recognizes a repeated write id and
+returns the original admission unchanged.
+
 ## 3. Two clocks, one interface
 
 Geometry is not always available (a purely logical distributed system has
@@ -62,6 +76,17 @@ and this repository ships two:
   surveyed positions and measured time (the H5/H6 substrate).
 - **`LogicalOrdering`** - vector-clock happens-before (`mnemesis.vclock`),
   the standard partial order, for contexts without geometry.
+
+**Erratum:** `mnemesis.vclock.happens_before` originally computed
+`a != b and leq(a, b)` - a raw dict inequality, not a normalized one. Two
+clocks that are the SAME logical instant under zero-padding but differ in
+dict representation (e.g. `{"n1": 1}` vs. `{"n1": 1, "n2": 0}`) satisfied
+`a != b` in BOTH directions, so `happens_before` reported each before the
+other - an antisymmetry violation that would let `CausalMemory.put` admit
+a write "superseding" another at the same logical instant. Fixed to the
+standard antisymmetric definition, `leq(a, b) and not leq(b, a)`, which
+correctly treats such pairs as concurrent (test
+`test_zero_padded_equivalent_clocks_are_not_before_each_other`).
 
 Both satisfy the same memory invariants (gates MNX-B, MNX-C), so an
 application can start logical and upgrade to geometric where physical

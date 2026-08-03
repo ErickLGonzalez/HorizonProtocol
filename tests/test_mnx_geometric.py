@@ -61,6 +61,37 @@ class TestGeometricMemory(unittest.TestCase):
         self.assertEqual(p["value"], "v")
         self.assertIn("clock", p)
 
+    def test_repeated_identical_put_is_idempotent(self):
+        c = clk(0, 0, 0)
+        r1 = self.m.put("cfg", "v1", "A", c)
+        r2 = self.m.put("cfg", "v1", "A", c)
+        self.assertEqual(r1["wid"], r2["wid"])
+        # the retry must not manufacture a second frontier entry
+        g = self.m.get("cfg")
+        self.assertEqual(g["status"], "RESOLVED")
+        self.assertEqual(g["value"], "v1")
+
+    def test_repeated_put_does_not_overwrite_provenance(self):
+        c = clk(0, 0, 0)
+        r1 = self.m.put("cfg", "v1", "A", c)
+        # a retry claiming a (bogus) supersession must not silently rewrite
+        # the original, already-admitted write's provenance
+        r2 = self.m.put("cfg", "v1", "A", c, supersedes=["nonexistent"])
+        self.assertEqual(r2["wid"], r1["wid"])
+        self.assertEqual(r2["provenance"]["supersedes"], [])
+
+    def test_resolve_rejects_write_id_outside_frontier(self):
+        self.m.put("cfg", "vA", "A", clk(0, 0, 0))
+        self.m.put("cfg", "vB", "B", clk(0, C_NM_PER_NS, 0))
+        # a write id from a DIFFERENT key must not be usable to "resolve" cfg
+        other = self.m.put("other_key", "unrelated", "C", clk(0, 0, 0))
+        res = self.m.resolve("cfg", other["wid"], "D", clk(10_000_000, 0))
+        self.assertEqual(res["verdict"], "REJECTED")
+        self.assertEqual(res["reason"], "not_a_frontier_candidate")
+        # the conflict must still be intact, unresolved by the bogus choice
+        g = self.m.get("cfg")
+        self.assertEqual(g["status"], "CONFLICT")
+
 
 if __name__ == "__main__":
     unittest.main()
