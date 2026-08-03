@@ -1,5 +1,7 @@
 # HorizonProtocol
 
+[![gates](https://github.com/ErickLGonzalez/HorizonProtocol/actions/workflows/gates.yml/badge.svg)](https://github.com/ErickLGonzalez/HorizonProtocol/actions/workflows/gates.yml)
+
 **Trust rooted in causal structure.** A cryptographic stack whose certificate
 authority is the speed of light.
 
@@ -16,6 +18,7 @@ verifiable primitives.
 | Layer | Primitive | Status |
 |---|---|---|
 | L0 | Timing fabric (synchronized, surveyed stations) | modeled in H1 |
+| L0 | Timing fabric over real measurements | **H5 (this release)** |
 | L1 | Distance bounding / position proofs | **H3 (this release)** |
 | L2 | Relativistic commitments | **H2 (this release)** |
 | L3 | Cone certificates + causal ledger | **H1 (this release)** |
@@ -48,11 +51,19 @@ fabricates an order the geometry does not certify.
 ## Quickstart
 
 ```bash
-python3 scripts/run_h1.py     # runs all gates, writes certificates/h1_certificate.json
-python3 -m unittest discover tests -v
+python3 scripts/run_all.py              # runs every H1-H5 gate set + certificate validation
+python3 -m unittest discover tests -v   # 106 tests
+python3 scripts/validate_certificates.py
 ```
 
 Requires Python 3.9+. Standard library only.
+
+## Continuous verification
+
+Every push and pull request to `main` re-runs the full test suite, every
+H-series gate set, and the certificate validator across Python 3.9, 3.11,
+and 3.12 (`.github/workflows/gates.yml`). The build fails on any
+degradation - "all gates green" is enforced by CI, not asserted in prose.
 
 ## Discipline
 
@@ -76,7 +87,7 @@ job (bounded-entanglement QPV), which is out of scope here. HMAC with
 demo-derived keys stands in for real signatures. Simulated arrival times are
 computed, not measured. See `docs/h1-spec.md` for the full statement.
 
-## Roadmap
+## Shipped sprints
 
 - **H2** — relativistic commitment simulator (two-agent Kent-style sustain
   rounds; binding gate = the same integer cone predicate).
@@ -84,9 +95,23 @@ computed, not measured. See `docs/h1-spec.md` for the full statement.
   (the classical break, reproduced honestly, as a negative control).
 - **H4** — independence beacons: entropy XOR from stations with certified
   spacelike emission events.
+- **H5** — real-measurement bridge: cone certificates over actual measured
+  arrival times instead of computed ones, gated by an explicitly declared,
+  certificate-recorded uncertainty budget (`docs/h5-spec.md`). Refuses to
+  certify a marginal measurement as PASS — it reports `APPARATUS_LIMITED`
+  instead, naming the node and margin.
 
 **Known limitation demonstrated:** gate H3-C reproduces the classical
-collusion break of position verification (CGMO 2009) as `EXPECTED_ATTACK_SUCCESS` — see `docs/h3-spec.md`.
+collusion break of position verification (CGMO 2009) as `EXPECTED_ATTACK_SUCCESS` — see `docs/h3-spec.md`. Closing that gap is the design-only
+quantum layer (`docs/quantum-layer-spec.md`); it is not implemented here.
+
+## Design notes (writing only, no crypto implementation)
+
+- `docs/quantum-layer-spec.md` — how a bounded-entanglement Quantum
+  Position Verification layer would sit above H3 to close the collusion
+  gap H3-C demonstrates.
+- `docs/mnemesis-convergence.md` — mapping the causal ledger and cone
+  certificates onto a provenance-aware, multi-observer memory substrate.
 
 *Naming note: the working name during design was “Horos” (ὅρος, boundary
 stone — the ancestor of “horizon”); the H-series sprint prefix keeps it.*

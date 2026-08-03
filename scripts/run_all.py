@@ -19,6 +19,8 @@ RUNNERS = [
      "   classical_pv_break_demonstrated: true (EXPECTED_ATTACK_SUCCESS)"),
     ("H4", "scripts/run_h4.py", "h4_certificate.json",
      "   beacon certified: causal independence only"),
+    ("H5", "scripts/run_h5.py", "h5_certificate.json",
+     "   real-measurement bridge; APPARATUS_LIMITED honored on marginal fixture"),
 ]
 
 
@@ -40,6 +42,16 @@ def main():
                      f"{suffix}" if ok else f"{bench}: FAIL")
     for ln in lines:
         print(ln)
+
+    validate_proc = subprocess.run(
+        [sys.executable, os.path.join(ROOT, "scripts", "validate_certificates.py")],
+        cwd=ROOT, capture_output=True, text=True)
+    validate_ok = validate_proc.returncode == 0
+    all_green &= validate_ok
+    print(f"certificates validated: {'OK' if validate_ok else 'FAIL'}")
+    if not validate_ok:
+        print(validate_proc.stdout)
+
     print("ALL HORIZON GATES GREEN" if all_green else "GATES FAILING - see above")
     return 0 if all_green else 1
 
