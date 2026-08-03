@@ -1,0 +1,212 @@
+{
+  "adversary_model": "cheating committer attempting post-hoc bit flip or transcript tamper, without the power to rewrite already-sent round responses; arbitrary adversaries and any security PROOF of binding are OUT OF SCOPE (see docs/h2-spec.md)",
+  "aggregate": "PASS",
+  "benchmark_id": "H2",
+  "binding_duration_ns": 360000,
+  "certificate_version": "1",
+  "claim_class": "ENGINEERING_REFERENCE",
+  "dt_resp_ns": 50000,
+  "dt_round_ns": 40000,
+  "empirical_claim": "NONE",
+  "execution_tier": "BENCHMARK",
+  "field_prime": 2305843009213693951,
+  "gates": [
+    {
+      "description": "commit-sustain-reveal chain algebra",
+      "gate": "H2-A",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    },
+    {
+      "description": "causal-isolation precondition (two-sided)",
+      "gate": "H2-B",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    },
+    {
+      "description": "full sustained run on schedule",
+      "gate": "H2-C",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    },
+    {
+      "description": "negative controls REJECTED / APPARATUS_LIMITED",
+      "gate": "H2-D",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    }
+  ],
+  "heuristic_warnings": [
+    {
+      "location": "horizon/commit_sim.py",
+      "warning": "round timings computed, not measured; secrets/challenges derived from a frozen seed; simulator excluded from trusted path"
+    },
+    {
+      "location": "horizon/stations.py",
+      "warning": "HMAC with demo-derived symmetric keys stands in for signatures; key distribution trusted"
+    }
+  ],
+  "isolation_witnesses": [
+    {
+      "exact_witness": {
+        "admissible": false,
+        "c_nm_per_ns": 299792458,
+        "dt_ns": 50000,
+        "lhs_c_dt_squared": 224688794684204410000000000,
+        "rhs_dist_squared_nm2": 900000000000000000000000000
+      },
+      "round": 0
+    },
+    {
+      "exact_witness": {
+        "admissible": false,
+        "c_nm_per_ns": 299792458,
+        "dt_ns": 50000,
+        "lhs_c_dt_squared": 224688794684204410000000000,
+        "rhs_dist_squared_nm2": 900000000000000000000000000
+      },
+      "round": 1
+    },
+    {
+      "exact_witness": {
+        "admissible": false,
+        "c_nm_per_ns": 299792458,
+        "dt_ns": 50000,
+        "lhs_c_dt_squared": 224688794684204410000000000,
+        "rhs_dist_squared_nm2": 900000000000000000000000000
+      },
+      "round": 2
+    },
+    {
+      "exact_witness": {
+        "admissible": false,
+        "c_nm_per_ns": 299792458,
+        "dt_ns": 50000,
+        "lhs_c_dt_squared": 224688794684204410000000000,
+        "rhs_dist_squared_nm2": 900000000000000000000000000
+      },
+      "round": 3
+    },
+    {
+      "exact_witness": {
+        "admissible": false,
+        "c_nm_per_ns": 299792458,
+        "dt_ns": 50000,
+        "lhs_c_dt_squared": 224688794684204410000000000,
+        "rhs_dist_squared_nm2": 900000000000000000000000000
+      },
+      "round": 4
+    },
+    {
+      "exact_witness": {
+        "admissible": false,
+        "c_nm_per_ns": 299792458,
+        "dt_ns": 50000,
+        "lhs_c_dt_squared": 224688794684204410000000000,
+        "rhs_dist_squared_nm2": 900000000000000000000000000
+      },
+      "round": 5
+    },
+    {
+      "exact_witness": {
+        "admissible": false,
+        "c_nm_per_ns": 299792458,
+        "dt_ns": 50000,
+        "lhs_c_dt_squared": 224688794684204410000000000,
+        "rhs_dist_squared_nm2": 900000000000000000000000000
+      },
+      "round": 6
+    },
+    {
+      "exact_witness": {
+        "admissible": false,
+        "c_nm_per_ns": 299792458,
+        "dt_ns": 50000,
+        "lhs_c_dt_squared": 224688794684204410000000000,
+        "rhs_dist_squared_nm2": 900000000000000000000000000
+      },
+      "round": 7
+    },
+    {
+      "exact_witness": {
+        "admissible": false,
+        "c_nm_per_ns": 299792458,
+        "dt_ns": 50000,
+        "lhs_c_dt_squared": 224688794684204410000000000,
+        "rhs_dist_squared_nm2": 900000000000000000000000000
+      },
+      "round": 8
+    }
+  ],
+  "k_sustain": 8,
+  "one_way_light_time_ns": 100070,
+  "per_round_transcript_hashes": [
+    "085ca23b8ab58f9b0b75ff95991fc471c8b352ab4aed2c445331dd9fadaf93dd",
+    "51658382143458144248a8700b3b28a660c8191a9caf86ef7f647a3140c37975",
+    "6439eeed310fba3900ebdec5be62e003d83ba35d9c1d9ab15ecb7b4da5e2ad4d",
+    "aa970ffc5e879f0d62795581e0a5a7109a3f8f5d10097f9351263b072c4a880f",
+    "87cf29519b4fda7473dd65312cb99c61cde3230cd97c925771ef10cc7b0cf493",
+    "4d3351862231dd6573302ed41635bd60dcb0b50895e2d488cbd712d1654bee62",
+    "6020b4243e02cd93e302692310faaf8e22aa0e399c307ba93ddc98e1e88652d8",
+    "2c4e5e96534fc941774cb7f77e956e412ef702dea0550188a207fbd1b0a9d8d5",
+    "979f5d0531b96204bfc3ce5f929eaed67c7ba890e8bd38841a1e8ccf025a0aa6"
+  ],
+  "program": "HorizonProtocol",
+  "promotion_allowed": false,
+  "python_version": "3.11.15",
+  "seeds": [
+    "H2-FROZEN-SEED-v1"
+  ],
+  "sites_nm": {
+    "site_1": [
+      0,
+      0,
+      0
+    ],
+    "site_2": [
+      30000000000000,
+      0,
+      0
+    ]
+  },
+  "source_hashes": {
+    "horizon/__init__.py": "513a2bd5e2c85ba7c6fb372a429cd2cab8430c5389302f9d2c929618ab48d29e",
+    "horizon/beacon.py": "c6a0696c784ac83285f1d1fcd3b3728280e6aad1fb61416b6aae126f2e9b7ae7",
+    "horizon/beacon_sim.py": "976dd9e637f20eadc4305bde14e9847e837d5618bc1cb0bc67d273293946d57e",
+    "horizon/certificate.py": "102e1f2a3a2f3d047b6f07968ea73db776bf9b08a1291513c0919264e9f4e75e",
+    "horizon/commit_sim.py": "8e86781cc8243a227fa2278afe24f8de8057ca42c4479b934077339f9abadcb9",
+    "horizon/commitment.py": "4bf8609ed0a22cd6e72e4f36f9211f40192ba245403233adae44e814134a0fd1",
+    "horizon/db_sim.py": "a4d17690050b13833e359c6381867286c6d5db22214476979cf18454bf41eeee",
+    "horizon/distance.py": "ac0b89d9e74467ab80931b144f14bebd95c858795caf63193e88c47ea2c87c7f",
+    "horizon/events.py": "be117a3145df1a89d44bab130391b35e502bddb2fbdfa69430bea578a29cbda2",
+    "horizon/geometry.py": "d9e7a851b2284a963f7ca7b43f6e99a57408406093aed85ef7fcf4caec1c0240",
+    "horizon/ledger.py": "84d9fa3b1f9a7a02498e00a23c1c931f60cf6835f93a4a80e2b4d090ee026494",
+    "horizon/simulate.py": "a6b1760848f0a6b7f821999e7820d912b3edc741ddac834c4f38ef708ce7d1ce",
+    "horizon/stations.py": "25d3ab2d40fd20d7fcad81b25e43c17e7f1385ed3acd52cb7dd8af31b2755830"
+  },
+  "sustained_isolation": {
+    "detail": "round period plus response window shorter than one-way light time; consecutive rounds at alternating sites remain causally isolated",
+    "dt_resp_ns": 50000,
+    "dt_round_ns": 40000,
+    "dt_round_plus_resp_ns": 90000,
+    "exact_witness": {
+      "admissible": false,
+      "c_nm_per_ns": 299792458,
+      "dt_ns": 90000,
+      "lhs_c_dt_squared": 727991694776822288400000000,
+      "rhs_dist_squared_nm2": 900000000000000000000000000
+    },
+    "one_way_light_time_ns": 100070,
+    "verdict": "PASS"
+  },
+  "unit_convention": {
+    "c": 299792458,
+    "c_units": "nm/ns (exact integer)",
+    "position": "nanometers (int)",
+    "time": "nanoseconds (int)"
+  }
+}

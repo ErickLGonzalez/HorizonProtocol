@@ -16,10 +16,10 @@ verifiable primitives.
 | Layer | Primitive | Status |
 |---|---|---|
 | L0 | Timing fabric (synchronized, surveyed stations) | modeled in H1 |
-| L1 | Distance bounding / position proofs | H3 (planned) |
-| L2 | Relativistic commitments | H2 (planned) |
+| L1 | Distance bounding / position proofs | **H3 (this release)** |
+| L2 | Relativistic commitments | **H2 (this release)** |
 | L3 | Cone certificates + causal ledger | **H1 (this release)** |
-| L4 | Causal-disjointness independence beacons | H4 (planned) |
+| L4 | Causal-disjointness independence beacons | **H4 (this release)** |
 
 ## H1 — Cone Certificates & the Causal Ledger
 
@@ -84,6 +84,9 @@ computed, not measured. See `docs/h1-spec.md` for the full statement.
   (the classical break, reproduced honestly, as a negative control).
 - **H4** — independence beacons: entropy XOR from stations with certified
   spacelike emission events.
+
+**Known limitation demonstrated:** gate H3-C reproduces the classical
+collusion break of position verification (CGMO 2009) as `EXPECTED_ATTACK_SUCCESS` — see `docs/h3-spec.md`.
 
 *Naming note: the working name during design was “Horos” (ὅρος, boundary
 stone — the ancestor of “horizon”); the H-series sprint prefix keeps it.*
