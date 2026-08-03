@@ -1,0 +1,56 @@
+{
+  "event": {
+    "claimed_emit_pos_nm": [
+      0,
+      0,
+      0
+    ],
+    "claimed_emit_time_ns": 0,
+    "payload_hash": "3e088d657a731ee72daa06a2d8eb67c3e2abcb56df767030b0daa5ea81e31d5b"
+  },
+  "fixture_origin": "SYNTHETIC_CONSISTENT",
+  "receipts": [
+    {
+      "body": {
+        "payload_hash": "3e088d657a731ee72daa06a2d8eb67c3e2abcb56df767030b0daa5ea81e31d5b",
+        "recv_time_ns": 36079292,
+        "station_id": "NODE-EUW1",
+        "station_pos_nm": [
+          6124151593140482,
+          1605943847556704,
+          -10000000000
+        ]
+      },
+      "mac": "afd45fcfcdae4111668d2a44ff8a295c17f09bfa08add714da2bb1990deb2c5a"
+    },
+    {
+      "body": {
+        "payload_hash": "3e088d657a731ee72daa06a2d8eb67c3e2abcb56df767030b0daa5ea81e31d5b",
+        "recv_time_ns": 8958,
+        "station_id": "NODE-USE1",
+        "station_pos_nm": [
+          0,
+          0,
+          0
+        ]
+      },
+      "mac": "10156127ff5e376eb676f5c53a51ca3581a1bec1646189383d7d80222760dc8a"
+    },
+    {
+      "body": {
+        "payload_hash": "3e088d657a731ee72daa06a2d8eb67c3e2abcb56df767030b0daa5ea81e31d5b",
+        "recv_time_ns": 22099986,
+        "station_id": "NODE-USW2",
+        "station_pos_nm": [
+          -3819497896113808,
+          743604952442822,
+          20000000000
+        ]
+      },
+      "mac": "bfdaf33386eb6da231520b87b811124cfb283b04dece883ad526a7591ba21df2"
+    }
+  ],
+  "seed": "H5-FROZEN-SEED-v1",
+  "type": "measured_cone_certificate",
+  "version": "1"
+}
