@@ -3,47 +3,69 @@
 H1-H4 certify claims against COMPUTED arrival times (a world-model
 simulator). H5 certifies claims against MEASURED arrival times: real
 clocks carry a declared uncertainty `U_ns` and real signal paths are not
-vacuum straight lines, so the tight vacuum-c admissibility gate from
-`horizon.geometry` is the wrong instrument here - it would spuriously
-reject honest measurements as often as it would catch forgeries.
+vacuum straight lines, so a single tight admissibility gate is the wrong
+instrument here - it would spuriously reject honest measurements as often
+as it would catch forgeries. Instead this module classifies a measured
+receipt against TWO exact-integer floors:
 
-Instead this module widens the gate by an explicitly declared,
-certificate-recorded uncertainty budget: a conservative in-medium speed
-bound `c_eff = C_NM_PER_NS * c_eff_num / c_eff_den` (frozen at 3/5 of c,
-a fiber lower bound) and a per-station clock uncertainty `U_ns`, both
-integers, both recorded. A receipt is classified by how its measured
-elapsed time compares to the minimal transit time `c_eff` would require:
+  - `min_light_time_ns` (from `horizon.geometry`, unmodified, reused
+    exactly): the absolute vacuum-c floor. NOTHING travels faster than
+    this, in any medium, ever. A receipt earlier than this floor - even
+    after adding the full declared clock uncertainty `U_ns` in the
+    prover's favor - is REJECTED: physically impossible, full stop.
+  - `min_transit_time_ns_eff` (this module): the floor implied by a
+    conservative, declared in-medium speed bound `c_eff = C_NM_PER_NS *
+    c_eff_num / c_eff_den` (frozen at 3/5 of c - real fiber typically
+    performs at least this well). A receipt at or above this floor is
+    ADMITTED: consistent with ordinary, unremarkable real-medium
+    performance.
 
-  - comfortably at or above that requirement (margin > RESOLVE_MARGIN_NS):
-    ADMITTED
-  - comfortably below it (margin < -RESOLVE_MARGIN_NS): REJECTED - the
-    receipt is impossibly early even at the slow in-medium bound and with
-    the full clock-uncertainty benefit of the doubt
-  - within RESOLVE_MARGIN_NS of the boundary: APPARATUS_LIMITED - the
-    measurement cannot resolve admissible from rejected given the
-    declared uncertainty. Never silently PASS a marginal measurement.
+Between the two floors - physically possible (not FTL), but faster than
+the conservative real-medium bound accounts for - is exactly the region
+this module cannot resolve: APPARATUS_LIMITED, never silently PASS. This
+is the honest three-way split; there is no separate arbitrary "margin"
+constant, because the gap between a vacuum floor and a slower-medium
+floor already IS the unresolvable band, by construction.
+
+(Erratum: an earlier version of this module used `c_eff` - a declared
+LOWER bound on real-medium speed - as if it were the fastest anything
+could travel, and REJECTED receipts below the `c_eff` floor. Since real
+signals can legitimately travel faster than the conservative `c_eff`
+bound (up to vacuum c), that inverted the roles of the two speed bounds
+and could reject honest measurements. Fixed: vacuum c is the only floor
+that can ever justify REJECTED; `c_eff` only ever raises the bar for a
+clean ADMITTED.)
 
 No floats anywhere in a classification decision: `min_transit_time_ns_eff`
 uses the same exact-integer ceiling search as `geometry.min_light_time_ns`.
+
+Trust boundary: `verify_measured_certificate` takes per-station clock
+uncertainty (`node_params`) as a TRUSTED argument from the caller, exactly
+as it takes `registry` - never from the certificate itself. A certificate
+is untrusted input; if its own claimed uncertainty or speed bound were
+used to classify its own receipts, a forger could simply declare an
+enormous `U_ns` (or a superluminal `c_eff`) and turn an otherwise
+impossibly-early receipt into ADMITTED. `node_params` must come from the
+same pre-declared, trusted source as the station registry (see
+`horizon.fixtures.NODE_U_NS`).
 
 This module is on the trusted path: it never imports `horizon.capture`,
 `horizon.fixtures`, or any world-model module; test H5-B asserts this by
 source inspection. What it certifies is (a) receipt authenticity and
 event/position binding (reusing H1's station/receipt machinery exactly),
 and (b) that the measured arrival is consistent with a real, non-vacuum
-signal path under a declared uncertainty budget. It does NOT certify that
-any capture was actually performed live, or that a "SYNTHETIC_CONSISTENT"
-fixture is a real measurement (see docs/h5-spec.md, "Claim-scope
-firewall").
+signal path under a declared, TRUSTED uncertainty budget. It does NOT
+certify that any capture was actually performed live, or that a
+"SYNTHETIC_CONSISTENT" fixture is a real measurement (see docs/h5-spec.md,
+"Claim-scope firewall").
 """
 import math
 
-from .geometry import C_NM_PER_NS, dist2
+from .geometry import C_NM_PER_NS, dist2, min_light_time_ns
 
 # ---- frozen parameters (H5) -------------------------------------------------
 C_EFF_NUM = 3                       # c_eff = c * C_EFF_NUM / C_EFF_DEN
 C_EFF_DEN = 5                       # 3/5 of vacuum c: conservative fiber lower bound
-RESOLVE_MARGIN_NS = 20_000          # 20 us: band where ADMIT vs REJECT can't be resolved
 
 
 def min_transit_time_ns_eff(p1, p2, c_eff_num: int = C_EFF_NUM,
@@ -52,7 +74,8 @@ def min_transit_time_ns_eff(p1, p2, c_eff_num: int = C_EFF_NUM,
 
     Exact integer analogue of `geometry.min_light_time_ns`, but for the
     slower effective in-medium speed `c_eff = C_NM_PER_NS * num/den`
-    instead of vacuum c. Equivalently: ceil(dist(p1,p2) / c_eff).
+    instead of vacuum c. Equivalently: ceil(dist(p1,p2) / c_eff). Always
+    >= `min_light_time_ns(p1,p2)` since c_eff <= vacuum c.
     """
     d2 = dist2(p1, p2)
     if d2 == 0:
@@ -71,65 +94,57 @@ def min_transit_time_ns_eff(p1, p2, c_eff_num: int = C_EFF_NUM,
 
 
 def budget_witness(t0_ns: int, p0, t_recv_ns: int, station_pos_nm, u_ns: int,
-                   c_eff_num: int = C_EFF_NUM, c_eff_den: int = C_EFF_DEN,
-                   resolve_margin_ns: int = RESOLVE_MARGIN_NS) -> dict:
-    """Exact integer witness classifying one measured receipt.
-
-    `raw_dt_ns` is the measured elapsed time; `dt_adjusted_ns` adds the
-    full declared clock uncertainty `u_ns` in the prover's favor before
-    comparing against the in-medium transit-time floor. `margin_ns` is
-    signed distance from that floor, in nanoseconds: positive means
-    comfortably admissible, negative means comfortably impossible: the
-    RESOLVE_MARGIN_NS band around zero is where neither can be concluded.
+                   c_eff_num: int = C_EFF_NUM, c_eff_den: int = C_EFF_DEN) -> dict:
+    """Exact integer witness classifying one measured receipt against both
+    floors. `dt_adjusted_ns` adds the full declared clock uncertainty
+    `u_ns` in the prover's favor before comparing against either floor.
     """
     raw_dt_ns = t_recv_ns - t0_ns
     dt_adjusted_ns = raw_dt_ns + u_ns
-    required_dt_eff_ns = min_transit_time_ns_eff(p0, station_pos_nm,
-                                                 c_eff_num, c_eff_den)
-    margin_ns = dt_adjusted_ns - required_dt_eff_ns
+    vacuum_floor_ns = min_light_time_ns(p0, station_pos_nm)
+    typical_floor_ns = min_transit_time_ns_eff(p0, station_pos_nm,
+                                               c_eff_num, c_eff_den)
 
-    lhs = (dt_adjusted_ns * C_NM_PER_NS * c_eff_num) ** 2 if dt_adjusted_ns >= 0 else None
-    rhs = (c_eff_den * c_eff_den) * dist2(p0, station_pos_nm)
-    consistent = lhs is not None and lhs >= rhs
-
-    if margin_ns > resolve_margin_ns:
-        verdict = "ADMITTED"
-    elif margin_ns < -resolve_margin_ns:
+    if dt_adjusted_ns < vacuum_floor_ns:
         verdict = "REJECTED"
-    else:
+    elif dt_adjusted_ns < typical_floor_ns:
         verdict = "APPARATUS_LIMITED"
+    else:
+        verdict = "ADMITTED"
 
     return {
         "t0_ns": int(t0_ns), "t_recv_ns": int(t_recv_ns), "u_ns": int(u_ns),
         "raw_dt_ns": raw_dt_ns, "dt_adjusted_ns": dt_adjusted_ns,
         "c_eff_num": int(c_eff_num), "c_eff_den": int(c_eff_den),
-        "lhs_squared_nm2": lhs, "rhs_squared_nm2": rhs, "consistent": consistent,
-        "required_dt_eff_ns": required_dt_eff_ns, "margin_ns": margin_ns,
-        "resolve_margin_ns": int(resolve_margin_ns),
+        "vacuum_floor_ns": vacuum_floor_ns, "typical_floor_ns": typical_floor_ns,
+        "margin_below_vacuum_floor_ns": vacuum_floor_ns - dt_adjusted_ns,
+        "margin_below_typical_floor_ns": typical_floor_ns - dt_adjusted_ns,
         "verdict": verdict,
     }
 
 
 def classify_measured_receipt(t0_ns: int, p0, t_recv_ns: int, station_pos_nm,
                               u_ns: int, c_eff_num: int = C_EFF_NUM,
-                              c_eff_den: int = C_EFF_DEN,
-                              resolve_margin_ns: int = RESOLVE_MARGIN_NS) -> dict:
+                              c_eff_den: int = C_EFF_DEN) -> dict:
     """`{"verdict": ADMITTED|REJECTED|APPARATUS_LIMITED, "witness": {...}}`."""
     w = budget_witness(t0_ns, p0, t_recv_ns, station_pos_nm, u_ns,
-                       c_eff_num, c_eff_den, resolve_margin_ns)
+                       c_eff_num, c_eff_den)
     return {"verdict": w["verdict"], "witness": w}
 
 
 # ---- standalone verifier ----------------------------------------------------
-def verify_measured_certificate(cert: dict, registry: dict) -> dict:
+def verify_measured_certificate(cert: dict, registry: dict, node_params: dict) -> dict:
     """Independently re-verify a measured cone certificate. Gates, in order
     (per receipt): known_station -> receipt_mac -> payload_binding ->
     surveyed_position -> budget. Then, only for a certificate declaring
     `fixture_origin: LIVE_CAPTURE`, a self-consistency check that no
-    receipt's raw elapsed time is negative (a live session cannot rely on
-    the uncertainty budget to explain a receipt timestamped before its
-    own claimed emission - that signals unresolved clock skew, not a
-    consistent-but-slow real path).
+    receipt's raw elapsed time is negative.
+
+    `node_params` (`{station_id: {"u_ns": int, "c_eff_num": int (optional),
+    "c_eff_den": int (optional)}}`) is TRUSTED CALLER INPUT, exactly like
+    `registry` - it is never read from `cert`. A certificate has no field
+    for it: nothing in the untrusted input can override the declared
+    per-station uncertainty or speed bound.
 
     Aggregate verdict: REJECTED if any receipt fails a binding gate or is
     classified REJECTED (propagating the exact witness); else
@@ -145,8 +160,6 @@ def verify_measured_certificate(cert: dict, registry: dict) -> dict:
         return {"verdict": "REJECTED",
                 "witness": {"gate": "nonempty_receipts"}, "per_node": {}}
 
-    node_params = cert.get("node_params", {})
-    resolve_margin_ns = cert.get("resolve_margin_ns", RESOLVE_MARGIN_NS)
     per_node = {}
     apparatus_limited_nodes = []
 
@@ -172,21 +185,21 @@ def verify_measured_certificate(cert: dict, registry: dict) -> dict:
                     "witness": {"gate": "surveyed_position", "station_id": sid},
                     "per_node": per_node}
 
-        params = node_params.get(sid, {})
+        params = node_params[sid]
         u_ns = params["u_ns"]
         c_num = params.get("c_eff_num", C_EFF_NUM)
         c_den = params.get("c_eff_den", C_EFF_DEN)
         w = budget_witness(t0, p0, body["recv_time_ns"], st.pos_nm, u_ns,
-                           c_num, c_den, resolve_margin_ns)
+                           c_num, c_den)
         per_node[sid] = w
         if w["verdict"] == "REJECTED":
             return {"verdict": "REJECTED",
                     "witness": {"gate": "budget", "station_id": sid,
                                 "exact_witness": w,
-                                "detail": "receipt impossibly early even at "
-                                          "the slow in-medium bound, with the "
-                                          "full clock-uncertainty benefit of "
-                                          "the doubt"},
+                                "detail": "receipt earlier than the absolute "
+                                          "vacuum-c floor, even with the full "
+                                          "clock-uncertainty benefit of the "
+                                          "doubt: physically impossible"},
                     "per_node": per_node}
         if w["verdict"] == "APPARATUS_LIMITED":
             apparatus_limited_nodes.append(sid)
@@ -208,9 +221,10 @@ def verify_measured_certificate(cert: dict, registry: dict) -> dict:
         return {"verdict": "APPARATUS_LIMITED",
                 "witness": {"gate": "budget",
                             "apparatus_limited_nodes": apparatus_limited_nodes,
-                            "detail": "measurement cannot resolve admissible "
-                                      "from rejected within the declared "
-                                      "uncertainty budget"},
+                            "detail": "measurement is physically possible but "
+                                      "faster than the conservative real-medium "
+                                      "bound accounts for; cannot certify as "
+                                      "ordinary real-world performance"},
                 "per_node": per_node}
 
     return {"verdict": "PASS", "per_node": per_node}

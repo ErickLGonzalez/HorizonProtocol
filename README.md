@@ -52,7 +52,7 @@ fabricates an order the geometry does not certify.
 
 ```bash
 python3 scripts/run_all.py              # runs every H1-H5 gate set + certificate validation
-python3 -m unittest discover tests -v   # 106 tests
+python3 -m unittest discover tests -v   # 108 tests
 python3 scripts/validate_certificates.py
 ```
 

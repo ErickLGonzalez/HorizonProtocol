@@ -8,20 +8,27 @@ Located warnings:
       no float ever reaches a gate decision (`horizon.measure` operates
       only on the frozen integers);
   (2) `build_synthetic_consistent_capture` and `build_marginal_capture`
-      synthesize deterministic pseudo-measurements (arrival = exact
-      min-transit-time at `c_eff` plus a small seeded offset), NOT real
-      captured data; every fixture they produce is labelled
+      synthesize deterministic pseudo-measurements, NOT real captured
+      data; every fixture they produce is labelled
       `"origin": "SYNTHETIC_CONSISTENT"` and must never be presented as
       evidence of an actual measurement (see docs/h5-spec.md).
 
 This module is the world model only. The trusted verifier
 (`horizon.measure.verify_measured_certificate`) never imports it; test
 H5-B asserts this by source inspection.
+
+`NODE_U_NS` (declared per-node clock uncertainty) is the TRUSTED source
+of truth a caller must pass to `verify_measured_certificate`'s
+`node_params` argument - it is deliberately NOT embedded in the generated
+certificates. An earlier version put it in the certificate itself; since
+a certificate is untrusted input, that let a forger declare its own
+uncertainty budget and admit an otherwise-impossible receipt. See
+`horizon/measure.py`'s module docstring for the erratum.
 """
 import hashlib
 
 from .events import make_event
-from .measure import RESOLVE_MARGIN_NS, min_transit_time_ns_eff
+from .measure import min_transit_time_ns_eff
 from .stations import demo_registry
 
 # ---- frozen node geometry (H5) ----------------------------------------------
@@ -39,6 +46,8 @@ NODES_NM = {
     "NODE-EUW1": (6_124_151_593_140_482, 1_605_943_847_556_704, -10_000_000_000),
 }
 # Declared per-node clock uncertainty: NODE-USE1 is PTP-grade, the rest NTP-grade.
+# TRUSTED - pass to verify_measured_certificate via node_params(), never taken
+# from a certificate.
 NODE_U_NS = {
     "NODE-USE1": 50_000,          # 50 us (PTP)
     "NODE-USW2": 5_000_000,       # 5 ms (NTP)
@@ -72,6 +81,12 @@ def build_registry():
     return demo_registry(specs)
 
 
+def trusted_node_params():
+    """The TRUSTED per-station uncertainty a caller passes to
+    `verify_measured_certificate` - never read from a certificate."""
+    return {nid: {"u_ns": u_ns} for nid, u_ns in NODE_U_NS.items()}
+
+
 def _seeded_offset_ns(seed: str, node_id: str, modulus: int) -> int:
     """Small deterministic non-negative offset in [0, modulus)."""
     if modulus <= 0:
@@ -86,25 +101,23 @@ def _event():
 
 def build_synthetic_consistent_capture(seed: str = SEED_H5) -> dict:
     """Honest measured cone certificate: every node's receipt lands at the
-    exact c_eff minimal transit time plus a small seeded offset well
-    within its declared uncertainty - comfortably ADMITTED at every node.
+    exact c_eff minimal transit time plus a small seeded offset - at or
+    above the "typical real-medium" floor, so every node is comfortably
+    ADMITTED (see `horizon.measure`'s dual-floor classification).
     """
     registry = build_registry()
     event = _event()
     receipts = []
-    node_params = {}
     for nid in sorted(NODES_NM):
         st = registry[nid]
         u_ns = NODE_U_NS[nid]
-        required = min_transit_time_ns_eff(EVENT_POS_NM, st.pos_nm)
+        typical_floor = min_transit_time_ns_eff(EVENT_POS_NM, st.pos_nm)
         offset = _seeded_offset_ns(seed, nid, max(u_ns // 4, 1))
-        recv_time_ns = T0_H5_NS + required + offset
+        recv_time_ns = T0_H5_NS + typical_floor + offset
         receipts.append(st.sign_receipt(event["payload_hash"], recv_time_ns))
-        node_params[nid] = {"u_ns": u_ns}
     cert = {
         "type": "measured_cone_certificate", "version": "1",
-        "event": event, "receipts": receipts, "node_params": node_params,
-        "resolve_margin_ns": RESOLVE_MARGIN_NS,
+        "event": event, "receipts": receipts,
         "fixture_origin": "SYNTHETIC_CONSISTENT", "seed": seed,
     }
     return cert, registry
@@ -113,17 +126,21 @@ def build_synthetic_consistent_capture(seed: str = SEED_H5) -> dict:
 def build_marginal_capture(seed: str = SEED_H5,
                            marginal_node: str = "NODE-USW2") -> dict:
     """Like `build_synthetic_consistent_capture`, but `marginal_node`'s
-    receipt is placed exactly at the boundary (margin_ns == 0) between the
-    ADMITTED and REJECTED regions, landing inside RESOLVE_MARGIN_NS -
-    engineered so the verifier must report APPARATUS_LIMITED for this
-    event rather than silently certifying PASS.
+    receipt is placed at the midpoint between the vacuum-c floor and the
+    conservative in-medium (`c_eff`) floor - physically possible, but
+    faster than typical real-medium performance would explain - engineered
+    so the verifier must report APPARATUS_LIMITED for this event rather
+    than silently certifying PASS.
     """
+    from .geometry import min_light_time_ns
+
     cert, registry = build_synthetic_consistent_capture(seed)
     st = registry[marginal_node]
     u_ns = NODE_U_NS[marginal_node]
-    required = min_transit_time_ns_eff(EVENT_POS_NM, st.pos_nm)
-    # raw_dt + u_ns - required == 0  =>  raw_dt == required - u_ns
-    recv_time_ns = T0_H5_NS + required - u_ns
+    vacuum_floor = min_light_time_ns(EVENT_POS_NM, st.pos_nm)
+    typical_floor = min_transit_time_ns_eff(EVENT_POS_NM, st.pos_nm)
+    dt_adjusted_target = (vacuum_floor + typical_floor) // 2
+    recv_time_ns = T0_H5_NS + dt_adjusted_target - u_ns
     for i, r in enumerate(cert["receipts"]):
         if r["body"]["station_id"] == marginal_node:
             cert["receipts"][i] = st.sign_receipt(cert["event"]["payload_hash"],

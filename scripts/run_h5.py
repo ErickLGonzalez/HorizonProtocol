@@ -11,9 +11,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from horizon.fixtures import (FRAME_ORIGIN_LLH, NODE_U_NS, NODES_NM,  # noqa: E402
-                              SEED_H5, build_registry)
+                              SEED_H5, build_registry, trusted_node_params)
 from horizon.measure import (C_EFF_DEN, C_EFF_NUM,  # noqa: E402
-                             RESOLVE_MARGIN_NS, verify_measured_certificate)
+                             verify_measured_certificate)
 
 GATES = [
     ("H5-A", "tests/test_h5a_budget_gate.py", "SOUND", "uncertainty-budgeted gate math boundary correctness"),
@@ -47,6 +47,7 @@ def main():
 
     # sprint extras (deterministic recomputation over the committed fixtures)
     registry = build_registry()
+    node_params = trusted_node_params()  # TRUSTED - never taken from a certificate
     fixtures = []
     apparatus_limited_events = []
     per_event = {}
@@ -55,7 +56,7 @@ def main():
         path = os.path.join(ROOT, "data", name)
         with open(path) as f:
             cert = json.load(f)
-        res = verify_measured_certificate(cert, registry)
+        res = verify_measured_certificate(cert, registry, node_params)
         event_hash = cert["event"]["payload_hash"]
         per_event[f"{origin}:{event_hash}"] = {
             "fixture": name, "verdict": res["verdict"],
@@ -88,14 +89,16 @@ def main():
         "execution_tier": "BENCHMARK",
         "promotion_allowed": False,
         "empirical_claim": "NONE",
-        "adversary_model": ("a forger without station keys who submits an "
-                            "impossibly-early (FTL-in-medium) receipt, "
-                            "tampers with a receipt after signing, forges a "
-                            "station's own position claim, or presents a "
-                            "LIVE_CAPTURE fixture that fails its internal "
-                            "self-check; clock/network attacks against a "
-                            "legitimately-keyed station and any claim of "
-                            "deployed security are OUT OF SCOPE "
+        "adversary_model": ("a forger without station keys who submits a "
+                            "vacuum-c-violating receipt, declares its own "
+                            "uncertainty/speed-bound parameters (rejected: "
+                            "node_params is trusted caller input, never read "
+                            "from the certificate), tampers with a receipt "
+                            "after signing, forges a station's own position "
+                            "claim, or presents a LIVE_CAPTURE fixture that "
+                            "fails its internal self-check; clock/network "
+                            "attacks against a legitimately-keyed station and "
+                            "any claim of deployed security are OUT OF SCOPE "
                             "(see docs/h5-spec.md)"),
         "heuristic_warnings": [
             {"location": "horizon/fixtures.py", "warning":
@@ -121,7 +124,6 @@ def main():
         "nodes": [{"id": nid, "pos_nm": list(pos), "u_ns": NODE_U_NS[nid]}
                  for nid, pos in sorted(NODES_NM.items())],
         "c_eff_rational": [C_EFF_NUM, C_EFF_DEN],
-        "resolve_margin_ns": RESOLVE_MARGIN_NS,
         "path_excess_note": ("real fiber/copper paths are longer than the "
                              "straight-line distance and propagate slower "
                              "than vacuum c; this reference implementation "

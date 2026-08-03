@@ -20,6 +20,7 @@ Quarantine, enforced structurally:
 Stdlib only: `socket` for a minimal SNTP client-mode query (RFC 5905),
 `http.client` for `Date` headers, both read-only network operations.
 """
+import calendar
 import http.client
 import socket
 import struct
@@ -70,8 +71,11 @@ def query_http_date_ns(host: str, path: str = "/", timeout_s: float = 3.0) -> di
         conn.close()
         if date_hdr is None:
             return {"host": host, "verdict": "NO_DATE_HEADER"}
-        server_epoch_s = time.mktime(time.strptime(date_hdr,
-                                                    "%a, %d %b %Y %H:%M:%S %Z"))
+        # HTTP Date headers are always GMT; calendar.timegm (unlike
+        # time.mktime) interprets the parsed tuple as UTC, so this is not
+        # shifted by the local machine's timezone offset.
+        server_epoch_s = calendar.timegm(time.strptime(date_hdr,
+                                                       "%a, %d %b %Y %H:%M:%S %Z"))
         return {"host": host, "date_header": date_hdr,
                 "server_time_ns": int(server_epoch_s * 1e9),
                 "request_sent_ns": t_send_ns, "response_recv_ns": t_recv_ns,

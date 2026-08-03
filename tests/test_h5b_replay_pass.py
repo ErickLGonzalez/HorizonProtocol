@@ -3,7 +3,7 @@ import json
 import os
 import unittest
 
-from horizon.fixtures import NODE_U_NS, build_registry
+from horizon.fixtures import NODE_U_NS, build_registry, trusted_node_params
 from horizon.measure import verify_measured_certificate
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -15,20 +15,24 @@ class TestReplayPass(unittest.TestCase):
         with open(FIXTURE_PATH) as f:
             self.cert = json.load(f)
         self.registry = build_registry()
+        self.node_params = trusted_node_params()
 
     def test_committed_fixture_is_synthetic_consistent(self):
         self.assertEqual(self.cert["fixture_origin"], "SYNTHETIC_CONSISTENT")
 
+    def test_certificate_does_not_carry_its_own_gate_parameters(self):
+        # node_params/u_ns must be TRUSTED CALLER input, never read from the
+        # (untrusted) certificate itself - see horizon/measure.py's erratum
+        self.assertNotIn("node_params", self.cert)
+        self.assertNotIn("resolve_margin_ns", self.cert)
+
     def test_replay_all_nodes_admitted(self):
-        res = verify_measured_certificate(self.cert, self.registry)
+        res = verify_measured_certificate(self.cert, self.registry,
+                                          self.node_params)
         self.assertEqual(res["verdict"], "PASS")
         self.assertEqual(set(res["per_node"]), set(NODE_U_NS))
         for nid, w in res["per_node"].items():
             self.assertEqual(w["verdict"], "ADMITTED", nid)
-
-    def test_declared_uncertainty_recorded_per_node(self):
-        for nid, params in self.cert["node_params"].items():
-            self.assertEqual(params["u_ns"], NODE_U_NS[nid])
 
     def test_determinism_across_regeneration(self):
         from horizon.fixtures import build_synthetic_consistent_capture
