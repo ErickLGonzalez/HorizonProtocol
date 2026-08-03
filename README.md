@@ -20,6 +20,7 @@ verifiable primitives.
 | L0 | Timing fabric (synchronized, surveyed stations) | modeled in H1 |
 | L0 | Timing fabric over real measurements | **H5 (this release)** |
 | L0 | Timing fabric over real measurements, real geography | **H6 (this release)** |
+| L0.5 | Deep-space latency-budget gate + BE(Q) collusion resistance | **H7 (this release)** |
 | L1 | Distance bounding / position proofs | **H3 (this release)** |
 | L2 | Relativistic commitments | **H2 (this release)** |
 | L3 | Cone certificates + causal ledger | **H1 (this release)** |
@@ -52,10 +53,12 @@ fabricates an order the geometry does not certify.
 ## Quickstart
 
 ```bash
-python3 scripts/run_all.py              # runs every H1-H6 + MNX1 gate set + certificate validation
-python3 -m unittest discover tests -v   # 149 tests
+python3 scripts/run_all.py              # runs every H1-H7 + MNX1 + RT1 gate set + certificate validation
+python3 -m unittest discover tests -v   # 193 tests
 python3 scripts/validate_certificates.py
+python3 scripts/bench.py                # performance report (informational, not a gate)
 python3 scripts/demo_mnx.py             # MnemesisOS causal-memory demo, end to end
+python3 scripts/demo_h7.py              # deep-space telemetry demo: honest probe vs. Earth spoofer
 ```
 
 Requires Python 3.9+. Standard library only.
@@ -109,10 +112,31 @@ computed, not measured. See `docs/h1-spec.md` for the full statement.
   H6 is real-geography input feeding H5's already-reviewed dual-floor
   budgeted classifier and authenticated receipts, not a second
   implementation.
+- **H7** — deep-space groundwork: a single latency-budget gate unifying
+  authenticated telemetry and trajectory attestation over real Earth-Mars
+  distances (3-22 min one way; vacuum c_eff = 1, the *tightest* form of
+  the exact gate), plus an exact-fraction bounded-entanglement (BE(Q))
+  tracker supplying the collusion resistance classical distance-bounding
+  cannot (`docs/h7-spec.md`). Reuses `geometry.min_light_time_ns` and
+  `distance.min_round_trip_ns` directly rather than a parallel
+  implementation. Emits `CONDITIONAL(BE(Q))`, never an unconditional
+  security claim.
 
 **Known limitation demonstrated:** gate H3-C reproduces the classical
 collusion break of position verification (CGMO 2009) as `EXPECTED_ATTACK_SUCCESS` — see `docs/h3-spec.md`. Closing that gap is the design-only
 quantum layer (`docs/quantum-layer-spec.md`); it is not implemented here.
+
+## Companion program: independent red-team harness (RT1)
+
+`redteam/` is a separate attacker module (own certificate, own program
+name `RT1`) that tries to make gates ADMIT/PASS without authorization,
+hitting each gate through only its public API — never by importing
+verifier internals or reading a station's private key. Five attack
+classes (differential timing fuzz against an independently-implemented
+Decimal-based reference, budgeted-gate boundary/margin fuzz,
+cone-certificate and measured-certificate forgery fuzz, causal-ledger
+cycle fuzz), 11,000+ deterministic trials, zero bypasses as of this
+writing. See `docs/redteam-spec.md`.
 
 ## Companion program: MnemesisOS convergence (MNX1)
 
@@ -126,11 +150,19 @@ edge. A logical (vector-clock) ordering is also provided for contexts
 without physical geometry. See `docs/mnemesis-convergence.md` and
 `scripts/demo_mnx.py`.
 
-## Design notes (writing only, no crypto implementation)
+## Design notes and next steps
 
-- `docs/quantum-layer-spec.md` — how a bounded-entanglement Quantum
-  Position Verification layer would sit above H3 to close the collusion
-  gap H3-C demonstrates.
+- `docs/quantum-layer-spec.md` — the original bounded-entanglement QPV
+  design note; H7 now implements the classical groundwork it described
+  (the BE(Q) security-parameter tracker and the interface a real quantum
+  channel would plug into), but H7 is groundwork, not the full quantum
+  layer — no quantum channel is implemented, only its documented contract.
+- `docs/engineering-roadmap.md` — the roadmap that scoped D1 (float
+  guard), D2 (benchmark), E1 (kernel consolidation), and the red-team
+  harness (RT1) delivered above, plus what remains open: genuine
+  multi-node network capture (needs real, operator-provisioned hosts) and
+  a machine-checked proof of the admissibility kernel (needs a proof
+  assistant not available in this environment).
 
 *Naming note: the working name during design was “Horos” (ὅρος, boundary
 stone — the ancestor of “horizon”); the H-series sprint prefix keeps it.*

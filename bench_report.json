@@ -1,0 +1,63 @@
+{
+  "certificate_verification_ns_per_call_by_station_count": {
+    "1": 8929.1895,
+    "10": 87486.305,
+    "100": 895754.415,
+    "5": 42908.26,
+    "50": 440856.86
+  },
+  "gate_at_magnitudes": {
+    "earth_mars_max (~401,000,000 km)": {
+      "causally_admissible_ns_per_call": 459.9706,
+      "distance_km": 401000000,
+      "min_light_time_ns": 1337592021745,
+      "min_light_time_ns_ns_per_call": 1139.1268
+    },
+    "earth_mars_opposition (~78,000,000 km)": {
+      "causally_admissible_ns_per_call": 433.516,
+      "distance_km": 78000000,
+      "min_light_time_ns": 260179994255,
+      "min_light_time_ns_ns_per_call": 1237.2543
+    },
+    "earth_moon (~384,000 km)": {
+      "causally_admissible_ns_per_call": 436.67415,
+      "distance_km": 384000,
+      "min_light_time_ns": 1280886126,
+      "min_light_time_ns_ns_per_call": 960.4197
+    },
+    "terrestrial (~12,000 km, antipodal)": {
+      "causally_admissible_ns_per_call": 389.14275,
+      "distance_km": 12000,
+      "min_light_time_ns": 40027692,
+      "min_light_time_ns_ns_per_call": 927.2408
+    }
+  },
+  "ledger_precedes_fitted_scaling_exponent": 1.9398101837713269,
+  "ledger_reachability_by_edge_count": {
+    "10": {
+      "add_edge_ns_per_call": 3272.4,
+      "precedes_ns_per_call": 3420.09
+    },
+    "100": {
+      "add_edge_ns_per_call": 1728.06,
+      "precedes_ns_per_call": 252802.25
+    },
+    "1000": {
+      "add_edge_ns_per_call": 1945.206,
+      "precedes_ns_per_call": 24857224.0
+    },
+    "50": {
+      "add_edge_ns_per_call": 1731.42,
+      "precedes_ns_per_call": 63656.0
+    },
+    "500": {
+      "add_edge_ns_per_call": 1926.194,
+      "precedes_ns_per_call": 6233744.0
+    }
+  },
+  "ledger_scaling_finding": "CausalLedger.precedes scans the FULL edge set for every visited node (not an adjacency-list restricted scan): fitted exponent 1.94 on this run. An exponent near 1.0 would be linear in edge count (adjacency-list BFS); an exponent near 2.0 is consistent with the O(edges) full-set scan per visited node this implementation performs. This is a finding, not a fix: per docs/engineering-roadmap.md D2, if reachability is worse than linear, file it and consider an additive transitive-closure or adjacency-list cache that does not touch the security gate (add_edge's causally_admissible check is unaffected either way).",
+  "note": "informational only - not a security gate, not a certificate; always exits 0",
+  "platform": "Linux-6.18.5-x86_64-with-glibc2.39",
+  "python_version": "3.11.15",
+  "type": "performance_report"
+}
