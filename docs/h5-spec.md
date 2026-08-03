@@ -243,7 +243,10 @@ subject to the additional live-capture self-check in section 8.
   certificate declaring `fixture_origin: LIVE_CAPTURE` with one receipt's
   raw elapsed time negative (even though that receipt individually clears
   the ordinary budget gate) → APPARATUS_LIMITED at
-  `live_capture_self_check`, never silently PASS.
+  `live_capture_self_check`, never silently PASS; (7) the same valid,
+  signed receipt duplicated in the receipt list → REJECTED at
+  `distinct_sources` before any per-receipt gate runs, checked against
+  the raw declared `station_id`s (see F7).
 
 ## 9. Acceptance criteria
 
@@ -277,6 +280,12 @@ verifier as trusted arguments, never read from certificate content.
   any kind affecting `verify_measured_certificate`'s verdict → trust
   boundary defect (see section 6b); the verifier must use ONLY its
   caller-supplied `node_params` argument.
+- F7: a certificate that repeats the same `station_id` across multiple
+  receipts reported PASS instead of REJECTED at `distinct_sources` →
+  gate defect, file erratum (added alongside H6, whose explicit
+  multi-node claim exposed that a duplicated valid receipt previously
+  passed unchallenged; H4's beacon certificate already required this for
+  its independence sources - H5/H6 now require it too).
 
 ## 11. Claim-scope firewall (verbatim)
 

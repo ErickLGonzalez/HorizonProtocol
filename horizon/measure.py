@@ -133,18 +133,31 @@ def classify_measured_receipt(t0_ns: int, p0, t_recv_ns: int, station_pos_nm,
 
 
 # ---- standalone verifier ----------------------------------------------------
-def verify_measured_certificate(cert: dict, registry: dict, node_params: dict) -> dict:
-    """Independently re-verify a measured cone certificate. Gates, in order
-    (per receipt): known_station -> receipt_mac -> payload_binding ->
-    surveyed_position -> budget. Then, only for a certificate declaring
-    `fixture_origin: LIVE_CAPTURE`, a self-consistency check that no
-    receipt's raw elapsed time is negative.
+def verify_measured_certificate(cert: dict, registry: dict, node_params: dict,
+                                required_station_ids=None) -> dict:
+    """Independently re-verify a measured cone certificate. Gates, in order:
+    nonempty_receipts -> distinct_sources -> station_coverage (only if
+    `required_station_ids` is given) -> per receipt (known_station ->
+    receipt_mac -> payload_binding -> surveyed_position -> budget). Then,
+    only for a certificate declaring `fixture_origin: LIVE_CAPTURE`, a
+    self-consistency check that no receipt's raw elapsed time is negative.
 
     `node_params` (`{station_id: {"u_ns": int, "c_eff_num": int (optional),
     "c_eff_den": int (optional)}}`) is TRUSTED CALLER INPUT, exactly like
     `registry` - it is never read from `cert`. A certificate has no field
     for it: nothing in the untrusted input can override the declared
     per-station uncertainty or speed bound.
+
+    `distinct_sources` rejects a certificate that repeats the same
+    station_id across multiple receipts - without it, a single valid
+    signed receipt could be duplicated to pad a certificate's apparent
+    node count while still returning PASS. `required_station_ids`, when
+    given (a caller-supplied set/iterable of station ids that MUST all be
+    represented - e.g. every station in a multi-node registry a
+    certificate claims to corroborate), rejects a certificate missing any
+    of them; when omitted (as for a single-emitter H1/H5-style
+    certificate, where nothing requires universal station coverage), no
+    coverage check is performed.
 
     Aggregate verdict: REJECTED if any receipt fails a binding gate or is
     classified REJECTED (propagating the exact witness); else
@@ -159,6 +172,23 @@ def verify_measured_certificate(cert: dict, registry: dict, node_params: dict) -
     if not receipts:
         return {"verdict": "REJECTED",
                 "witness": {"gate": "nonempty_receipts"}, "per_node": {}}
+
+    station_ids = [r["body"]["station_id"] for r in receipts]
+    if len(set(station_ids)) != len(station_ids):
+        return {"verdict": "REJECTED",
+                "witness": {"gate": "distinct_sources",
+                            "station_ids": station_ids},
+                "per_node": {}}
+
+    if required_station_ids is not None:
+        required = set(required_station_ids)
+        got = set(station_ids)
+        if got != required:
+            return {"verdict": "REJECTED",
+                    "witness": {"gate": "station_coverage",
+                                "missing": sorted(required - got),
+                                "unexpected": sorted(got - required)},
+                    "per_node": {}}
 
     per_node = {}
     apparatus_limited_nodes = []

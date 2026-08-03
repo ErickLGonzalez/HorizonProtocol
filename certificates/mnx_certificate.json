@@ -1,0 +1,59 @@
+{
+  "adversary_model": "honest observers with possibly-divergent clocks; Byzantine observers and a signature/authentication layer are OUT OF SCOPE at MNX1 (see docs/mnemesis-convergence.md)",
+  "aggregate": "PASS",
+  "benchmark_id": "MNX1",
+  "certificate_version": "1",
+  "claim_class": "ENGINEERING_REFERENCE",
+  "convergence_claim": "a causal ledger IS a provenance-aware multi-observer memory: writes=events, merge gate=light-cone gate, concurrent writes retained with provenance (PGSD deferred selection)",
+  "empirical_claim": "NONE",
+  "execution_tier": "BENCHMARK",
+  "gates": [
+    {
+      "description": "vector-clock partial order",
+      "gate": "MNX-A",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    },
+    {
+      "description": "causal memory under light-cone ordering",
+      "gate": "MNX-B",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    },
+    {
+      "description": "causal memory under vector-clock ordering",
+      "gate": "MNX-C",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    },
+    {
+      "description": "memory ordering matches HorizonProtocol ledger edge-for-edge",
+      "gate": "MNX-D",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    }
+  ],
+  "heuristic_warnings": [],
+  "orderings": [
+    "GEOMETRIC (exact light-cone, reuses horizon.geometry unmodified)",
+    "LOGICAL (vector-clock happens-before fallback)"
+  ],
+  "program": "MnemesisOS x HorizonProtocol",
+  "promotion_allowed": false,
+  "python_version": "3.11.15",
+  "source_hashes": {
+    "mnemesis/__init__.py": "a60b0bfb183c2bca3184b73375fab37b7c08d410cd5d91230dd4d88ac7f95d0c",
+    "mnemesis/memory.py": "d7fd2a72ccca6a3c50c66a9bfa8d334e6ba47afc9d8cdefecbf24dcb363d1b32",
+    "mnemesis/vclock.py": "b2701ba75f3abbfbba8886d58b0ba54051b296ed256df7a91d6062163006e80e"
+  },
+  "unit_convention": {
+    "c": 299792458,
+    "c_units": "nm/ns (exact integer, GEOMETRIC ordering only)",
+    "position": "nanometers (int, GEOMETRIC ordering only)",
+    "time": "nanoseconds (int, GEOMETRIC ordering) or unitless vector-clock counters (LOGICAL ordering)"
+  }
+}

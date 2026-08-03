@@ -101,7 +101,7 @@ def validate_certificate(path):
 
 
 def main():
-    cert_paths = sorted(glob.glob(os.path.join(ROOT, "certificates", "h*_certificate.json")))
+    cert_paths = sorted(glob.glob(os.path.join(ROOT, "certificates", "*_certificate.json")))
     if not cert_paths:
         print("no certificates found under certificates/", file=sys.stderr)
         return 1

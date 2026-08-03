@@ -1,0 +1,312 @@
+{
+  "adversary_model": "a forger without station keys who submits a vacuum-c-violating receipt, declares its own uncertainty/speed-bound parameters (rejected: node_params is trusted caller input, never read from the certificate - identical to H5), tampers with a receipt after signing, forges a node's own position claim, or submits an unknown node; colluding multi-node adversaries are OUT OF SCOPE (classical PV limit, demonstrated in H3-C); node key compromise and curvature/relativistic frame effects beyond local-ENU Minkowski are OUT OF SCOPE (see docs/h6-spec.md)",
+  "aggregate": "PASS",
+  "apparatus_limited_events": [
+    "marginal:47c7629634391741d35a7a746c3f2e66bf4cd64119d75919bd79f2ef9831e72e"
+  ],
+  "benchmark_id": "H6",
+  "c_eff_rational": [
+    3,
+    5
+  ],
+  "certificate_version": "1",
+  "claim_class": "ENGINEERING_REFERENCE",
+  "empirical_claim": "NONE",
+  "execution_tier": "BENCHMARK",
+  "fixtures": [
+    {
+      "name": "h6_fixture_capture.json",
+      "origin": "SYNTHETIC_CONSISTENT",
+      "sha256": "f477f7d3fdacf3c84fd0cdb4e69b47cf38de1b7c911b4726660c094f6800912b"
+    },
+    {
+      "name": "h6_fixture_marginal.json",
+      "origin": "SYNTHETIC_CONSISTENT",
+      "sha256": "3a38f0b0a1b4b8b7f33767da1f43101c36550b4345b7c1032d18f25b599a997f"
+    }
+  ],
+  "gates": [
+    {
+      "description": "real geography -> exact nm lattice (quantized)",
+      "gate": "H6-A",
+      "result": "PASS",
+      "soundness_tag": "HEURISTIC",
+      "unittest_tail": "OK"
+    },
+    {
+      "description": "consistent fixture over real geography PASSES; verifier standalone",
+      "gate": "H6-B",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    },
+    {
+      "description": "marginal fixture -> APPARATUS_LIMITED, never silent PASS",
+      "gate": "H6-C",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    },
+    {
+      "description": "negative controls REJECTED / APPARATUS_LIMITED with witnesses",
+      "gate": "H6-D",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    }
+  ],
+  "geo_frame": {
+    "geodesy": "WGS84 ellipsoid -> ECEF -> ENU, quantized to nm lattice",
+    "origin_llh": [
+      38.9445,
+      -77.4558,
+      90.0
+    ],
+    "origin_name": "aws-us-east-1",
+    "quantization_nm": 1
+  },
+  "heuristic_warnings": [
+    {
+      "location": "horizon/geo_frame.py",
+      "warning": "WGS84 ellipsoid -> ECEF -> ENU geodesy is floating point; quantized to the nm lattice once, then every gate is exact"
+    },
+    {
+      "location": "horizon/geo_fixtures.py",
+      "warning": "synthetic captures are deterministic pseudo-measurements, not real ones - every fixture built here is labelled SYNTHETIC_CONSISTENT"
+    },
+    {
+      "location": "horizon/h6_capture.py",
+      "warning": "live measurement against public NTP stand-ins; not part of the trusted path; excluded from CI; results non-deterministic and unauthenticated; never imported by any verifier or test"
+    },
+    {
+      "location": "horizon/stations.py",
+      "warning": "HMAC with demo-derived symmetric keys stands in for signatures; key distribution trusted"
+    }
+  ],
+  "nodes": {
+    "ap-southeast-1": {
+      "llh": [
+        1.3197,
+        103.7065,
+        15.0
+      ],
+      "pos_nm": [
+        -129343986459683,
+        4141602460298120,
+        -11236384117105394
+      ],
+      "u_ns": 5000000
+    },
+    "eu-west-1": {
+      "llh": [
+        53.4129,
+        -8.2439,
+        80.0
+      ],
+      "pos_nm": [
+        3561900768196695,
+        3136054046082241,
+        -2113594004365602
+      ],
+      "u_ns": 5000000
+    },
+    "us-east-1": {
+      "llh": [
+        38.9445,
+        -77.4558,
+        90.0
+      ],
+      "pos_nm": [
+        0,
+        0,
+        0
+      ],
+      "u_ns": 5000000
+    },
+    "us-west-2": {
+      "llh": [
+        45.8399,
+        -119.7006,
+        100.0
+      ],
+      "pos_nm": [
+        -2992522065482674,
+        1490775140211840,
+        -945167923313490
+      ],
+      "u_ns": 5000000
+    }
+  },
+  "per_event": {
+    "capture:47c7629634391741d35a7a746c3f2e66bf4cd64119d75919bd79f2ef9831e72e": {
+      "budget_witnesses": {
+        "ap-southeast-1": {
+          "c_eff_den": 5,
+          "c_eff_num": 3,
+          "dt_adjusted_ns": 71801469,
+          "margin_below_typical_floor_ns": -5221761,
+          "margin_below_vacuum_floor_ns": -31853644,
+          "raw_dt_ns": 66801469,
+          "t0_ns": 1000000000,
+          "t_recv_ns": 1066801469,
+          "typical_floor_ns": 66579708,
+          "u_ns": 5000000,
+          "vacuum_floor_ns": 39947825,
+          "verdict": "ADMITTED"
+        },
+        "eu-west-1": {
+          "c_eff_den": 5,
+          "c_eff_num": 3,
+          "dt_adjusted_ns": 35119333,
+          "margin_below_typical_floor_ns": -6237585,
+          "margin_below_vacuum_floor_ns": -17790284,
+          "raw_dt_ns": 30119333,
+          "t0_ns": 1000000000,
+          "t_recv_ns": 1030119333,
+          "typical_floor_ns": 28881748,
+          "u_ns": 5000000,
+          "vacuum_floor_ns": 17329049,
+          "verdict": "ADMITTED"
+        },
+        "us-east-1": {
+          "c_eff_den": 5,
+          "c_eff_num": 3,
+          "dt_adjusted_ns": 6179432,
+          "margin_below_typical_floor_ns": -6179432,
+          "margin_below_vacuum_floor_ns": -6179432,
+          "raw_dt_ns": 1179432,
+          "t0_ns": 1000000000,
+          "t_recv_ns": 1001179432,
+          "typical_floor_ns": 0,
+          "u_ns": 5000000,
+          "vacuum_floor_ns": 0,
+          "verdict": "ADMITTED"
+        },
+        "us-west-2": {
+          "c_eff_den": 5,
+          "c_eff_num": 3,
+          "dt_adjusted_ns": 24754885,
+          "margin_below_typical_floor_ns": -5439711,
+          "margin_below_vacuum_floor_ns": -13165780,
+          "raw_dt_ns": 19754885,
+          "t0_ns": 1000000000,
+          "t_recv_ns": 1019754885,
+          "typical_floor_ns": 19315174,
+          "u_ns": 5000000,
+          "vacuum_floor_ns": 11589105,
+          "verdict": "ADMITTED"
+        }
+      },
+      "fixture": "h6_fixture_capture.json",
+      "per_node_verdicts": {
+        "ap-southeast-1": "ADMITTED",
+        "eu-west-1": "ADMITTED",
+        "us-east-1": "ADMITTED",
+        "us-west-2": "ADMITTED"
+      },
+      "verdict": "PASS"
+    },
+    "marginal:47c7629634391741d35a7a746c3f2e66bf4cd64119d75919bd79f2ef9831e72e": {
+      "budget_witnesses": {
+        "ap-southeast-1": {
+          "c_eff_den": 5,
+          "c_eff_num": 3,
+          "dt_adjusted_ns": 71801469,
+          "margin_below_typical_floor_ns": -5221761,
+          "margin_below_vacuum_floor_ns": -31853644,
+          "raw_dt_ns": 66801469,
+          "t0_ns": 1000000000,
+          "t_recv_ns": 1066801469,
+          "typical_floor_ns": 66579708,
+          "u_ns": 5000000,
+          "vacuum_floor_ns": 39947825,
+          "verdict": "ADMITTED"
+        },
+        "eu-west-1": {
+          "c_eff_den": 5,
+          "c_eff_num": 3,
+          "dt_adjusted_ns": 35119333,
+          "margin_below_typical_floor_ns": -6237585,
+          "margin_below_vacuum_floor_ns": -17790284,
+          "raw_dt_ns": 30119333,
+          "t0_ns": 1000000000,
+          "t_recv_ns": 1030119333,
+          "typical_floor_ns": 28881748,
+          "u_ns": 5000000,
+          "vacuum_floor_ns": 17329049,
+          "verdict": "ADMITTED"
+        },
+        "us-east-1": {
+          "c_eff_den": 5,
+          "c_eff_num": 3,
+          "dt_adjusted_ns": 6179432,
+          "margin_below_typical_floor_ns": -6179432,
+          "margin_below_vacuum_floor_ns": -6179432,
+          "raw_dt_ns": 1179432,
+          "t0_ns": 1000000000,
+          "t_recv_ns": 1001179432,
+          "typical_floor_ns": 0,
+          "u_ns": 5000000,
+          "vacuum_floor_ns": 0,
+          "verdict": "ADMITTED"
+        },
+        "us-west-2": {
+          "c_eff_den": 5,
+          "c_eff_num": 3,
+          "dt_adjusted_ns": 15452139,
+          "margin_below_typical_floor_ns": 3863035,
+          "margin_below_vacuum_floor_ns": -3863034,
+          "raw_dt_ns": 10452139,
+          "t0_ns": 1000000000,
+          "t_recv_ns": 1010452139,
+          "typical_floor_ns": 19315174,
+          "u_ns": 5000000,
+          "vacuum_floor_ns": 11589105,
+          "verdict": "APPARATUS_LIMITED"
+        }
+      },
+      "fixture": "h6_fixture_marginal.json",
+      "per_node_verdicts": {
+        "ap-southeast-1": "ADMITTED",
+        "eu-west-1": "ADMITTED",
+        "us-east-1": "ADMITTED",
+        "us-west-2": "APPARATUS_LIMITED"
+      },
+      "verdict": "APPARATUS_LIMITED"
+    }
+  },
+  "program": "HorizonProtocol",
+  "promotion_allowed": false,
+  "python_version": "3.11.15",
+  "seeds": [
+    "H6-FROZEN-SEED-v1"
+  ],
+  "source_hashes": {
+    "horizon/__init__.py": "513a2bd5e2c85ba7c6fb372a429cd2cab8430c5389302f9d2c929618ab48d29e",
+    "horizon/beacon.py": "c6a0696c784ac83285f1d1fcd3b3728280e6aad1fb61416b6aae126f2e9b7ae7",
+    "horizon/beacon_sim.py": "976dd9e637f20eadc4305bde14e9847e837d5618bc1cb0bc67d273293946d57e",
+    "horizon/capture.py": "5abdbfc828842d92411cb0c999ea39aa0a503d6ecb94d8941d6da31f92826db8",
+    "horizon/certificate.py": "102e1f2a3a2f3d047b6f07968ea73db776bf9b08a1291513c0919264e9f4e75e",
+    "horizon/commit_sim.py": "8e86781cc8243a227fa2278afe24f8de8057ca42c4479b934077339f9abadcb9",
+    "horizon/commitment.py": "4bf8609ed0a22cd6e72e4f36f9211f40192ba245403233adae44e814134a0fd1",
+    "horizon/db_sim.py": "a4d17690050b13833e359c6381867286c6d5db22214476979cf18454bf41eeee",
+    "horizon/distance.py": "ac0b89d9e74467ab80931b144f14bebd95c858795caf63193e88c47ea2c87c7f",
+    "horizon/events.py": "be117a3145df1a89d44bab130391b35e502bddb2fbdfa69430bea578a29cbda2",
+    "horizon/fixtures.py": "6ec3c564086400e439080df0020ef02984eab4ac6e24f2ec086654c4f2aaa37f",
+    "horizon/geo_fixtures.py": "5d12cf8c4774ef5c8481c14740c8e2b72ed9a9f11be2b93351197f613474b745",
+    "horizon/geo_frame.py": "ed1f0557559017865ce3c8e6c77fab988de2300e0df1a51a73127c9f4cb897a9",
+    "horizon/geo_registry.py": "f9e8bc544bdd3319035501aa65d3c74403eed796491eb5097d3fa346ee3bdc23",
+    "horizon/geometry.py": "d9e7a851b2284a963f7ca7b43f6e99a57408406093aed85ef7fcf4caec1c0240",
+    "horizon/h6_capture.py": "3aea5cac4812f186f3f5143693402e9418b8ed57ceca1ed8bec4464f28008ecf",
+    "horizon/ledger.py": "84d9fa3b1f9a7a02498e00a23c1c931f60cf6835f93a4a80e2b4d090ee026494",
+    "horizon/measure.py": "30561ea7fa0c6d5cf4f642dd04295f136046c4266e1fedbfcbb30be8bf27aa73",
+    "horizon/simulate.py": "a6b1760848f0a6b7f821999e7820d912b3edc741ddac834c4f38ef708ce7d1ce",
+    "horizon/stations.py": "25d3ab2d40fd20d7fcad81b25e43c17e7f1385ed3acd52cb7dd8af31b2755830"
+  },
+  "unit_convention": {
+    "c": 299792458,
+    "c_units": "nm/ns (exact integer)",
+    "position": "nanometers (int, local ENU lattice)",
+    "time": "nanoseconds (int)"
+  }
+}

@@ -11,14 +11,15 @@ two failure modes this checklist itself must never silently permit.
 2. `python3 scripts/validate_certificates.py` - must exit 0.
 3. CI (`.github/workflows/gates.yml`) green on `main`, across the full
    Python 3.9 / 3.11 / 3.12 matrix.
-4. `git tag -a v0.1.0 -m "H1-H5 complete; all gates green; preregistration freeze"`
+4. `git tag -a v0.1.0 -m "H1-H6 + MNX1 complete; all gates green; preregistration freeze"`
 5. `git push origin v0.1.0`
 
 ## The tag is the preregistration freeze
 
 Once `v0.1.0` is pushed, every threshold, gate, and registered falsifier
-in `docs/h1-spec.md` through `docs/h5-spec.md` is **frozen as of that
-commit**. This is a preregistration discipline, not a suggestion:
+in `docs/h1-spec.md` through `docs/h6-spec.md`, plus
+`docs/mnemesis-convergence.md`, is **frozen as of that commit**. This is a
+preregistration discipline, not a suggestion:
 
 - A later change to a frozen parameter, gate, or falsifier requires a
   **new tag** (e.g. `v0.2.0`) and an **erratum note** filed in `docs/`

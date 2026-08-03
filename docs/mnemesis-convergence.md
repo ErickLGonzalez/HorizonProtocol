@@ -1,139 +1,158 @@
-# MnemesisOS Convergence — Design Note
+# MnemesisOS x HorizonProtocol — Convergence (MNX1)
 
-**Program:** HorizonProtocol · **Status:** DESIGN ONLY, NO IMPLEMENTATION ·
-**Claim class:** ENGINEERING_REFERENCE (design) · **Empirical claim:** NONE
+**Program:** MnemesisOS x HorizonProtocol · **Benchmark:** MNX1 ·
+**Claim class:** ENGINEERING_REFERENCE · **Promotion:** none ·
+**Empirical claim:** NONE
 
-This document maps `horizon.ledger.CausalLedger` and cone certificates
-onto the MnemesisOS problem: reconciling divergent-observer state without
-a global "now." It contains no code and proposes none for this
-repository. It is sober by design - the mapping is offered as a
-structural observation to be tested, not a finished architecture.
+## 1. The structural claim (demonstrated, not just asserted)
 
-## 1. The structural claim
+An earlier design note argued that `horizon.ledger.CausalLedger` and cone
+certificates are structurally identical to a provenance-aware,
+multi-observer memory. This document's companion code (`mnemesis/`)
+demonstrates the identity mechanically rather than by analogy: the
+memory's ordering agrees, edge for edge, with the `CausalLedger`
+admissibility gate (gate MNX-D), and the same exact light-cone kernel
+(`horizon.geometry`, unmodified) decides both.
 
-The MnemesisOS problem, stated plainly: a memory substrate serving
-multiple observers (agents, replicas, distributed writers) cannot assume
-a single global order of events, because no such order exists for
-spacelike-separated writes - imposing one anyway either fabricates a
-causal relationship the underlying process never had, or silently drops
-information about genuine concurrency.
+The mapping is exact:
 
-`horizon.ledger.CausalLedger` already embodies the correct primitive for
-this, built for an unrelated purpose (certifying that a *dependency*
-between two events is geometrically possible): it is a DAG, not a total
-order, and it stores concurrent (spacelike-separated) events **as
-concurrent**, refusing to sequence what the geometry does not certify
-(`test_h1d_ledger.TestLedger.test_concurrency_is_symmetric_nonorder`).
-The structural claim of this note is that this is exactly the right shape
-for a provenance-aware, multi-observer memory system: **"concurrent
-events stored unordered" is the correct primitive for such a system, not
-a limitation to be engineered away.** A system that insists on
-linearizing every write is a system that has decided to lie about
-causality whenever two writers were, in fact, independent.
-
-## 2. Mapping table
-
-| HorizonProtocol concept | Memory-substrate concept |
+| Memory concept | HorizonProtocol concept |
 |---|---|
-| Ledger event (hash + time + position) | Memory write, with a verifiable origin |
-| Admissibility gate (`causally_admissible`) | Merge admissibility: can write B legitimately depend on write A? |
-| Concurrency (`CausalLedger.concurrent`) | Conflict requiring resolution-with-provenance, not silent overwrite |
-| Cone certificate (event + signed receipts) | Provenance record: who observed this write, and when, attested |
-| Rejection with exact witness | Auditable merge refusal: the specific reason a proposed merge order is impossible, not a bare failure |
-| Causal ledger DAG | The memory substrate's dependency graph itself |
+| a write (key := value by an observer) | an event with (time, position) |
+| "this write supersedes that one" | a causal dependency edge A -> B |
+| supersession admissibility | the light-cone gate (c·Δt)² ≥ Δx² |
+| two writes neither superseding the other | spacelike-separated / concurrent events |
+| conflict surfaced for resolution | concurrent events stored unordered |
+| provenance of a value | the cone certificate / event witness |
+| refused overwrite (with reason) | REJECTED edge (with exact witness) |
 
-Read down the table: every column-two concept already has a
-column-one referent with a working, tested implementation in this
-repository. Nothing in the mapping requires a new primitive - it requires
-recognizing that the primitive already exists and was built to a
-stricter standard (exact-integer, adversarial) than most memory systems
-demand of themselves.
+The consequence is a memory with a property most distributed stores lack:
+**an overwrite that could not causally have observed the value it claims to
+replace is refused, with a witness.** Silent last-writer-wins is impossible
+by construction; it is not a policy but a geometric fact.
 
-## 3. The PGSD tie-in
+## 2. Concurrent writes: retain, don't collapse (the PGSD pattern)
 
-A previously-flagged pattern for transfer - parallel candidate states
-carried with provenance, resolution deliberately deferred rather than
-forced early (referred to elsewhere as "superset decompilation," PGSD) -
-needs exactly the admissibility layer HorizonProtocol supplies: a
-mechanism for deciding, **for a candidate merge or resolution step**,
-whether it is even *possible* given what each candidate state can
-legitimately have known. Where PGSD defers resolution among several
-live candidates, HorizonProtocol's causal gate is what would tell the
-substrate which candidates are mutually exclusive (one causally
-excludes what the other assumed) versus which are genuinely independent
-and can be carried in parallel without contradiction. This is a narrower
-claim than "HorizonProtocol solves PGSD's deferred-resolution problem":
-it supplies the *admissibility test* that problem needs at each
-resolution step, not the resolution policy itself.
+When two observers write the same key with no causal order between them,
+`CausalMemory.get` does not pick a winner. It returns `CONFLICT` with all
+candidates and their provenance, deferring resolution - the "retain
+ambiguous interpretations as parallel candidates with provenance, defer
+selection to a final phase" pattern from provenance-guided superset
+decompilation, already flagged for transfer in the Global-Variables
+program. Resolution is an explicit operation (`CausalMemory.resolve`): a
+new write that is in the causal future of *every* current candidate. An
+observer that cannot see all candidates cannot resolve the conflict -
+again a geometric fact, not a convention.
+
+This is also the Global-Variables fact-store culture made operational:
+append-only, provenance-carrying, with invalidation by causally-later
+writes rather than destruction.
+
+**Errata (fixed, not merely noted):** an earlier version of `resolve`
+looked up `chosen_wid` in the ENTIRE store rather than restricting it to
+`key`'s current frontier candidates, so a write id belonging to a
+different key (or one already superseded) could be "chosen" to resolve a
+conflict it was never actually a candidate for. `resolve` now rejects any
+`chosen_wid` outside the target key's frontier (`not_a_frontier_candidate`).
+Separately, `put` was not idempotent: retrying an identical
+`(key, value, observer, clock)` call re-appended the same write id to the
+key's index (`_frontier` then saw it twice, and `get` could falsely report
+`CONFLICT` against itself) and, if the retry declared a different
+`supersedes`, silently rewrote the original write's provenance - a direct
+violation of "append-only." `put` now recognizes a repeated write id and
+returns the original admission unchanged.
+
+## 3. Two clocks, one interface
+
+Geometry is not always available (a purely logical distributed system has
+no metric). `mnemesis.memory.CausalMemory` is therefore clock-agnostic: it
+takes an `ordering` object exposing `before(a, b)` and `concurrent(a, b)`,
+and this repository ships two:
+
+- **`GeometricOrdering`** - exact light-cone ordering over `{"time_ns",
+  "pos_nm"}` clocks, reusing `horizon.geometry.causally_admissible`
+  UNCHANGED (test MNX-D asserts the import by source inspection). This is
+  the physically-grounded mode, correct for real distributed nodes with
+  surveyed positions and measured time (the H5/H6 substrate).
+- **`LogicalOrdering`** - vector-clock happens-before (`mnemesis.vclock`),
+  the standard partial order, for contexts without geometry.
+
+**Erratum:** `mnemesis.vclock.happens_before` originally computed
+`a != b and leq(a, b)` - a raw dict inequality, not a normalized one. Two
+clocks that are the SAME logical instant under zero-padding but differ in
+dict representation (e.g. `{"n1": 1}` vs. `{"n1": 1, "n2": 0}`) satisfied
+`a != b` in BOTH directions, so `happens_before` reported each before the
+other - an antisymmetry violation that would let `CausalMemory.put` admit
+a write "superseding" another at the same logical instant. Fixed to the
+standard antisymmetric definition, `leq(a, b) and not leq(b, a)`, which
+correctly treats such pairs as concurrent (test
+`test_zero_padded_equivalent_clocks_are_not_before_each_other`).
+
+Both satisfy the same memory invariants (gates MNX-B, MNX-C), so an
+application can start logical and upgrade to geometric where physical
+coordinates become available - for example, promoting a vector-clock
+store to a cone-certified one once nodes are surveyed. (Whether that
+upgrade never *loosens* what the geometric gate would have rejected is
+registered as open question Q3 below - not yet implemented or tested.)
 
 ## 4. What transfers now vs. later
 
-**Directly reusable now**, as-is or with only interface adaptation (no
-algorithmic change):
+**Implemented here:** `mnemesis.memory.CausalMemory` (the store),
+`GeometricOrdering` / `LogicalOrdering`, `mnemesis.vclock` (vector
+clocks), and the conflict/resolve protocol. `mnemesis.memory` imports
+`horizon.geometry` directly rather than vendoring a copy - there is
+exactly one light-cone kernel in this repository, shared by H1-H6 and
+MNX1 alike.
 
-- `horizon.ledger.CausalLedger`'s DAG structure and its `concurrent`/
-  reachability queries - a memory substrate can adopt this data structure
-  directly for its dependency graph.
-- The cone-certificate pattern (event + signed receipts + standalone
-  verification) as a template for attaching verifiable provenance to a
-  memory write, independent of *how* that write's timestamp was obtained.
-- The rejection-with-exact-witness discipline: a merge refusal in a
-  memory substrate should, on this model, always name the specific
-  conflicting write and the specific reason, not fail generically.
+**Directly reusable, unmodified:** `horizon.geometry` (the exact gate),
+`horizon.ledger` (the DAG and concurrency query - `CausalLedger` needed no
+changes to serve as MNX-D's cross-check), the certificate discipline, and
+the negative-control/witness culture.
 
-**Needs generalization before reuse:**
+**Deferred (out of scope at MNX1, registered as future work):**
+- a signature/authentication layer so writes are non-repudiable (today
+  MNX1 assumes honest observers; Byzantine tolerance is future work,
+  mirroring H1-H6's single-forger, non-colluding adversary model);
+- garbage collection of deep history under a retention policy that
+  preserves provenance for live values;
+- geometric<->logical bridging when only *some* nodes are surveyed (see
+  Q3);
+- integration with H5/H6 measured timestamps so a memory write's clock is
+  a real, cone-certified measurement (with its own uncertainty budget)
+  rather than a supplied value.
 
-- The admissibility gate itself is currently light-cone geometry
-  (physical positions, physical light speed). A memory substrate without
-  physical position data needs a **logical or vector-clock fallback**:
-  the same DAG-with-admissibility-gate shape, but with "admissible" tested
-  against logical causality (e.g., vector-clock dominance) rather than
-  physical geometry. This is a substitution of the gate predicate, not a
-  change to the surrounding ledger structure - `CausalLedger` was written
-  generically enough (per H1's design) that this substitution looks
-  mechanical, but it has not been attempted or tested.
-- H5's uncertainty-budget discipline (declare `U_ns`, refuse to certify
-  inside a resolve margin) is a plausible template for a substrate that
-  *does* have imprecise physical timestamps (e.g., loosely synchronized
-  distributed writers) but wants to avoid HorizonProtocol's H1 tight gate
-  falsely rejecting legitimate concurrent writes as conflicting. This has
-  not been designed for the memory-substrate case specifically.
+## 5. Registered open questions (as testable statements)
 
-**Out of scope for this note:**
-
-- Any actual merge *policy* (last-writer-wins, CRDTs, application-level
-  conflict resolution) - this note claims HorizonProtocol supplies the
-  admissibility *test*, not a policy for what to do once concurrency is
-  detected.
-- Performance/scalability of `CausalLedger` at memory-substrate scale (the
-  current implementation is a reference/demo DAG, not benchmarked for
-  large event counts).
-- Any claim that this mapping has been implemented, tested, or run against
-  a real MnemesisOS workload.
-
-## 5. Registered open questions (testable statements)
-
-- MQ1: does substituting a vector-clock admissibility predicate into
-  `CausalLedger`'s existing DAG/concurrency machinery require changing
-  the DAG structure itself, or only the predicate function? (Testable by
-  attempting the substitution against the existing test suite's
-  structural expectations.)
-- MQ2: for a workload with `N` genuinely concurrent writers, does storing
-  all pairwise-concurrent writes unordered (rather than forcing a
+- Q1: does the frontier computation remain exact and order-independent
+  under adversarial write interleavings? (MNX-B/C test honest
+  interleavings; a Byzantine test is future work.)
+- Q2: for a workload with `N` genuinely concurrent writers, does storing
+  all pairwise-concurrent writes unordered (rather than forcing an
   arbitrary total order) measurably change downstream read/merge
   correctness, versus only changing audit-trail honesty? (Testable by
   comparing a policy that timestamps-and-orders arbitrarily against one
   that preserves the DAG's genuine concurrency.)
-- MQ3: does the cone-certificate provenance pattern (signed receipts +
-  standalone verification) impose acceptable overhead at realistic memory
-  write rates, or does it need a lighter-weight provenance attestation for
-  high-frequency writes? (Testable by benchmarking receipt
-  signing/verification throughput against a target write rate.)
-- MQ4: can H5's uncertainty-budget discipline be adapted to a logical
-  (non-physical) clock setting, or does it fundamentally depend on a
-  physical light-speed bound with no logical analogue? (Testable by
-  attempting the adaptation and checking whether an "impossible margin"
-  concept survives without a physical speed limit to anchor it.)
+- Q3: does a geometric->logical downgrade ever admit an edge the
+  geometric gate would reject? (Must not; a bridging test asserting this
+  has not yet been written.)
+- Q4: can a resolution be forged by claiming a clock in the future of
+  both candidates without physically being there? (This is exactly the
+  H3-C collusion question; the answer is the quantum layer's
+  (`docs/quantum-layer-spec.md`), not MNX1's.)
+- Q5: does H5/H6's uncertainty-budget discipline (declare `U_ns`, refuse
+  to certify inside the resolve band) adapt to a memory-write setting
+  without a physical light-speed bound to anchor "impossible"? (Not
+  attempted here.)
+
+## 6. Claim scope
+
+MNX1 certifies that a provenance-aware causal memory, built on the exact
+HorizonProtocol light-cone kernel, executes and satisfies its declared
+gates - including that its ordering matches the ledger edge-for-edge
+(gate MNX-D). It is NOT a production database, NOT Byzantine-fault-
+tolerant, and NOT a security proof. The value demonstrated here is the
+identity: HorizonProtocol supplies the causal admissibility layer a
+multi-observer memory needs, and `mnemesis.CausalMemory` is that memory.
 
 ## Prohibited claims (repository-wide, verbatim)
 
@@ -144,5 +163,6 @@ algorithmic change):
 - No claim that H3's classical layer resists collusion (H3-C proves the
   opposite on purpose).
 - No claim that H4 certifies statistical randomness.
-- No claim that H5's synthetic-consistent fixtures are real measurements.
+- No claim that H5's or H6's synthetic-consistent fixtures are real
+  measurements.
 - No claim that any passing benchmark is evidence about physics.

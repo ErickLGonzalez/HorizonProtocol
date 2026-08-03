@@ -19,6 +19,7 @@ verifiable primitives.
 |---|---|---|
 | L0 | Timing fabric (synchronized, surveyed stations) | modeled in H1 |
 | L0 | Timing fabric over real measurements | **H5 (this release)** |
+| L0 | Timing fabric over real measurements, real geography | **H6 (this release)** |
 | L1 | Distance bounding / position proofs | **H3 (this release)** |
 | L2 | Relativistic commitments | **H2 (this release)** |
 | L3 | Cone certificates + causal ledger | **H1 (this release)** |
@@ -51,9 +52,10 @@ fabricates an order the geometry does not certify.
 ## Quickstart
 
 ```bash
-python3 scripts/run_all.py              # runs every H1-H5 gate set + certificate validation
-python3 -m unittest discover tests -v   # 108 tests
+python3 scripts/run_all.py              # runs every H1-H6 + MNX1 gate set + certificate validation
+python3 -m unittest discover tests -v   # 149 tests
 python3 scripts/validate_certificates.py
+python3 scripts/demo_mnx.py             # MnemesisOS causal-memory demo, end to end
 ```
 
 Requires Python 3.9+. Standard library only.
@@ -100,18 +102,35 @@ computed, not measured. See `docs/h1-spec.md` for the full statement.
   certificate-recorded uncertainty budget (`docs/h5-spec.md`). Refuses to
   certify a marginal measurement as PASS — it reports `APPARATUS_LIMITED`
   instead, naming the node and margin.
+- **H6** — the same H5 gate, over real cloud-region geography instead of an
+  abstract site rig: WGS84 lat/lon/alt quantized once to the exact nm
+  lattice (`horizon/geo_frame.py`), then HMAC-authenticated stations at
+  real distances up to ~12,000 km (`docs/h6-spec.md`). No new gate math —
+  H6 is real-geography input feeding H5's already-reviewed dual-floor
+  budgeted classifier and authenticated receipts, not a second
+  implementation.
 
 **Known limitation demonstrated:** gate H3-C reproduces the classical
 collusion break of position verification (CGMO 2009) as `EXPECTED_ATTACK_SUCCESS` — see `docs/h3-spec.md`. Closing that gap is the design-only
 quantum layer (`docs/quantum-layer-spec.md`); it is not implemented here.
+
+## Companion program: MnemesisOS convergence (MNX1)
+
+`mnemesis/` is a small, separate package (own certificate, own program
+name) demonstrating that `horizon.ledger.CausalLedger` **is** a
+provenance-aware, multi-observer memory: writes are events, the merge
+gate is the same light-cone gate (reused unmodified), and concurrent
+writes are retained with provenance rather than silently overwritten.
+Gate MNX-D proves the memory's ordering matches `CausalLedger` edge for
+edge. A logical (vector-clock) ordering is also provided for contexts
+without physical geometry. See `docs/mnemesis-convergence.md` and
+`scripts/demo_mnx.py`.
 
 ## Design notes (writing only, no crypto implementation)
 
 - `docs/quantum-layer-spec.md` — how a bounded-entanglement Quantum
   Position Verification layer would sit above H3 to close the collusion
   gap H3-C demonstrates.
-- `docs/mnemesis-convergence.md` — mapping the causal ledger and cone
-  certificates onto a provenance-aware, multi-observer memory substrate.
 
 *Naming note: the working name during design was “Horos” (ὅρος, boundary
 stone — the ancestor of “horizon”); the H-series sprint prefix keeps it.*
