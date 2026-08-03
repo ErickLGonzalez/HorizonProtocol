@@ -1,0 +1,205 @@
+{
+  "adversary_model": "distant/decoy provers without the ability to send signals faster than light; PLUS the colluding pair deliberately IN SCOPE for H3-C to demonstrate that classical position verification fails against collusion (see docs/h3-spec.md)",
+  "aggregate": "PASS",
+  "benchmark_id": "H3",
+  "certificate_version": "1",
+  "claim_class": "ENGINEERING_REFERENCE",
+  "claim_scope": "classical position verification is assurance-grade only; collusion defeats it (demonstrated in H3-C); mitigation belongs to a quantum layer out of scope for this repository",
+  "classical_pv_break_demonstrated": true,
+  "collusion_demo": {
+    "attacker_positions_nm": {
+      "V1": {
+        "agent": "A1",
+        "pos_nm": [
+          1000000000000,
+          1000000000000,
+          0
+        ]
+      },
+      "V2": {
+        "agent": "A2",
+        "pos_nm": [
+          10000000000000,
+          10000000000000,
+          5000000000000
+        ]
+      },
+      "V3": {
+        "agent": "A2",
+        "pos_nm": [
+          10000000000000,
+          10000000000000,
+          5000000000000
+        ]
+      },
+      "V4": {
+        "agent": "A2",
+        "pos_nm": [
+          10000000000000,
+          10000000000000,
+          5000000000000
+        ]
+      }
+    },
+    "citation": "Chandran-Goyal-Moriarty-Ostrovsky 2009",
+    "no_prover_at_claimed_position": true,
+    "per_verifier_satisfaction": {
+      "V1": "ADMITTED",
+      "V2": "ADMITTED",
+      "V3": "ADMITTED",
+      "V4": "ADMITTED"
+    },
+    "verdict": "EXPECTED_ATTACK_SUCCESS"
+  },
+  "empirical_claim": "NONE",
+  "execution_tier": "BENCHMARK",
+  "gates": [
+    {
+      "counts_as_pass": true,
+      "description": "single-verifier RTT bounding",
+      "gate": "H3-A",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    },
+    {
+      "counts_as_pass": true,
+      "description": "4-verifier multilateration",
+      "gate": "H3-B",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    },
+    {
+      "counts_as_pass": true,
+      "description": "classical collusion break demonstrated (EXPECTED_ATTACK_SUCCESS)",
+      "gate": "H3-C",
+      "result": "EXPECTED_ATTACK_SUCCESS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    },
+    {
+      "counts_as_pass": true,
+      "description": "FTL floor control",
+      "gate": "H3-D",
+      "result": "PASS",
+      "soundness_tag": "SOUND",
+      "unittest_tail": "OK"
+    }
+  ],
+  "heuristic_warnings": [
+    {
+      "location": "horizon/db_sim.py",
+      "warning": "RTTs computed, not measured; simulator excluded from trusted path"
+    },
+    {
+      "location": "horizon/stations.py",
+      "warning": "HMAC with demo-derived symmetric keys stands in for signatures; key distribution trusted"
+    }
+  ],
+  "p_claim_nm": [
+    6000000000000,
+    6000000000000,
+    0
+  ],
+  "per_verifier_bounds": {
+    "V1": {
+      "c_nm_per_ns": 299792458,
+      "deadline_ns": 56633,
+      "gate": "rtt_bound",
+      "lhs_c_dt_squared": 288003011060431502000951296,
+      "min_light_time_ns": 28304,
+      "proc_ns": 25,
+      "rhs_4_dist_squared_nm2": 288000000000000000000000000,
+      "rtt_minus_proc_ns": 56608,
+      "rtt_ns": 56633,
+      "verdict": "ADMITTED"
+    },
+    "V2": {
+      "c_nm_per_ns": 299792458,
+      "deadline_ns": 101639,
+      "gate": "rtt_bound",
+      "lhs_c_dt_squared": 928001121271000982919692944,
+      "min_light_time_ns": 50807,
+      "proc_ns": 25,
+      "rhs_4_dist_squared_nm2": 928000000000000000000000000,
+      "rtt_minus_proc_ns": 101614,
+      "rtt_ns": 101639,
+      "verdict": "ADMITTED"
+    },
+    "V3": {
+      "c_nm_per_ns": 299792458,
+      "deadline_ns": 101639,
+      "gate": "rtt_bound",
+      "lhs_c_dt_squared": 928001121271000982919692944,
+      "min_light_time_ns": 50807,
+      "proc_ns": 25,
+      "rhs_4_dist_squared_nm2": 928000000000000000000000000,
+      "rtt_minus_proc_ns": 101614,
+      "rtt_ns": 101639,
+      "verdict": "ADMITTED"
+    },
+    "V4": {
+      "c_nm_per_ns": 299792458,
+      "deadline_ns": 144963,
+      "gate": "rtt_bound",
+      "lhs_c_dt_squared": 1888017146964280996415980816,
+      "min_light_time_ns": 72469,
+      "proc_ns": 25,
+      "rhs_4_dist_squared_nm2": 1888000000000000000000000000,
+      "rtt_minus_proc_ns": 144938,
+      "rtt_ns": 144963,
+      "verdict": "ADMITTED"
+    }
+  },
+  "proc_ns": 25,
+  "program": "HorizonProtocol",
+  "promotion_allowed": false,
+  "python_version": "3.11.15",
+  "seeds": [
+    "H3-FROZEN-SEED-v1"
+  ],
+  "source_hashes": {
+    "horizon/__init__.py": "513a2bd5e2c85ba7c6fb372a429cd2cab8430c5389302f9d2c929618ab48d29e",
+    "horizon/beacon.py": "26c3d08f9aa3b6fb827d9f439f8bd3384b298139a1e2b7ca7222011508eabc66",
+    "horizon/beacon_sim.py": "976dd9e637f20eadc4305bde14e9847e837d5618bc1cb0bc67d273293946d57e",
+    "horizon/certificate.py": "102e1f2a3a2f3d047b6f07968ea73db776bf9b08a1291513c0919264e9f4e75e",
+    "horizon/commit_sim.py": "8e86781cc8243a227fa2278afe24f8de8057ca42c4479b934077339f9abadcb9",
+    "horizon/commitment.py": "c5df88b2cbc0e3b6265da6b008fa952cf9a1b2183b316cd71f62c40d2a42ac78",
+    "horizon/db_sim.py": "a4d17690050b13833e359c6381867286c6d5db22214476979cf18454bf41eeee",
+    "horizon/distance.py": "ac0b89d9e74467ab80931b144f14bebd95c858795caf63193e88c47ea2c87c7f",
+    "horizon/events.py": "be117a3145df1a89d44bab130391b35e502bddb2fbdfa69430bea578a29cbda2",
+    "horizon/geometry.py": "d9e7a851b2284a963f7ca7b43f6e99a57408406093aed85ef7fcf4caec1c0240",
+    "horizon/ledger.py": "84d9fa3b1f9a7a02498e00a23c1c931f60cf6835f93a4a80e2b4d090ee026494",
+    "horizon/simulate.py": "a6b1760848f0a6b7f821999e7820d912b3edc741ddac834c4f38ef708ce7d1ce",
+    "horizon/stations.py": "25d3ab2d40fd20d7fcad81b25e43c17e7f1385ed3acd52cb7dd8af31b2755830"
+  },
+  "unit_convention": {
+    "c": 299792458,
+    "c_units": "nm/ns (exact integer)",
+    "position": "nanometers (int)",
+    "time": "nanoseconds (int)"
+  },
+  "verifiers_nm": {
+    "V1": [
+      0,
+      0,
+      0
+    ],
+    "V2": [
+      20000000000000,
+      0,
+      0
+    ],
+    "V3": [
+      0,
+      20000000000000,
+      0
+    ],
+    "V4": [
+      0,
+      0,
+      20000000000000
+    ]
+  }
+}
