@@ -58,7 +58,7 @@
       "warning": "HMAC demo key derivation; not deployment-grade auth"
     }
   ],
-  "issued_at": "2026-08-04T11:17:51Z",
+  "issued_at": "2026-08-04T11:19:30Z",
   "measured_u_ns": {
     "eu-west-1": 118222,
     "us-east-1": 31109,

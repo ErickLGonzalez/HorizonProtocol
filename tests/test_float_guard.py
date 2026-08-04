@@ -39,6 +39,7 @@ TRUSTED_MODULES = [
     "horizon/signed_capture.py",
     "horizon/capture_verify.py",
     "horizon/build_frame.py",
+    "horizon/reachability_cache.py",
     "mnemesis/memory.py",
     "mnemesis/vclock.py",
 ]
