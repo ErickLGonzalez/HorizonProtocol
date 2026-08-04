@@ -55,6 +55,26 @@ def main():
     for ln in lines:
         print(ln)
 
+    # PROOF (formal/, Phase C) is the one gate with a non-stdlib dependency
+    # (z3-solver), confined entirely to this offline artifact - see
+    # formal/README.md. Exit code 2 means "z3-solver not installed": reported
+    # as SKIPPED, not counted against all_green, so a fresh clone with no
+    # extra installs still reaches ALL HORIZON GATES GREEN on the stdlib-only
+    # path. Exit 0/1 are treated as a real pass/fail like every other gate.
+    proof_proc = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "run_formal.py")],
+                                cwd=ROOT, capture_output=True, text=True)
+    if proof_proc.returncode == 2:
+        print("PROOF: SKIPPED - z3-solver not installed "
+             "(pip install z3-solver && python3 scripts/run_formal.py to verify)")
+    else:
+        with open(os.path.join(ROOT, "certificates", "formal_certificate.json")) as f:
+            proof_cert = json.load(f)
+        proof_ok = proof_proc.returncode == 0 and proof_cert["aggregate"] == "PASS"
+        all_green &= proof_ok
+        print(f"PROOF: {'PASS' if proof_ok else 'FAIL'} ({len(proof_cert['gates'])}/"
+             f"{len(proof_cert['gates'])} gates)   machine-checked kernel proof (Z3); "
+             f"all theorems PROVEN")
+
     validate_proc = subprocess.run(
         [sys.executable, os.path.join(ROOT, "scripts", "validate_certificates.py")],
         cwd=ROOT, capture_output=True, text=True)

@@ -39,6 +39,10 @@ cone of event A?" — is the pure integer comparison
 ```
 
 No floats, no tolerances, no rounding anywhere in an admissibility decision.
+This predicate is machine-checked, not just tested: `formal/` proves five
+theorems about it (faithfulness to the real light-cone condition, sharp
+null-cone boundary, future monotonicity, and boundary-search minimality) with
+the Z3 SMT solver over the integers (`docs/formal-kernel-spec.md`).
 
 **Cone certificate:** an event (hash + claimed emission time/position) plus
 signed receipts from surveyed stations. The standalone verifier re-checks,
@@ -55,14 +59,20 @@ fabricates an order the geometry does not certify.
 
 ```bash
 python3 scripts/run_all.py              # runs every H1-H9 + MNX1 + RT1 gate set + certificate validation
-python3 -m unittest discover tests -v   # 226 tests
+python3 -m unittest discover tests -v   # 239 tests
 python3 scripts/validate_certificates.py
 python3 scripts/bench.py                # performance report (informational, not a gate)
 python3 scripts/demo_mnx.py             # MnemesisOS causal-memory demo, end to end
 python3 scripts/demo_h7.py              # deep-space telemetry demo: honest probe vs. Earth spoofer
+
+# optional: the machine-checked kernel proof (the ONE non-stdlib dependency
+# in this repository, confined entirely to formal/ - see docs/formal-kernel-spec.md)
+pip install z3-solver && python3 scripts/run_formal.py
 ```
 
-Requires Python 3.9+. Standard library only.
+Requires Python 3.9+. Standard library only, with one documented, optional
+exception (`z3-solver`, for `formal/` alone - `scripts/run_all.py` reports it
+as SKIPPED rather than failing if it isn't installed).
 
 ## Continuous verification
 
@@ -138,6 +148,25 @@ computed, not measured. See `docs/h1-spec.md` for the full statement.
 collusion break of position verification (CGMO 2009) as `EXPECTED_ATTACK_SUCCESS` — see `docs/h3-spec.md`. Closing that gap is the design-only
 quantum layer (`docs/quantum-layer-spec.md`); it is not implemented here.
 
+## Companion program: machine-checked kernel proof (C1)
+
+`formal/` proves five theorems about `causally_admissible` with the Z3 SMT
+solver over the integers, rather than testing it on samples: faithfulness to
+the real (non-integer) light-cone condition with no rounding gap, a sharp
+null-cone boundary, future monotonicity, and minimality of the boundary-search
+algorithm (`docs/formal-kernel-spec.md`). `z3-solver` (pip) is this
+repository's only non-stdlib dependency, confined entirely to this directory
+- `scripts/run_all.py` reports the proof gate as SKIPPED, not FAIL, if it
+isn't installed, so the rest of the repository stays stdlib-only.
+
+Reviewing the originally-shipped proof found one theorem (null-cone
+exactness) formulated as a self-referential integer tautology that reported
+"PROVEN" regardless of whether the underlying predicate was even correct -
+concretely confirmed the query stayed `unsat` even against a deliberately
+broken predicate. Fixed to route through genuine free variables so the proof
+is actually sensitive to the kernel it's supposed to be checking, with a
+regression test asserting exactly that sensitivity going forward.
+
 ## Companion program: independent red-team harness (RT1, extended by H9)
 
 `redteam/` is a separate attacker module (own certificate, own program
@@ -176,13 +205,18 @@ without physical geometry. See `docs/mnemesis-convergence.md` and
   layer — no quantum channel is implemented, only its documented contract.
 - `docs/engineering-roadmap.md` — the roadmap that scoped D1 (float
   guard), D2 (benchmark), E1 (kernel consolidation), the red-team harness
-  (RT1/H9), and H8 (genuine multi-node capture, delivered as a labeled
-  `MEASURED_MODEL` stand-in plus a quarantined live on-ramp) delivered
-  above. What remains open: a genuine LIVE capture over real,
-  operator-provisioned hosts (H8 supplies the verifier and the on-ramp
-  script; running it against real infrastructure is the next step) and a
-  machine-checked proof of the admissibility kernel (needs a proof
-  assistant not available in this environment).
+  (RT1/H9), H8 (genuine multi-node capture, delivered as a labeled
+  `MEASURED_MODEL` stand-in plus a quarantined live on-ramp), and C1 (the
+  machine-checked kernel proof, `formal/`) delivered above. D2's own
+  finding - `CausalLedger.precedes()` scans the full edge set per visited
+  node, fitting a ~quadratic scaling exponent on `scripts/bench.py`'s
+  measurements - is now filed AND fixed: `horizon.reachability_cache` adds
+  an additive, opt-in `precedes_fast()` (adjacency-indexed BFS, ~linear on
+  the same measurements), cross-checked for agreement against the kept,
+  unchanged `precedes()` reference in `tests/test_reachability_cache.py`.
+  What remains open: a genuine LIVE capture over real, operator-provisioned
+  hosts (H8 supplies the verifier and the on-ramp script; running it
+  against real infrastructure is the next step).
 
 *Naming note: the working name during design was “Horos” (ὅρος, boundary
 stone — the ancestor of “horizon”); the H-series sprint prefix keeps it.*

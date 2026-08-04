@@ -11,15 +11,16 @@ two failure modes this checklist itself must never silently permit.
 2. `python3 scripts/validate_certificates.py` - must exit 0.
 3. CI (`.github/workflows/gates.yml`) green on `main`, across the full
    Python 3.9 / 3.11 / 3.12 matrix.
-4. `git tag -a v0.1.0 -m "H1-H9 + MNX1 + RT1 complete; all gates green; preregistration freeze"`
+4. `git tag -a v0.1.0 -m "H1-H9 + MNX1 + RT1 + C1 complete; all gates green; preregistration freeze"`
 5. `git push origin v0.1.0`
 
 ## The tag is the preregistration freeze
 
 Once `v0.1.0` is pushed, every threshold, gate, and registered falsifier
 in `docs/h1-spec.md` through `docs/h9-spec.md`, plus
-`docs/mnemesis-convergence.md` and `docs/redteam-spec.md`, is **frozen as
-of that commit**. This is a preregistration discipline, not a suggestion:
+`docs/mnemesis-convergence.md`, `docs/redteam-spec.md`, and
+`docs/formal-kernel-spec.md`, is **frozen as of that commit**. This is a
+preregistration discipline, not a suggestion:
 
 - A later change to a frozen parameter, gate, or falsifier requires a
   **new tag** (e.g. `v0.2.0`) and an **erratum note** filed in `docs/`
@@ -40,6 +41,17 @@ a mandatory schema-family field - it validates it when present (H2-H5)
 but does not require it (H1). This is a recorded asymmetry between H1 and
 later sprints, not something the validator silently overlooks: it is
 documented here precisely so it cannot be mistaken for validator drift.
+
+## The one non-stdlib dependency (not a defect)
+
+`z3-solver` (pip) is used exclusively by `formal/` (the C1 machine-checked
+kernel proof) and is never imported by `horizon/`, `redteam/`, `mnemesis/`,
+or any file under `tests/`. `scripts/run_all.py` treats it as optional:
+`scripts/run_formal.py` exits 2 ("SKIPPED") rather than 1 ("FAIL") when it
+is not installed, so `ALL HORIZON GATES GREEN` is still reachable on a
+fresh clone with no extra installs. This is the one documented exception to
+the repository's stdlib-only discipline, scoped as narrowly as possible;
+see `docs/formal-kernel-spec.md`, section 5.
 
 ## License choice
 

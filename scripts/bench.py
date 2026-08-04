@@ -91,13 +91,27 @@ def bench_certificate_verification():
     return results
 
 
+def _fitted_scaling_exponent(timings_ns):
+    # precedes_ns ~ edges^k, k from a log-log least-squares fit over the
+    # measured points (k~1 -> linear, k~2 -> quadratic)
+    xs = [math.log(n) for n, _ in timings_ns]
+    ys = [math.log(max(t, 1.0)) for _, t in timings_ns]
+    mean_x = sum(xs) / len(xs)
+    mean_y = sum(ys) / len(ys)
+    num = sum((x - mean_x) * (y - mean_y) for x, y in zip(xs, ys))
+    den = sum((x - mean_x) ** 2 for x in xs)
+    return num / den if den else float("nan")
+
+
 def bench_ledger_scaling():
     """Chain of N events (A0 -> A1 -> ... -> AN), each strictly inside the
-    previous one's future cone, then time `precedes(A0, AN)` - the worst
-    case for a BFS that must traverse the whole chain."""
+    previous one's future cone, then time `precedes(A0, AN)` (the reference,
+    worst case for a DFS that rescans the full edge set per visited node)
+    against `precedes_fast(A0, AN)` (the additive adjacency-indexed BFS,
+    horizon.reachability_cache) - the D2 finding and its filed fix."""
     results = {}
     edge_counts = (10, 50, 100, 500, 1000)
-    timings_ns = []
+    slow_timings, fast_timings = [], []
     for n_edges in edge_counts:
         ledger = CausalLedger()
         for i in range(n_edges + 1):
@@ -111,21 +125,23 @@ def bench_ledger_scaling():
             ledger.precedes("E0", f"E{n_edges}")
 
         precedes_ns = timeit_ns(call_precedes, max(5, 2000 // n_edges))
-        results[str(n_edges)] = {"add_edge_ns_per_call": add_edge_ns,
-                                 "precedes_ns_per_call": precedes_ns}
-        timings_ns.append((n_edges, precedes_ns))
 
-    # fitted scaling exponent: precedes_ns ~ edges^k, k from a log-log
-    # least-squares fit over the measured points (k~1 -> linear,
-    # k~2 -> quadratic, matching an O(edges) full-set scan per visited node)
-    xs = [math.log(n) for n, _ in timings_ns]
-    ys = [math.log(max(t, 1.0)) for _, t in timings_ns]
-    mean_x = sum(xs) / len(xs)
-    mean_y = sum(ys) / len(ys)
-    num = sum((x - mean_x) * (y - mean_y) for x, y in zip(xs, ys))
-    den = sum((x - mean_x) ** 2 for x in xs)
-    slope = num / den if den else float("nan")
-    return results, slope
+        ledger.precedes_fast("E0", f"E{n_edges}")  # warm the adjacency cache once
+
+        def call_precedes_fast():
+            ledger.precedes_fast("E0", f"E{n_edges}")
+
+        precedes_fast_ns = timeit_ns(call_precedes_fast, max(5, 2000 // n_edges))
+
+        results[str(n_edges)] = {"add_edge_ns_per_call": add_edge_ns,
+                                 "precedes_ns_per_call": precedes_ns,
+                                 "precedes_fast_ns_per_call": precedes_fast_ns}
+        slow_timings.append((n_edges, precedes_ns))
+        fast_timings.append((n_edges, precedes_fast_ns))
+
+    slope = _fitted_scaling_exponent(slow_timings)
+    fast_slope = _fitted_scaling_exponent(fast_timings)
+    return results, slope, fast_slope
 
 
 def main():
@@ -138,20 +154,25 @@ def main():
         "gate_at_magnitudes": bench_gate_at_magnitudes(),
         "certificate_verification_ns_per_call_by_station_count": bench_certificate_verification(),
     }
-    ledger_results, ledger_slope = bench_ledger_scaling()
+    ledger_results, ledger_slope, ledger_fast_slope = bench_ledger_scaling()
     report["ledger_reachability_by_edge_count"] = ledger_results
     report["ledger_precedes_fitted_scaling_exponent"] = ledger_slope
+    report["ledger_precedes_fast_fitted_scaling_exponent"] = ledger_fast_slope
     report["ledger_scaling_finding"] = (
         "CausalLedger.precedes scans the FULL edge set for every visited "
         f"node (not an adjacency-list restricted scan): fitted exponent "
         f"{ledger_slope:.2f} on this run. An exponent near 1.0 would be "
         "linear in edge count (adjacency-list BFS); an exponent near 2.0 "
         "is consistent with the O(edges) full-set scan per visited node "
-        "this implementation performs. This is a finding, not a fix: "
-        "per docs/engineering-roadmap.md D2, if reachability is worse "
-        "than linear, file it and consider an additive transitive-closure "
-        "or adjacency-list cache that does not touch the security gate "
-        "(add_edge's causally_admissible check is unaffected either way).")
+        "this implementation performs. Filed and fixed additively: "
+        "horizon.reachability_cache adds precedes_fast(), an adjacency-"
+        "indexed BFS cross-checked for agreement against precedes() in "
+        f"tests/test_reachability_cache.py - fitted exponent "
+        f"{ledger_fast_slope:.2f} on this run for the same measurements. "
+        "precedes() is kept, unchanged, as the reference; add_edge's "
+        "causally_admissible check is unaffected either way - this is a "
+        "reachability-query optimization, not a change to what counts as "
+        "an admitted edge.")
 
     out = os.path.join(ROOT, "bench_report.json")
     with open(out, "w") as f:
@@ -167,9 +188,11 @@ def main():
     print("\n=== Ledger reachability vs. edge count ===")
     for n, r in ledger_results.items():
         print(f"  {n} edges: add_edge={r['add_edge_ns_per_call']:.0f} ns, "
-             f"precedes={r['precedes_ns_per_call']:.0f} ns")
-    print(f"\nfitted precedes() scaling exponent: {ledger_slope:.2f} "
+             f"precedes={r['precedes_ns_per_call']:.0f} ns, "
+             f"precedes_fast={r['precedes_fast_ns_per_call']:.0f} ns")
+    print(f"\nfitted precedes() scaling exponent:      {ledger_slope:.2f} "
          "(1.0=linear, 2.0=quadratic)")
+    print(f"fitted precedes_fast() scaling exponent: {ledger_fast_slope:.2f}")
     print(f"\nreport written: {out}")
     return 0
 
