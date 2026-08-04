@@ -1,0 +1,288 @@
+{
+  "auth_note": "Receipts signed with HMAC-SHA256 demo keys derived from node_id (horizon.signed_capture); measured_u_ns is MAC-bound in each receipt body. Production target: per-VM Ed25519 keys.",
+  "c_eff": [
+    3,
+    5
+  ],
+  "captured_at": "2026-08-04T10:48:34.117529Z",
+  "clock_logs": {
+    "eu-west-1": {
+      "after": {
+        "available": true,
+        "last_offset_s": 0.000394544,
+        "leap_status": "Normal",
+        "measured_offset_ns": 394544,
+        "measured_u_ns": 7690696,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : D8EF2308 (time3.google.com)\nStratum         : 2\nRef time (UTC)  : Tue Aug 04 10:47:54 2026\nSystem time     : 0.000000404 seconds slow of NTP time\nLast offset     : +0.000394544 seconds\nRMS offset      : 0.000394544 seconds\nFrequency       : 87.144 ppm slow\nResidual freq   : -1.057 ppm\nSkew            : 2.185 ppm\nRoot delay      : 0.006484564 seconds\nRoot dispersion : 0.000417044 seconds\nUpdate interval : 2.2 seconds\nLeap status     : Normal",
+        "ref_id": "D8EF2308 (time3.google.com)",
+        "rms_offset_s": 0.000394544,
+        "root_delay_s": 0.006484564,
+        "root_dispersion_s": 0.000417044,
+        "stratum": 2,
+        "system_time_offset_s": 4.04e-07,
+        "update_interval_s": 2.2
+      },
+      "before": {
+        "available": true,
+        "last_offset_s": 0.000394544,
+        "leap_status": "Normal",
+        "measured_offset_ns": 394544,
+        "measured_u_ns": 7690679,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : D8EF2308 (time3.google.com)\nStratum         : 2\nRef time (UTC)  : Tue Aug 04 10:47:54 2026\nSystem time     : 0.000000404 seconds slow of NTP time\nLast offset     : +0.000394544 seconds\nRMS offset      : 0.000394544 seconds\nFrequency       : 87.144 ppm slow\nResidual freq   : -1.057 ppm\nSkew            : 2.185 ppm\nRoot delay      : 0.006484564 seconds\nRoot dispersion : 0.000417027 seconds\nUpdate interval : 2.2 seconds\nLeap status     : Normal",
+        "ref_id": "D8EF2308 (time3.google.com)",
+        "rms_offset_s": 0.000394544,
+        "root_delay_s": 0.006484564,
+        "root_dispersion_s": 0.000417027,
+        "stratum": 2,
+        "system_time_offset_s": 4.04e-07,
+        "update_interval_s": 2.2
+      }
+    },
+    "us-east-1": {
+      "after": {
+        "available": true,
+        "last_offset_s": 0.000175881,
+        "leap_status": "Normal",
+        "measured_offset_ns": 175881,
+        "measured_u_ns": 5026591,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : D8EF2308 (time3.google.com)\nStratum         : 2\nRef time (UTC)  : Tue Aug 04 10:47:34 2026\nSystem time     : 0.000000181 seconds slow of NTP time\nLast offset     : +0.000175881 seconds\nRMS offset      : 0.000175881 seconds\nFrequency       : 22.320 ppm slow\nResidual freq   : +30.119 ppm\nSkew            : 0.093 ppm\nRoot delay      : 0.002575557 seconds\nRoot dispersion : 0.002099272 seconds\nUpdate interval : 2.1 seconds\nLeap status     : Normal",
+        "ref_id": "D8EF2308 (time3.google.com)",
+        "rms_offset_s": 0.000175881,
+        "root_delay_s": 0.002575557,
+        "root_dispersion_s": 0.002099272,
+        "stratum": 2,
+        "system_time_offset_s": 1.81e-07,
+        "update_interval_s": 2.1
+      },
+      "before": {
+        "available": true,
+        "last_offset_s": 0.000175881,
+        "leap_status": "Normal",
+        "measured_offset_ns": 175881,
+        "measured_u_ns": 5026512,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : D8EF2308 (time3.google.com)\nStratum         : 2\nRef time (UTC)  : Tue Aug 04 10:47:34 2026\nSystem time     : 0.000000181 seconds slow of NTP time\nLast offset     : +0.000175881 seconds\nRMS offset      : 0.000175881 seconds\nFrequency       : 22.320 ppm slow\nResidual freq   : +30.119 ppm\nSkew            : 0.093 ppm\nRoot delay      : 0.002575557 seconds\nRoot dispersion : 0.002099193 seconds\nUpdate interval : 2.1 seconds\nLeap status     : Normal",
+        "ref_id": "D8EF2308 (time3.google.com)",
+        "rms_offset_s": 0.000175881,
+        "root_delay_s": 0.002575557,
+        "root_dispersion_s": 0.002099193,
+        "stratum": 2,
+        "system_time_offset_s": 1.81e-07,
+        "update_interval_s": 2.1
+      }
+    },
+    "us-east-2": {
+      "after": {
+        "available": true,
+        "last_offset_s": -0.000128431,
+        "leap_status": "Normal",
+        "measured_offset_ns": -128431,
+        "measured_u_ns": 25102226,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : 84A36003 (time-c-b.nist.gov)\nStratum         : 2\nRef time (UTC)  : Tue Aug 04 10:47:41 2026\nSystem time     : 0.000000129 seconds fast of NTP time\nLast offset     : -0.000128431 seconds\nRMS offset      : 0.000128431 seconds\nFrequency       : 15.968 ppm slow\nResidual freq   : +26.941 ppm\nSkew            : 0.068 ppm\nRoot delay      : 0.022729382 seconds\nRoot dispersion : 0.002115982 seconds\nUpdate interval : 2.1 seconds\nLeap status     : Normal",
+        "ref_id": "84A36003 (time-c-b.nist.gov)",
+        "rms_offset_s": 0.000128431,
+        "root_delay_s": 0.022729382,
+        "root_dispersion_s": 0.002115982,
+        "stratum": 2,
+        "system_time_offset_s": 1.29e-07,
+        "update_interval_s": 2.1
+      },
+      "before": {
+        "available": true,
+        "last_offset_s": -0.000128431,
+        "leap_status": "Normal",
+        "measured_offset_ns": -128431,
+        "measured_u_ns": 25102149,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : 84A36003 (time-c-b.nist.gov)\nStratum         : 2\nRef time (UTC)  : Tue Aug 04 10:47:41 2026\nSystem time     : 0.000000129 seconds fast of NTP time\nLast offset     : -0.000128431 seconds\nRMS offset      : 0.000128431 seconds\nFrequency       : 15.968 ppm slow\nResidual freq   : +26.941 ppm\nSkew            : 0.068 ppm\nRoot delay      : 0.022729382 seconds\nRoot dispersion : 0.002115905 seconds\nUpdate interval : 2.1 seconds\nLeap status     : Normal",
+        "ref_id": "84A36003 (time-c-b.nist.gov)",
+        "rms_offset_s": 0.000128431,
+        "root_delay_s": 0.022729382,
+        "root_dispersion_s": 0.002115905,
+        "stratum": 2,
+        "system_time_offset_s": 1.29e-07,
+        "update_interval_s": 2.1
+      }
+    },
+    "us-west-2": {
+      "after": {
+        "available": true,
+        "last_offset_s": 3.3272e-05,
+        "leap_status": "Normal",
+        "measured_offset_ns": 33272,
+        "measured_u_ns": 10769901,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : D8EF2304 (time2.google.com)\nStratum         : 2\nRef time (UTC)  : Tue Aug 04 10:48:14 2026\nSystem time     : 0.000000010 seconds slow of NTP time\nLast offset     : +0.000033272 seconds\nRMS offset      : 0.000033272 seconds\nFrequency       : 10.746 ppm slow\nResidual freq   : +19.452 ppm\nSkew            : 0.454 ppm\nRoot delay      : 0.010052807 seconds\nRoot dispersion : 0.000650550 seconds\nUpdate interval : 2.1 seconds\nLeap status     : Normal",
+        "ref_id": "D8EF2304 (time2.google.com)",
+        "rms_offset_s": 3.3272e-05,
+        "root_delay_s": 0.010052807,
+        "root_dispersion_s": 0.00065055,
+        "stratum": 2,
+        "system_time_offset_s": 1e-08,
+        "update_interval_s": 2.1
+      },
+      "before": {
+        "available": true,
+        "last_offset_s": 3.3272e-05,
+        "leap_status": "Normal",
+        "measured_offset_ns": 33272,
+        "measured_u_ns": 10769841,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : D8EF2304 (time2.google.com)\nStratum         : 2\nRef time (UTC)  : Tue Aug 04 10:48:14 2026\nSystem time     : 0.000000010 seconds slow of NTP time\nLast offset     : +0.000033272 seconds\nRMS offset      : 0.000033272 seconds\nFrequency       : 10.746 ppm slow\nResidual freq   : +19.452 ppm\nSkew            : 0.454 ppm\nRoot delay      : 0.010052807 seconds\nRoot dispersion : 0.000650490 seconds\nUpdate interval : 2.1 seconds\nLeap status     : Normal",
+        "ref_id": "D8EF2304 (time2.google.com)",
+        "rms_offset_s": 3.3272e-05,
+        "root_delay_s": 0.010052807,
+        "root_dispersion_s": 0.00065049,
+        "stratum": 2,
+        "system_time_offset_s": 1e-08,
+        "update_interval_s": 2.1
+      }
+    }
+  },
+  "clock_offsets_ns": {
+    "eu-west-1": 394544,
+    "us-east-1": 175881,
+    "us-east-2": -128431,
+    "us-west-2": 33272
+  },
+  "emitter_clock": {
+    "after": {
+      "available": true,
+      "last_offset_s": 0.000175881,
+      "leap_status": "Normal",
+      "measured_offset_ns": 175881,
+      "measured_u_ns": 5032209,
+      "ptp_device_present": true,
+      "raw": "Reference ID    : D8EF2308 (time3.google.com)\nStratum         : 2\nRef time (UTC)  : Tue Aug 04 10:47:34 2026\nSystem time     : 0.000000181 seconds slow of NTP time\nLast offset     : +0.000175881 seconds\nRMS offset      : 0.000175881 seconds\nFrequency       : 22.320 ppm slow\nResidual freq   : +30.119 ppm\nSkew            : 0.093 ppm\nRoot delay      : 0.002575557 seconds\nRoot dispersion : 0.002104890 seconds\nUpdate interval : 2.1 seconds\nLeap status     : Normal",
+      "ref_id": "D8EF2308 (time3.google.com)",
+      "rms_offset_s": 0.000175881,
+      "root_delay_s": 0.002575557,
+      "root_dispersion_s": 0.00210489,
+      "stratum": 2,
+      "system_time_offset_s": 1.81e-07,
+      "update_interval_s": 2.1
+    },
+    "before": {
+      "available": true,
+      "last_offset_s": 0.000175881,
+      "leap_status": "Normal",
+      "measured_offset_ns": 175881,
+      "measured_u_ns": 5026427,
+      "ptp_device_present": true,
+      "raw": "Reference ID    : D8EF2308 (time3.google.com)\nStratum         : 2\nRef time (UTC)  : Tue Aug 04 10:47:34 2026\nSystem time     : 0.000000181 seconds slow of NTP time\nLast offset     : +0.000175881 seconds\nRMS offset      : 0.000175881 seconds\nFrequency       : 22.320 ppm slow\nResidual freq   : +30.119 ppm\nSkew            : 0.093 ppm\nRoot delay      : 0.002575557 seconds\nRoot dispersion : 0.002099108 seconds\nUpdate interval : 2.1 seconds\nLeap status     : Normal",
+      "ref_id": "D8EF2308 (time3.google.com)",
+      "rms_offset_s": 0.000175881,
+      "root_delay_s": 0.002575557,
+      "root_dispersion_s": 0.002099108,
+      "stratum": 2,
+      "system_time_offset_s": 1.81e-07,
+      "update_interval_s": 2.1
+    }
+  },
+  "emitter_id": "us-east-1",
+  "errors": [],
+  "event_hash": "b1185239ea97b6b89d13332d6db68bfa4762e4f6695d70f57e0a8c80fcbf699e",
+  "experiment": "H8-LIVE",
+  "measured_u_ns": {
+    "eu-west-1": 7690696,
+    "us-east-1": 5026591,
+    "us-east-2": 25102226,
+    "us-west-2": 10769901
+  },
+  "origin": "LIVE_CAPTURE",
+  "p0_nm": [
+    0,
+    0,
+    0
+  ],
+  "payload": {
+    "emitter": "us-east-1",
+    "experiment": "H8-LIVE",
+    "nonce": "1745277c67a0ae5817c4da82f8c1e1a4",
+    "run": 1,
+    "tier_nominal": "NTP"
+  },
+  "payload_hash": "076d325d6d74229c42632dd88df3fbb4eccf9e477f4858270bc74aeb1f3a1ab0",
+  "position_sources": {
+    "eu-west-1": "azure-region-published",
+    "us-east-1": "azure-region-published",
+    "us-east-2": "azure-region-published",
+    "us-west-2": "azure-region-published"
+  },
+  "receipts": [
+    {
+      "body": {
+        "event_hash": "b1185239ea97b6b89d13332d6db68bfa4762e4f6695d70f57e0a8c80fcbf699e",
+        "measured_u_ns": 5026591,
+        "node_id": "us-east-1",
+        "node_pos_nm": [
+          0,
+          0,
+          0
+        ],
+        "recv_time_ns": 1785840513934709480,
+        "tier": "NTP"
+      },
+      "mac": "c7b9e7232472a84149d59a92fabfbfc5058d9eef4b831539930e2af3820322d1"
+    },
+    {
+      "body": {
+        "event_hash": "b1185239ea97b6b89d13332d6db68bfa4762e4f6695d70f57e0a8c80fcbf699e",
+        "measured_u_ns": 25102226,
+        "node_id": "us-east-2",
+        "node_pos_nm": [
+          -1139944342747732,
+          551757355463925,
+          -126744695547737
+        ],
+        "recv_time_ns": 1785840513980202022,
+        "tier": "NTP"
+      },
+      "mac": "71c0e5b27e5806c12ffd54482daabf81dd0a544966a6d59a1c2af764b4c21023"
+    },
+    {
+      "body": {
+        "event_hash": "b1185239ea97b6b89d13332d6db68bfa4762e4f6695d70f57e0a8c80fcbf699e",
+        "measured_u_ns": 10769901,
+        "node_id": "us-west-2",
+        "node_pos_nm": [
+          -2790975563731287,
+          1707172649350440,
+          -902121643682484
+        ],
+        "recv_time_ns": 1785840514046608733,
+        "tier": "NTP"
+      },
+      "mac": "5bcf9ede0b7abd1950ce278913788385390b376920795dd5828996d7adcb78ce"
+    },
+    {
+      "body": {
+        "event_hash": "b1185239ea97b6b89d13332d6db68bfa4762e4f6695d70f57e0a8c80fcbf699e",
+        "measured_u_ns": 7690696,
+        "node_id": "eu-west-1",
+        "node_pos_nm": [
+          3886158898365151,
+          3797973292723388,
+          -3032592625746300
+        ],
+        "recv_time_ns": 1785840514067704888,
+        "tier": "NTP"
+      },
+      "mac": "4f806a88e8222ad5ebbad921225849d2ae5fac3402bd2272a9ed6f00469b96ab"
+    }
+  ],
+  "route_excess_note": "measured RTTs recorded separately; c_eff accounts for medium",
+  "rtts_ns": {
+    "eu-west-1": 176134831,
+    "us-east-1": 0,
+    "us-east-2": 56039750,
+    "us-west-2": 143073094
+  },
+  "run": 1,
+  "t0_ns": 1785840513932163723,
+  "tier_nominal": "NTP"
+}

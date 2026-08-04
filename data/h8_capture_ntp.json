@@ -28,44 +28,44 @@
     {
       "body": {
         "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
-        "node_id": "us-west-2",
+        "node_id": "us-east-2",
         "node_pos_nm": [
-          -2992522065482674,
-          1490775140211840,
-          -945167923313490
+          -1139944342747732,
+          551757355463925,
+          -126744695547737
         ],
-        "recv_time_ns": 1027425262,
+        "recv_time_ns": 1009702251,
         "tier": "NTP"
       },
-      "mac": "fc3d03d67f5a08f8bc8ab52517640bf998a0936ab5cc85d936441c2970193724"
+      "mac": "735ed1e13aa5f9892a8607baf456defdebba8fa231bc897b17a9d63f3d7a2608"
+    },
+    {
+      "body": {
+        "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
+        "node_id": "us-west-2",
+        "node_pos_nm": [
+          -2790975563731287,
+          1707172649350440,
+          -902121643682484
+        ],
+        "recv_time_ns": 1026843206,
+        "tier": "NTP"
+      },
+      "mac": "34cebd182e70e2d2cc20273a07f396bcf7eaf02c5ca16880bdce12e999a73d20"
     },
     {
       "body": {
         "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
         "node_id": "eu-west-1",
         "node_pos_nm": [
-          3561900768196695,
-          3136054046082241,
-          -2113594004365602
+          3886158898365151,
+          3797973292723388,
+          -3032592625746300
         ],
-        "recv_time_ns": 1039875311,
+        "recv_time_ns": 1047302719,
         "tier": "NTP"
       },
-      "mac": "717e7ead9c4225f83462c2d1905c29ae02e69c1fa27ce1f30ebb2dcc5403cbe1"
-    },
-    {
-      "body": {
-        "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
-        "node_id": "us-east-2",
-        "node_pos_nm": [
-          -453008449848499,
-          140915101947183,
-          -17489625609335
-        ],
-        "recv_time_ns": 1003934638,
-        "tier": "NTP"
-      },
-      "mac": "884291d1df436fa2624bfe1d34753d318daa730f07edbb8630f261146d88e5bd"
+      "mac": "35d952e9a3bd85e9ec2092045ad0623677845d5aa977b4f0e67962a3e85c9fac"
     }
   ],
   "route_excess": [

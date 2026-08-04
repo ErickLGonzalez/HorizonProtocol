@@ -1,0 +1,189 @@
+{
+  "adversary_model": "forger without node keys (HMAC demo keys; Ed25519 is the deployment target) or without access to trusted c_eff/registry parameters; measured_u_ns is MAC-bound in each receipt body so inflating the clock budget requires forging the receipt; colluding multi-node adversaries OUT OF SCOPE",
+  "aggregate": "APPARATUS_LIMITED",
+  "auth_note": "Receipts signed with HMAC-SHA256 demo keys derived from node_id (horizon.signed_capture); measured_u_ns is MAC-bound in each receipt body. Production target: per-VM Ed25519 keys.",
+  "benchmark_id": "H8-LIVE",
+  "capture_origin": "LIVE_CAPTURE",
+  "capture_path": "data/h8_live_capture_NTP_1.json",
+  "capture_sha256": "73a4a7f4e2cce20eb9c1dd1bff511c0e50d3ce8fd965358f0fd2b0e9042631e8",
+  "captured_at": "2026-08-04T10:48:34.117529Z",
+  "certificate_version": "1",
+  "claim_class": "ENGINEERING_REFERENCE",
+  "clock_offsets_ns": {
+    "eu-west-1": 394544,
+    "us-east-1": 175881,
+    "us-east-2": -128431,
+    "us-west-2": 33272
+  },
+  "empirical_claim": "NONE",
+  "execution_tier": "LIVE",
+  "finding": "tier=NTP; aggregate=APPARATUS_LIMITED; verdicts=eu-west-1:ADMITTED,us-east-1:APPARATUS_LIMITED,us-east-2:ADMITTED,us-west-2:ADMITTED; at least one receipt ADMITTED on real measured times; APPARATUS_LIMITED present where measured clock budget cannot resolve geometry",
+  "gates": [
+    {
+      "description": "multi-node LIVE_CAPTURE collected from >=3 regions",
+      "gate": "H8-LIVE-A",
+      "result": "PASS",
+      "soundness_tag": "HEURISTIC"
+    },
+    {
+      "description": "unmodified verify_capture over MAC-bound measured u_ns overlay",
+      "gate": "H8-LIVE-B",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    },
+    {
+      "description": "no honest receipt REJECTED (falsifier F1)",
+      "gate": "H8-LIVE-C",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    },
+    {
+      "description": "every receipt contributor carries MAC-bound measured_u_ns",
+      "gate": "H8-LIVE-D",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    }
+  ],
+  "heuristic_warnings": [
+    {
+      "location": "scripts/live_orchestrate.py",
+      "warning": "HEURISTIC live capture path; quarantined from CI/verifier"
+    },
+    {
+      "location": "horizon/signed_capture.py::measure_now",
+      "warning": "live system-time stamp; non-deterministic"
+    },
+    {
+      "location": "horizon/signed_capture.py::_key",
+      "warning": "HMAC demo key derivation; not deployment-grade auth"
+    }
+  ],
+  "issued_at": "2026-08-04T11:19:30Z",
+  "measured_u_ns": {
+    "eu-west-1": 7690696,
+    "us-east-1": 5026591,
+    "us-east-2": 25102226,
+    "us-west-2": 10769901
+  },
+  "per_receipt": [
+    {
+      "node_id": "us-east-1",
+      "tier": "NTP",
+      "verdict": "APPARATUS_LIMITED",
+      "witness": {
+        "dt_adjusted_ns": 7572348,
+        "dt_ns": 2545757,
+        "margin_below_vacuum_floor_ns": -7572348,
+        "margin_from_typical_floor_ns": 7572348,
+        "resolution_band_ns": 10053182,
+        "typical_floor_ns": 0,
+        "u_ns": 5026591,
+        "vacuum_floor_ns": 0
+      }
+    },
+    {
+      "node_id": "us-east-2",
+      "tier": "NTP",
+      "verdict": "ADMITTED",
+      "witness": {
+        "dt_adjusted_ns": 73140525,
+        "dt_ns": 48038299,
+        "margin_below_vacuum_floor_ns": -68894981,
+        "margin_from_typical_floor_ns": 66064619,
+        "resolution_band_ns": 50204452,
+        "typical_floor_ns": 7075906,
+        "u_ns": 25102226,
+        "vacuum_floor_ns": 4245544
+      }
+    },
+    {
+      "node_id": "us-west-2",
+      "tier": "NTP",
+      "verdict": "ADMITTED",
+      "witness": {
+        "dt_adjusted_ns": 125214911,
+        "dt_ns": 114445010,
+        "margin_below_vacuum_floor_ns": -113894448,
+        "margin_from_typical_floor_ns": 106347472,
+        "resolution_band_ns": 21539802,
+        "typical_floor_ns": 18867439,
+        "u_ns": 10769901,
+        "vacuum_floor_ns": 11320463
+      }
+    },
+    {
+      "node_id": "eu-west-1",
+      "tier": "NTP",
+      "verdict": "ADMITTED",
+      "witness": {
+        "dt_adjusted_ns": 143231861,
+        "dt_ns": 135541165,
+        "margin_below_vacuum_floor_ns": -122474778,
+        "margin_from_typical_floor_ns": 108636722,
+        "resolution_band_ns": 15381392,
+        "typical_floor_ns": 34595139,
+        "u_ns": 7690696,
+        "vacuum_floor_ns": 20757083
+      }
+    }
+  ],
+  "position_sources": {
+    "eu-west-1": "azure-region-published",
+    "us-east-1": "azure-region-published",
+    "us-east-2": "azure-region-published",
+    "us-west-2": "azure-region-published"
+  },
+  "program": "HorizonProtocol",
+  "promotion_allowed": false,
+  "python_version": "3.12.3",
+  "registry_frame_origin": {
+    "llh": [
+      37.3719,
+      -79.8164,
+      90.0
+    ],
+    "name": "azure-eastus"
+  },
+  "source_hashes": {
+    "horizon/build_frame.py": "5e444a55b935ad57a49f7a6395499f4bc16f702bf54fc90c448d6f46eb6a5b01",
+    "horizon/capture_verify.py": "07570d2a6c3ee31196c50472315b395da1c64acb58f5146c1bd26f6f0598648b",
+    "horizon/events.py": "be117a3145df1a89d44bab130391b35e502bddb2fbdfa69430bea578a29cbda2",
+    "horizon/geometry.py": "d9e7a851b2284a963f7ca7b43f6e99a57408406093aed85ef7fcf4caec1c0240",
+    "horizon/measure.py": "30561ea7fa0c6d5cf4f642dd04295f136046c4266e1fedbfcbb30be8bf27aa73",
+    "horizon/signed_capture.py": "56c3fe47e65e3d8ad0086300ff75225cd8c45bccd73199e7c8d8f120a524debb"
+  },
+  "tier_nominal": "NTP",
+  "tier_verdicts": {
+    "NTP": {
+      "eu-west-1": "ADMITTED",
+      "us-east-1": "APPARATUS_LIMITED",
+      "us-east-2": "ADMITTED",
+      "us-west-2": "ADMITTED"
+    }
+  },
+  "timing_tiers_nominal": {
+    "GNSS": 1000,
+    "NTP": 5000000,
+    "PTP": 50000
+  },
+  "u_ns_overlay": {
+    "bad_mac": [],
+    "missing": [],
+    "used_authenticated": {
+      "eu-west-1": 7690696,
+      "us-east-1": 5026591,
+      "us-east-2": 25102226,
+      "us-west-2": 10769901
+    }
+  },
+  "unit_convention": {
+    "c": 299792458,
+    "c_eff": [
+      3,
+      5
+    ],
+    "position": "nanometers (int)",
+    "time": "nanoseconds (int)"
+  },
+  "verifier": "horizon.capture_verify.verify_capture (unmodified)"
+}

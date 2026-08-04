@@ -69,14 +69,33 @@ def validate_certificate(path):
     if cert.get("claim_class") != "ENGINEERING_REFERENCE":
         errors.append("claim_class must be 'ENGINEERING_REFERENCE', got "
                       f"{cert.get('claim_class')!r}")
-    if cert.get("execution_tier") != "BENCHMARK":
-        errors.append(f"execution_tier must be 'BENCHMARK', got {cert.get('execution_tier')!r}")
+    # H8-LIVE certificates are labeled execution_tier=LIVE with
+    # capture_origin=LIVE_CAPTURE. Every other committed certificate remains
+    # BENCHMARK. APPARATUS_LIMITED is a valid live aggregate (an honest
+    # clock-resolution result), never a silent substitute for PASS on
+    # BENCHMARK certificates.
+    is_live = (cert.get("execution_tier") == "LIVE"
+               or cert.get("capture_origin") == "LIVE_CAPTURE"
+               or cert.get("benchmark_id") == "H8-LIVE")
+    if is_live:
+        if cert.get("execution_tier") != "LIVE":
+            errors.append("LIVE certificates must set execution_tier='LIVE', got "
+                          f"{cert.get('execution_tier')!r}")
+        if cert.get("capture_origin") != "LIVE_CAPTURE":
+            errors.append("LIVE certificates must set capture_origin='LIVE_CAPTURE', got "
+                          f"{cert.get('capture_origin')!r}")
+        if cert.get("aggregate") not in ("PASS", "APPARATUS_LIMITED"):
+            errors.append("LIVE aggregate must be 'PASS' or 'APPARATUS_LIMITED', got "
+                          f"{cert.get('aggregate')!r}")
+    else:
+        if cert.get("execution_tier") != "BENCHMARK":
+            errors.append(f"execution_tier must be 'BENCHMARK', got {cert.get('execution_tier')!r}")
+        if cert.get("aggregate") != "PASS":
+            errors.append(f"aggregate must be 'PASS', got {cert.get('aggregate')!r}")
     if cert.get("promotion_allowed") is not False:
         errors.append(f"promotion_allowed must be false, got {cert.get('promotion_allowed')!r}")
     if cert.get("empirical_claim") != "NONE":
         errors.append(f"empirical_claim must be 'NONE', got {cert.get('empirical_claim')!r}")
-    if cert.get("aggregate") != "PASS":
-        errors.append(f"aggregate must be 'PASS', got {cert.get('aggregate')!r}")
 
     for gate in cert.get("gates", []):
         gid = gate.get("gate")
