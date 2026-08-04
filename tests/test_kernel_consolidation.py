@@ -11,6 +11,18 @@ a permanent, CI-enforced invariant rather than a one-time cleanup: a
 future overlay that reintroduces a vendored kernel copy - even one that
 currently agrees with the original - is silent drift risk waiting to
 happen the next time only one copy gets patched.
+
+ONE documented, narrow exception: `causal-store/causalstore/geometry.py`.
+Unlike H6/MNX1 (overlays living inside this same repo/process, where
+importing `horizon.geometry` costs nothing), causal-store's own design
+(`docs/distributed-system-design.md` section 4.2, "shared by value, not
+by coupling") deliberately vendors a frozen copy so the engine stays
+importable and correct in contexts where the `horizon` package isn't
+present at all - a stated architecture goal, not an oversight. This does
+NOT reopen the "even one that currently agrees is still a risk" concern
+above: `test_no_drift_in_documented_vendored_copies` below re-checks the
+byte-for-byte hash on every run of THIS suite (not just causal-store's own
+D0-F gate), so drift is caught here too, unconditionally.
 """
 import ast
 import os
@@ -25,6 +37,13 @@ CANONICAL_DEFINITIONS = {
     "min_light_time_ns": "horizon/geometry.py",
     "dist2": "horizon/geometry.py",
     "CausalLedger": "horizon/ledger.py",
+}
+
+# Documented, narrow exceptions to both checks below - see module docstring.
+# Each entry names the canonical file it must stay byte-identical to;
+# `test_no_drift_in_documented_vendored_copies` enforces that identity.
+DOCUMENTED_VENDORED_COPIES = {
+    "causal-store/causalstore/geometry.py": "horizon/geometry.py",
 }
 
 
@@ -54,6 +73,8 @@ class TestKernelConsolidation(unittest.TestCase):
         offenders = {}
         for path in _all_py_files():
             rel = os.path.relpath(path, ROOT)
+            if rel in DOCUMENTED_VENDORED_COPIES:
+                continue
             defs = _top_level_defs(path)
             for name, canonical_rel in CANONICAL_DEFINITIONS.items():
                 if name in defs and rel != canonical_rel:
@@ -69,12 +90,34 @@ class TestKernelConsolidation(unittest.TestCase):
         offenders = []
         for path in _all_py_files():
             rel = os.path.relpath(path, ROOT)
+            if rel in DOCUMENTED_VENDORED_COPIES:
+                continue
             base = os.path.basename(rel)
             if base in ("geometry.py", "ledger.py") and not rel.startswith("horizon/"):
                 offenders.append(rel)
         self.assertEqual(offenders, [],
                          f"file(s) named like a kernel module outside "
                          f"horizon/: {offenders}")
+
+    def test_no_drift_in_documented_vendored_copies(self):
+        # the ONE thing that makes DOCUMENTED_VENDORED_COPIES safe: every
+        # exempted copy must still be byte-for-byte identical to its
+        # canonical source, checked unconditionally on every run of this
+        # suite - not only when causal-store's own D0-F gate happens to run.
+        for vendored_rel, canonical_rel in DOCUMENTED_VENDORED_COPIES.items():
+            vendored_path = os.path.join(ROOT, vendored_rel)
+            canonical_path = os.path.join(ROOT, canonical_rel)
+            self.assertTrue(os.path.isfile(vendored_path),
+                            f"documented vendored copy {vendored_rel} no "
+                            f"longer exists - remove its stale exception")
+            with open(vendored_path, "rb") as f:
+                vendored_bytes = f.read()
+            with open(canonical_path, "rb") as f:
+                canonical_bytes = f.read()
+            self.assertEqual(vendored_bytes, canonical_bytes,
+                             f"{vendored_rel} has drifted from its "
+                             f"canonical source {canonical_rel} - a "
+                             f"documented vendored copy must stay exact")
 
 
 if __name__ == "__main__":

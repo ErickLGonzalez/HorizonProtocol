@@ -214,9 +214,44 @@ without physical geometry. See `docs/mnemesis-convergence.md` and
   an additive, opt-in `precedes_fast()` (adjacency-indexed BFS, ~linear on
   the same measurements), cross-checked for agreement against the kept,
   unchanged `precedes()` reference in `tests/test_reachability_cache.py`.
-  What remains open: a genuine LIVE capture over real, operator-provisioned
-  hosts (H8 supplies the verifier and the on-ramp script; running it
-  against real infrastructure is the next step).
+  The genuine LIVE capture over real, operator-provisioned hosts that this
+  note once flagged as open has since been run: see H8-LIVE below.
+
+## H8-LIVE — genuine multi-node capture over real cloud geography
+
+Four Azure VMs across `eastus`/`centralus`/`westus2`/`westeurope`, surveyed
+from Azure's published region coordinates, captured and verified with the
+unmodified `horizon.capture_verify.verify_capture` — the on-ramp H8 shipped
+as its "next step" is no longer hypothetical. Two synchronization tiers
+(NTP, then a tighter chrony-tracked tier) reproduced the predicted
+apparatus-limited-to-admitted transition as clock uncertainty tightened,
+with one honest nuance: the specific node predicted to transition first
+didn't; a different node showed an analogous transition instead. See
+`docs/h8-live-report.md` and `certificates/h8_live_certificate.json`.
+
+## Companion program: causal-store (D0 — engine skeleton)
+
+`causal-store/` is a self-contained sibling project applying the same
+kernel to a different problem: a coordination-free, geo-distributed event
+store where writes the light cone proves causally independent commit
+without a consensus round trip, and only genuine causal dependencies
+serialize. It vendors a frozen, hash-verified copy of `geometry.py` rather
+than importing `horizon.geometry` — deliberately, per
+`docs/distributed-system-design.md`'s "shared by value, not by coupling"
+principle, so the engine stays correct even where `horizon` isn't present
+(gate D0-F guards against drift between the two copies). On a modeled
+5-region, 5000-write benchmark: ~85% of writes commit coordination-free, a
+modeled ~6.8x latency reduction vs a total-order baseline (latency is
+MODELED, not measured on real links — a recorded heuristic warning).
+Reviewing the shipped skeleton found two bugs before first commit: a
+`resolves()` check that compared raw elapsed time to clock uncertainty
+instead of the margin to the true light-time floor (the same
+"disconnected-proxy" bug class this repository's H-series and `formal/`
+gates have each caught once before), and a `write()` path that never
+checked whether an existing frontier entry causally dominated an incoming
+write, letting a stale write resurface as a live conflict candidate. Both
+are fixed, with regression tests reproducing the original counterexamples.
+See `causal-store/docs/d0-spec.md`.
 
 *Naming note: the working name during design was “Horos” (ὅρος, boundary
 stone — the ancestor of “horizon”); the H-series sprint prefix keeps it.*

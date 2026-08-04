@@ -55,6 +55,25 @@ def main():
     for ln in lines:
         print(ln)
 
+    # D0 (causal-store) is a self-contained sibling project that deliberately
+    # vendors its own copy of the kernel rather than importing horizon/ (see
+    # causal-store/docs/d0-spec.md) - it has no non-stdlib dependency, so
+    # unlike PROOF it is a required, non-skippable gate. Its certificate lives
+    # under causal-store/certificates/, not the top-level certificates/ dir,
+    # so scripts/validate_certificates.py's glob does not (and should not)
+    # pick it up; it is validated here instead.
+    d0_proc = subprocess.run(
+        [sys.executable, os.path.join(ROOT, "causal-store", "scripts", "run_d0.py")],
+        cwd=ROOT, capture_output=True, text=True)
+    with open(os.path.join(ROOT, "causal-store", "certificates", "d0_certificate.json")) as f:
+        d0_cert = json.load(f)
+    d0_ok = d0_proc.returncode == 0 and d0_cert["aggregate"] == "PASS"
+    all_green &= d0_ok
+    print(f"D0: {'PASS' if d0_ok else 'FAIL'} ({len(d0_cert['gates'])}/"
+         f"{len(d0_cert['gates'])} gates)   causal-store coordination-free "
+         f"engine; {d0_cert['benchmark']['coordination_free_rate']:.1%} "
+         f"coordination-free on the modeled 5-region workload")
+
     # PROOF (formal/, Phase C) is the one gate with a non-stdlib dependency
     # (z3-solver), confined entirely to this offline artifact - see
     # formal/README.md. Exit code 2 means "z3-solver not installed": reported
