@@ -20,8 +20,8 @@ time -- and that is the theory being correct, not failing. Instead:
     consistent with a vacuum light path from the claimed emitter worldline? A
     packet arriving sooner than light permits from its claimed origin is forged.
   * **Trajectory attestation:** does a prover's response schedule prove its
-    claimed position within the round-trip light budget (lower bound only -
-    see section 3)?
+    claimed position within the round-trip light budget (two-sided bound,
+    asymmetric scope - see section 3)?
 
 Both are the same exact-integer inequality, and both **reuse the existing H1/H3
 kernel functions directly** (`geometry.min_light_time_ns`,
@@ -54,11 +54,29 @@ REJECTED           if dt_adjusted_ns < required_ns - resolve_ns
 ```
 
 Trajectory attestation is the same shape over the round trip, reusing
-`distance.min_round_trip_ns(p_verifier, p_claimed)` as `required_ns` and
-`dt_adjusted_ns = (t_response - t_challenge - proc_ns) + u_ns`. **Only the
-lower ("too fast") bound is checked** - see section 3b for why an upper
-deadline, present in H3's terrestrial distance-bounding, is deliberately not
-reproduced here.
+`distance.min_round_trip_ns(p_verifier, p_claimed)` as `required_ns`, but is
+**two-sided**: both a lower ("too fast") and an upper ("too slow") bound are
+checked, applying clock uncertainty in the claimant's favor on whichever side
+benefits them (`dt_adjusted_low_ns = dt + u_ns` against the lower bound,
+`dt_adjusted_high_ns = dt - u_ns` against the upper bound, where
+`dt = t_response - t_challenge - proc_ns`):
+
+```
+too fast for claimed distance -> dt_adjusted_low_ns  < required_ns - resolve_ns  (REJECTED)
+too slow for claimed distance -> dt_adjusted_high_ns > required_ns + resolve_ns  (REJECTED)
+```
+
+This upper bound has a precise, **asymmetric** scope, not a general deadline
+- see section 3b for exactly which misrepresentation direction it closes,
+which it structurally cannot, and why.
+
+Composed protocol verification (`deepspace_protocol.verify_telemetry_packet`,
+H7-D) additionally requires the packet's `(t_recv, p_dst)` to come from a
+receipt **signed by a registered station** in a caller-supplied trusted
+`registry` - never asserted bare by the packet itself - verified through the
+same `known_station -> receipt_mac -> payload_binding -> surveyed_position`
+gate sequence `horizon.certificate.verify_certificate` uses (H1), before the
+timing gate above ever runs. See section 3c.
 
 ### 3a. Erratum: squared margins cannot represent a linear time budget
 
@@ -85,23 +103,77 @@ H5/H6's declared `U_ns`) confirming APPARATUS_LIMITED actually triggers, and a
 companion test confirming that same small resolve band does not mask a gross
 forgery.
 
-### 3b. Why trajectory attestation has no upper (deadline) bound
+### 3b. The upper bound's precise, asymmetric scope
+
+*(Erratum: an earlier version of this section argued that `trajectory_attested`
+deliberately reproduces only H3's `ftl_floor` gate and not its `deadline`
+gate, reasoning that a deep-space adversary "gains nothing" from claiming to
+be farther than it truly is. Review found this incomplete: a two-sided bound
+is both meaningful and needed, but closes only one of the two
+misrepresentation directions - not both, and not the one the original text
+implied. This section replaces that reasoning.)*
 
 H3's terrestrial distance-bounding (`horizon/distance.py`) has two gates:
 `ftl_floor` (response too fast - REJECTED) and `deadline` (response too slow
 for an honest prover truly at the claimed position - also REJECTED, since a
-farther prover cannot meet the deadline). H7's `trajectory_attested`
-deliberately reproduces only the first. At interplanetary scale, legitimate
-processing/queueing/scheduling variance routinely exceeds any short constant
-`proc_ns` by orders of magnitude, so "arrived later than the theoretical
-minimum" is not itself evidence of anything - unlike H3's tightly-bounded
-terrestrial scenario, where `proc_ns` is a genuine, small, near-constant
-processing delay and exceeding the deadline is meaningful evidence of
-distance. The relevant deep-space threat is an adversary claiming to be
-*closer* than it is (impersonating a nearby, faster-responding source) -
-exactly what the lower bound catches; an adversary claiming to be *farther*
-than it is gains nothing from spoofing a deep-space telemetry link, so that
-direction is out of scope by design, not by oversight.
+farther prover cannot meet the deadline). H7's `trajectory_attested` now
+reproduces both, comparing NANOSECOND quantities directly per section 3a.
+The two directions of misrepresentation this closes are **not symmetric**:
+
+- **Farther-than-claimed, claiming closer** (e.g. a prover genuinely at Mars
+  claiming to be co-located with the verifier): CLOSED, soundly. The prover's
+  own true round-trip minimum for its real (farther) distance already
+  exceeds what the nearer claim's `required_ns` allows - it cannot speed up
+  its response below that true physical floor no matter how promptly it
+  answers. This exactly matches H3's `deadline` gate's original intent ("a
+  farther prover cannot meet this") and is the direction the upper bound was
+  added to catch. `tests/test_h7b_latency_gate.py`'s
+  `test_two_sided_bound_catches_a_farther_prover_claiming_closer` demonstrates
+  it.
+
+- **Closer-than-claimed, claiming farther** (e.g. a prover genuinely
+  co-located with the verifier claiming to be on Mars): NOT closed, and not
+  closeable by any purely aggregate-round-trip-time check, one-sided or
+  two-sided. A prover that could respond immediately is always free to
+  *delay* its response until the round trip matches whatever farther
+  distance it wants to claim - nothing about the timing alone distinguishes
+  "genuinely at the claimed distance" from "closer, and waited." This is a
+  structural limitation of round-trip-timing-only distance bounding generally
+  (it appears in the classical distance-bounding literature, not just here),
+  not an implementation gap this module can close. Rather than silently
+  assume it solved, it is registered here explicitly and demonstrated as a
+  deliberately PASSING test -
+  `test_registered_limitation_claiming_farther_than_true_is_not_caught` -
+  following the same H3-C discipline used for the classical
+  position-verification collusion break: an honest, explicit witness beats a
+  hidden assumption. Closing this direction would require binding the round
+  trip to an unpredictable, per-round challenge the prover cannot precompute
+  (a rapid-bit exchange, not modeled in this classical gate) or leaning on
+  the quantum layer's own properties (BE(Q) / no-cloning) - out of scope
+  here; see section 8, F7.
+
+### 3c. Receipt authentication is a precondition, not the timing gate's job
+
+*(Erratum: an earlier version of `deepspace_protocol.verify_telemetry_packet`
+accepted a bare `{t0, p_src, t_recv, p_dst}` packet with no authentication:
+`t_recv` and `p_dst` were whatever the caller asserted, not a value attested
+by any registered station. An attacker could pick `t0 = t_recv - required_ns`
+for any claimed `p_src`, wait out the claimed light-travel time, and pass -
+"authentication" in name only, since nothing bound the claimed reception
+event to a real observer.)*
+
+Fixed: `t_recv` and `p_dst` (as `station_pos_nm`) now must come from a
+receipt **signed by a `horizon.stations.Station`** present in a
+caller-supplied, TRUSTED `registry` - exactly H1's cone-certificate model,
+where the registry is trusted state the verifier already holds, never data
+read out of the untrusted packet. The verifier runs the same gate sequence
+`horizon.certificate.verify_certificate` uses - `known_station ->
+receipt_mac -> payload_binding -> surveyed_position` - and only then hands
+the now-authenticated `(t_recv, p_dst)` to `telemetry_consistent` (section 3).
+A forged or unsigned receipt is REJECTED at the authentication stage and
+never reaches the timing gate at all. `tests/test_h7d_protocol.py`'s
+`test_unauthenticated_receipt_rejected` and `test_unknown_station_rejected`
+cover this.
 
 ## 4. Bounded-entanglement tracker (SOUND)
 
@@ -141,12 +213,20 @@ channel meeting the contract.
   arrivals REJECTED with negative margin; a realistic (50 µs) resolve band
   correctly produces APPARATUS_LIMITED at a boundary receipt, and does not
   mask a gross forgery; clock uncertainty (`u_ns`) can rescue a near-boundary
-  arrival; the gate module imports only the geometry/distance kernel.
+  arrival; trajectory attestation's two-sided bound REJECTS both an
+  impossibly-fast response and an implausibly-slow one, each with the correct
+  `reason` witness; a farther-than-claimed prover claiming closer is caught
+  even responding at its own true physical minimum (section 3b); the
+  registered farther-claim limitation is demonstrated, not hidden, as a
+  passing test; the gate module imports only the geometry/distance kernel.
 - **H7-C** BE(Q): exact-fraction adversary bound; exponential decay; meets target
   at sufficient k; CONDITIONAL(BE(Q)) label and citations present.
-- **H7-D** protocol: full pass = timing ADMITTED AND qubits pass AND BE(Q) met ->
-  CONDITIONAL_BE_Q; forged timing or bad qubits -> REJECTED even if the other
-  factor is fine; verifier excludes simulator imports.
+- **H7-D** protocol: a packet is rejected at authentication (unknown station,
+  bad receipt MAC, payload/position mismatch) before any timing decision runs
+  (section 3c); full pass = receipt authenticated AND timing ADMITTED AND
+  qubits pass AND BE(Q) met -> CONDITIONAL_BE_Q; forged timing or bad qubits
+  -> REJECTED even if the other factor is fine; verifier excludes simulator
+  imports.
 - **H7-E** negatives: Earth spoofing a Mars packet REJECTED; arrival-before-
   emission REJECTED; stand-in explicitly labeled.
 
@@ -169,6 +249,14 @@ earth_mars_light_times, demo_beq_verdict (Q_secure), heuristic_warnings
 - F6: any classification decision in `latency_gate.py` comparing a squared
   (nm²-scale) quantity against a nanosecond-scale threshold, or otherwise
   reintroducing the section 3a erratum → gate defect, file erratum.
+- F7: any claim that `trajectory_attested`'s two-sided bound closes the
+  closer-than-claimed-claiming-farther direction (section 3b) → overclaim;
+  this direction is a registered, structural limitation of round-trip-timing
+  distance bounding, not solved by this or any purely aggregate-RTT check.
+- F8: `deepspace_protocol.verify_telemetry_packet` reaching a non-REJECTED
+  verdict on a packet whose receipt is unsigned, signed by an unregistered
+  station, or bound to a different payload/position than the event claims
+  (section 3c) → authentication bypass, gate defect.
 
 ## 9. Claim scope
 

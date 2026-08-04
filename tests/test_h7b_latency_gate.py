@@ -26,11 +26,29 @@ class TestLatencyGate(unittest.TestCase):
         self.assertLess(r["witness"]["margin_ns"], 0)
 
     def test_attestation_admits_correct_distance(self):
-        # round trip to Mars-distance claimed position
+        # round trip to Mars-distance claimed position, landing exactly at
+        # the requirement (zero slack needed for the exact honest case)
         min_rtt = min_round_trip_ns(self.p_earth, self.p_mars)
-        rtt = min_rtt + 2000
-        r = trajectory_attested(0, self.p_earth, rtt, self.p_mars,
+        r = trajectory_attested(0, self.p_earth, min_rtt, self.p_mars,
                                 proc_ns=0, u_ns=0, resolve_ns=0)
+        self.assertEqual(r["verdict"], "ADMITTED")
+
+    def test_attestation_within_resolve_band_is_apparatus_limited_not_rejected(self):
+        # a small amount of jitter beyond the exact requirement is neither
+        # a clean ADMITTED (it overshoots the exact round-trip requirement)
+        # nor a REJECTED (it's within the declared resolve_ns slack) -
+        # never a silent PASS on an unresolvable margin
+        min_rtt = min_round_trip_ns(self.p_earth, self.p_mars)
+        r = trajectory_attested(0, self.p_earth, min_rtt + 2000, self.p_mars,
+                                proc_ns=0, u_ns=0, resolve_ns=5000)
+        self.assertEqual(r["verdict"], "APPARATUS_LIMITED")
+
+    def test_attestation_admits_within_resolve_band_given_matching_u_ns(self):
+        # declared clock uncertainty pulls the high side back down to the
+        # exact requirement, yielding a clean ADMITTED
+        min_rtt = min_round_trip_ns(self.p_earth, self.p_mars)
+        r = trajectory_attested(0, self.p_earth, min_rtt + 2000, self.p_mars,
+                                proc_ns=0, u_ns=2000, resolve_ns=0)
         self.assertEqual(r["verdict"], "ADMITTED")
 
     def test_attestation_rejects_too_fast_response(self):
@@ -39,6 +57,50 @@ class TestLatencyGate(unittest.TestCase):
         r = trajectory_attested(0, self.p_earth, rtt, self.p_mars,
                                 proc_ns=0, u_ns=0, resolve_ns=0)
         self.assertEqual(r["verdict"], "REJECTED")
+        self.assertEqual(r["witness"]["reason"], "too_fast_for_claimed_distance")
+
+    def test_attestation_rejects_too_slow_response(self):
+        min_rtt = min_round_trip_ns(self.p_earth, self.p_mars)
+        rtt = min_rtt + 1_000_000_000  # implausibly slow for the distance
+        r = trajectory_attested(0, self.p_earth, rtt, self.p_mars,
+                                proc_ns=0, u_ns=0, resolve_ns=0)
+        self.assertEqual(r["verdict"], "REJECTED")
+        self.assertEqual(r["witness"]["reason"], "too_slow_for_claimed_distance")
+
+    def test_two_sided_bound_catches_a_farther_prover_claiming_closer(self):
+        # the direction the two-sided bound SOUNDLY closes (matching H3's
+        # original deadline semantics): a prover truly at Mars cannot
+        # physically respond fast enough to satisfy a nearer claim (e.g.
+        # claiming to be co-located with the verifier) - its forced minimum
+        # RTT for its TRUE (farther) distance already exceeds what the
+        # nearer claim allows, so it is caught regardless of promptness.
+        min_rtt_true_mars = min_round_trip_ns(self.p_earth, self.p_mars)
+        p_claimed_near = self.p_earth  # false claim: "I am co-located with you"
+        # even responding as promptly as physically possible (its own true
+        # minimum), the response is far too slow for the false nearby claim
+        r = trajectory_attested(0, self.p_earth, min_rtt_true_mars,
+                                p_claimed_near, proc_ns=0, u_ns=0, resolve_ns=0)
+        self.assertEqual(r["verdict"], "REJECTED")
+        self.assertEqual(r["witness"]["reason"], "too_slow_for_claimed_distance")
+
+    def test_registered_limitation_claiming_farther_than_true_is_not_caught(self):
+        # HONEST LIMITATION (see horizon/latency_gate.py's module docstring
+        # and docs/h7-spec.md section 3b): the opposite direction - a
+        # prover truly CLOSE to the verifier deliberately delaying its
+        # response to mimic the round-trip time of a FARTHER claimed
+        # position (e.g. co-located with Earth, claiming to be on Mars) -
+        # is NOT caught by any combination of timing bounds. Delaying a
+        # response is always physically possible; no purely aggregate-RTT
+        # check can distinguish "genuinely at the claimed distance" from
+        # "closer, and waited." This is registered here as a known,
+        # structural limitation of round-trip-timing distance bounding
+        # (not specific to this implementation) rather than silently
+        # assumed solved - matching H3-C's discipline of demonstrating a
+        # known impossibility as a passing test instead of hiding it.
+        min_rtt_mars = min_round_trip_ns(self.p_earth, self.p_mars)
+        r = trajectory_attested(0, self.p_earth, min_rtt_mars, self.p_mars,
+                                proc_ns=0, u_ns=0, resolve_ns=0)
+        self.assertEqual(r["verdict"], "ADMITTED")  # EXPECTED_ATTACK_SUCCESS in effect
 
     def test_clock_uncertainty_apparatus_limited(self):
         # a receipt landing exactly on the boundary, with a realistic
