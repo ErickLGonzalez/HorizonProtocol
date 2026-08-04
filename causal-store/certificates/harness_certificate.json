@@ -66,183 +66,183 @@
           "acceptance_rate": 1.0,
           "contention_ratio": 0.0,
           "correctness": {
-            "checked_edges": 60,
+            "checked_edges": 0,
             "ok": true,
             "violation_count": 0
           },
           "diagnostics": {
-            "coordinated": 88,
-            "coordination_free": 212,
-            "coordination_free_rate": 0.7066666666666667,
+            "coordinated": 0,
+            "coordination_free": 300,
+            "coordination_free_rate": 1.0,
             "total": 300
           },
           "latency_ns": {
-            "50": 38238,
-            "90": 65059,
-            "99": 111389,
-            "99.9": 3089683,
-            "100": 3089683
+            "50": 3390281,
+            "90": 5856538,
+            "99": 6420292,
+            "99.9": 6774258,
+            "100": 6774258
           },
           "n_ops": 300,
           "status": "OK",
           "system": "causal-store",
-          "throughput_ops_per_s": 14688.45
+          "throughput_ops_per_s": 23156.44
         },
         {
           "acceptance_rate": 1.0,
           "contention_ratio": 0.05,
           "correctness": {
-            "checked_edges": 65,
+            "checked_edges": 4,
             "ok": true,
             "violation_count": 0
           },
           "diagnostics": {
-            "coordinated": 82,
-            "coordination_free": 218,
-            "coordination_free_rate": 0.7266666666666667,
+            "coordinated": 0,
+            "coordination_free": 300,
+            "coordination_free_rate": 1.0,
             "total": 300
           },
           "latency_ns": {
-            "50": 35688,
-            "90": 64003,
-            "99": 100183,
-            "99.9": 8450950,
-            "100": 8450950
+            "50": 3307702,
+            "90": 5914477,
+            "99": 6555111,
+            "99.9": 6907574,
+            "100": 6907574
           },
           "n_ops": 300,
           "status": "OK",
           "system": "causal-store",
-          "throughput_ops_per_s": 15761.0
+          "throughput_ops_per_s": 24998.4
         },
         {
           "acceptance_rate": 1.0,
           "contention_ratio": 0.1,
           "correctness": {
-            "checked_edges": 57,
+            "checked_edges": 4,
             "ok": true,
             "violation_count": 0
           },
           "diagnostics": {
-            "coordinated": 82,
-            "coordination_free": 218,
-            "coordination_free_rate": 0.7266666666666667,
+            "coordinated": 0,
+            "coordination_free": 300,
+            "coordination_free_rate": 1.0,
             "total": 300
           },
           "latency_ns": {
-            "50": 37113,
-            "90": 62092,
-            "99": 101345,
-            "99.9": 2847880,
-            "100": 2847880
+            "50": 3257139,
+            "90": 5986858,
+            "99": 6666656,
+            "99.9": 6737765,
+            "100": 6737765
           },
           "n_ops": 300,
           "status": "OK",
           "system": "causal-store",
-          "throughput_ops_per_s": 16114.28
+          "throughput_ops_per_s": 25770.88
         },
         {
           "acceptance_rate": 1.0,
           "contention_ratio": 0.25,
           "correctness": {
-            "checked_edges": 62,
+            "checked_edges": 24,
             "ok": true,
             "violation_count": 0
           },
           "diagnostics": {
-            "coordinated": 97,
-            "coordination_free": 203,
-            "coordination_free_rate": 0.6766666666666666,
+            "coordinated": 17,
+            "coordination_free": 283,
+            "coordination_free_rate": 0.9433333333333334,
             "total": 300
           },
           "latency_ns": {
-            "50": 38264,
-            "90": 65531,
-            "99": 127425,
-            "99.9": 3210882,
-            "100": 3210882
+            "50": 4047887,
+            "90": 15116909,
+            "99": 18527090,
+            "99.9": 18947005,
+            "100": 18947005
           },
           "n_ops": 300,
           "status": "OK",
           "system": "causal-store",
-          "throughput_ops_per_s": 15356.63
+          "throughput_ops_per_s": 12449.37
+        },
+        {
+          "acceptance_rate": 0.9967,
+          "contention_ratio": 0.5,
+          "correctness": {
+            "checked_edges": 41,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {
+            "coordinated": 57,
+            "coordination_free": 242,
+            "coordination_free_rate": 0.8066666666666666,
+            "total": 300
+          },
+          "latency_ns": {
+            "50": 6510280,
+            "90": 12804291,
+            "99": 13865435,
+            "99.9": 14676786,
+            "100": 14676786
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "causal-store",
+          "throughput_ops_per_s": 13649.68
         },
         {
           "acceptance_rate": 1.0,
-          "contention_ratio": 0.5,
+          "contention_ratio": 0.75,
           "correctness": {
             "checked_edges": 53,
             "ok": true,
             "violation_count": 0
           },
           "diagnostics": {
-            "coordinated": 119,
-            "coordination_free": 181,
-            "coordination_free_rate": 0.6033333333333334,
+            "coordinated": 141,
+            "coordination_free": 159,
+            "coordination_free_rate": 0.53,
             "total": 300
           },
           "latency_ns": {
-            "50": 44397,
-            "90": 84584,
-            "99": 184204,
-            "99.9": 6034627,
-            "100": 6034627
+            "50": 7892932,
+            "90": 15422322,
+            "99": 17471893,
+            "99.9": 17988002,
+            "100": 17988002
           },
           "n_ops": 300,
           "status": "OK",
           "system": "causal-store",
-          "throughput_ops_per_s": 13271.25
+          "throughput_ops_per_s": 12253.89
         },
         {
-          "acceptance_rate": 1.0,
-          "contention_ratio": 0.75,
-          "correctness": {
-            "checked_edges": 71,
-            "ok": true,
-            "violation_count": 0
-          },
-          "diagnostics": {
-            "coordinated": 174,
-            "coordination_free": 126,
-            "coordination_free_rate": 0.42,
-            "total": 300
-          },
-          "latency_ns": {
-            "50": 69431,
-            "90": 165143,
-            "99": 324740,
-            "99.9": 6945398,
-            "100": 6945398
-          },
-          "n_ops": 300,
-          "status": "OK",
-          "system": "causal-store",
-          "throughput_ops_per_s": 8845.11
-        },
-        {
-          "acceptance_rate": 0.9533,
+          "acceptance_rate": 0.95,
           "contention_ratio": 1.0,
           "correctness": {
-            "checked_edges": 74,
+            "checked_edges": 67,
             "ok": true,
             "violation_count": 0
           },
           "diagnostics": {
-            "coordinated": 282,
+            "coordinated": 281,
             "coordination_free": 4,
             "coordination_free_rate": 0.013333333333333334,
             "total": 300
           },
           "latency_ns": {
-            "50": 1681875,
-            "90": 28163388,
-            "99": 82337341,
-            "99.9": 129577073,
-            "100": 129577073
+            "50": 72406285,
+            "90": 384663560,
+            "99": 515699317,
+            "99.9": 525316831,
+            "100": 525316831
           },
           "n_ops": 300,
           "status": "OK",
           "system": "causal-store",
-          "throughput_ops_per_s": 521.18
+          "throughput_ops_per_s": 533.51
         }
       ],
       "total-order-baseline": [
@@ -250,89 +250,110 @@
           "acceptance_rate": 1.0,
           "contention_ratio": 0.0,
           "correctness": {
-            "checked_edges": 60,
+            "checked_edges": 0,
             "ok": true,
             "violation_count": 0
           },
           "diagnostics": {},
           "latency_ns": {
-            "50": 318,
-            "90": 549,
-            "99": 1784,
-            "99.9": 2630,
-            "100": 2630
+            "50": 1543668,
+            "90": 1758070,
+            "99": 1896809,
+            "99.9": 1898571,
+            "100": 1898571
           },
           "n_ops": 300,
           "status": "OK",
           "system": "total-order-baseline",
-          "throughput_ops_per_s": 47361.4
+          "throughput_ops_per_s": 50051.88
         },
         {
           "acceptance_rate": 1.0,
           "contention_ratio": 0.05,
           "correctness": {
-            "checked_edges": 65,
+            "checked_edges": 4,
             "ok": true,
             "violation_count": 0
           },
           "diagnostics": {},
           "latency_ns": {
-            "50": 324,
-            "90": 457,
-            "99": 1344,
-            "99.9": 2010,
-            "100": 2010
+            "50": 1415130,
+            "90": 1507439,
+            "99": 1525470,
+            "99.9": 1526603,
+            "100": 1526603
           },
           "n_ops": 300,
           "status": "OK",
           "system": "total-order-baseline",
-          "throughput_ops_per_s": 52104.12
+          "throughput_ops_per_s": 52915.06
         },
         {
           "acceptance_rate": 1.0,
           "contention_ratio": 0.1,
           "correctness": {
-            "checked_edges": 57,
+            "checked_edges": 4,
             "ok": true,
             "violation_count": 0
           },
           "diagnostics": {},
           "latency_ns": {
-            "50": 338,
-            "90": 402,
-            "99": 1337,
-            "99.9": 1787,
-            "100": 1787
+            "50": 1390811,
+            "90": 1451321,
+            "99": 1460323,
+            "99.9": 1461122,
+            "100": 1461122
           },
           "n_ops": 300,
           "status": "OK",
           "system": "total-order-baseline",
-          "throughput_ops_per_s": 51426.94
+          "throughput_ops_per_s": 52050.59
         },
         {
           "acceptance_rate": 1.0,
           "contention_ratio": 0.25,
           "correctness": {
-            "checked_edges": 62,
+            "checked_edges": 24,
             "ok": true,
             "violation_count": 0
           },
           "diagnostics": {},
           "latency_ns": {
-            "50": 314,
-            "90": 553,
-            "99": 1516,
-            "99.9": 1774,
-            "100": 1774
+            "50": 1486363,
+            "90": 1687907,
+            "99": 1787389,
+            "99.9": 1789107,
+            "100": 1789107
           },
           "n_ops": 300,
           "status": "OK",
           "system": "total-order-baseline",
-          "throughput_ops_per_s": 48418.15
+          "throughput_ops_per_s": 47746.79
         },
         {
           "acceptance_rate": 1.0,
           "contention_ratio": 0.5,
+          "correctness": {
+            "checked_edges": 41,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {},
+          "latency_ns": {
+            "50": 1432625,
+            "90": 1481362,
+            "99": 1513728,
+            "99.9": 1524762,
+            "100": 1524762
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "total-order-baseline",
+          "throughput_ops_per_s": 47767.0
+        },
+        {
+          "acceptance_rate": 1.0,
+          "contention_ratio": 0.75,
           "correctness": {
             "checked_edges": 53,
             "ok": true,
@@ -340,58 +361,37 @@
           },
           "diagnostics": {},
           "latency_ns": {
-            "50": 326,
-            "90": 400,
-            "99": 1911,
-            "99.9": 6702,
-            "100": 6702
+            "50": 1370402,
+            "90": 1415421,
+            "99": 1428910,
+            "99.9": 1436678,
+            "100": 1436678
           },
           "n_ops": 300,
           "status": "OK",
           "system": "total-order-baseline",
-          "throughput_ops_per_s": 51835.61
-        },
-        {
-          "acceptance_rate": 1.0,
-          "contention_ratio": 0.75,
-          "correctness": {
-            "checked_edges": 71,
-            "ok": true,
-            "violation_count": 0
-          },
-          "diagnostics": {},
-          "latency_ns": {
-            "50": 326,
-            "90": 501,
-            "99": 1847,
-            "99.9": 38492,
-            "100": 38492
-          },
-          "n_ops": 300,
-          "status": "OK",
-          "system": "total-order-baseline",
-          "throughput_ops_per_s": 51061.79
+          "throughput_ops_per_s": 52123.99
         },
         {
           "acceptance_rate": 1.0,
           "contention_ratio": 1.0,
           "correctness": {
-            "checked_edges": 74,
+            "checked_edges": 67,
             "ok": true,
             "violation_count": 0
           },
           "diagnostics": {},
           "latency_ns": {
-            "50": 329,
-            "90": 408,
-            "99": 1614,
-            "99.9": 4115,
-            "100": 4115
+            "50": 1705835,
+            "90": 1814107,
+            "99": 1827779,
+            "99.9": 1832525,
+            "100": 1832525
           },
           "n_ops": 300,
           "status": "OK",
           "system": "total-order-baseline",
-          "throughput_ops_per_s": 48531.3
+          "throughput_ops_per_s": 45305.16
         }
       ]
     },
@@ -458,15 +458,15 @@
     "benchmark_harness/adapters/baseline_adapter.py": "dd838f8679e2fbe4e430e99ee2dc6f0ff417691bb6599b9713fa37a77c890db0",
     "benchmark_harness/adapters/causalstore_adapter.py": "c5c4b7371b22c694cc7750fabbfbf2911c5326c4133a486adc0dc46a293227c4",
     "benchmark_harness/adapters/cockroach_adapter.py": "d3d9aeba6cd2962f512a723c6d1655dd392adefe4ac78836e7630b13422a60d9",
-    "benchmark_harness/adapters/sql_common.py": "8d8c88c54a8e67dba49fbefc81dc70cc138b455ff7702fe669533770c8a0794a",
+    "benchmark_harness/adapters/sql_common.py": "6a296b66c33f061df2ae2df3d50b22da3fc2e3953bf1404778de76945b0de8ce",
     "benchmark_harness/adapters/tiga_adapter.py": "133f4fe63486dc71c2466ae920997f6aeec12d6fb7a797b5be05a2bcc14cd75a",
     "benchmark_harness/adapters/yugabyte_adapter.py": "cd293f99eb887604bb2244c1fcff87fcb63b9e064bb1b526438e8b642a367d19",
     "benchmark_harness/collect.py": "0b0d1e060eff2d6204d6828f4e9526e7d02e48cd70fe73c76a0b8e4645cda3d8",
-    "benchmark_harness/driver.py": "e23b72223fae19f50cd84ad00fcb37155955fdf8946e5f0a4ed1d3a4d4c24369",
-    "benchmark_harness/report.py": "ef2218b5e591097b132420f431fdaadbcc014e8fc582b2a60ef0a8b0bca7321c",
+    "benchmark_harness/driver.py": "c63a4e19f7e411bf3daab9b93ebfc361a3ef60cfbc40de14e51b46c3f5929fc7",
+    "benchmark_harness/report.py": "6758863ad122149211d9f41d314549ed4d13b8b26bb0888b3f16d213ce148091",
     "benchmark_harness/topology_probe.py": "878fd00e484fee3f3723ff9d9b5d0946183a58e2e946e5bb25e319712a44d69a",
     "benchmark_harness/verify_order.py": "17df4c4e328ebb35e518b27a25407ce09e19a7cf4645e90d3d64807dacf3e40a",
-    "benchmark_harness/workload_gen.py": "a599160be8a14639dde6c2af6df0f48d1d29ff8d6d097564b4f16231c9966d01"
+    "benchmark_harness/workload_gen.py": "b6823ceba27633d63cf8c3838d723af9d91c2a482864337e661e4e859d0e5e49"
   },
   "thesis": "harness self-check: the benchmark harness (workload generation, dependency-respecting driver, ground-truth correctness gate, percentile/report assembly, adapter contract) is correct, run here against a LOCAL LOOPBACK topology with causal-store and the total-order baseline - NOT the design doc's live cross-region comparison (see docs/benchmark-harness-spec.md)",
   "unit_convention": {

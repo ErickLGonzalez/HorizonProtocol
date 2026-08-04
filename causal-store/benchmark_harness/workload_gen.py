@@ -28,7 +28,34 @@ benchmark's ground truth and the engine's own admissibility decision are
 grounded in the same physics, on purpose. Nothing here is a synthetic
 tolerance: `min_light_time_ns` is exact integer, same as elsewhere in
 this program.
+
+(Erratum: an earlier version seeded `_Rng` with Python's built-in
+`hash(seed)`. For a string seed, `hash()` is salted per INTERPRETER
+PROCESS (`PYTHONHASHSEED`) unless explicitly fixed, so the "same fixed
+seed" produced a DIFFERENT trace on every run - directly contradicting
+this module's own "reproducibility across interpreter versions matters
+more here than statistical quality" claim, and meaning independently
+executed adapter runs (e.g. a live agent running one adapter today and
+another tomorrow) could silently replay different workloads while
+believing they shared one trace. Fixed: `_Rng` now derives its state from
+a `hashlib.sha256` digest of the seed's stable string encoding - stdlib,
+deterministic across processes, interpreters, and Python versions.
+
+Erratum 2: the non-contending branch drew a key uniformly from the full
+`n_keys` space rather than avoiding `recent_keys`, so an INCIDENTAL
+collision with a recently-touched key - not gated by `contention_ratio`
+at all - became a dependency or concurrent-pair exactly as if it had been
+a deliberate contend roll. Concretely confirmed: with `n_keys=80`,
+`n_ops=300`, `contention_ratio=0.0` (supposed to mean NO contention), 222
+of 300 ops (74%) still landed in a same-key collision. This invalidated
+contention_ratio as the controlled independent variable at exactly the
+low end where the design doc's headline claim (H1) lives. Fixed: the
+non-contending branch now explicitly avoids every key currently in
+`recent_keys`, so a "fresh" pick can never incidentally trigger the
+collision only the deliberate contend roll is supposed to control.)
 """
+import hashlib
+
 from causalstore.geometry import min_light_time_ns
 
 DEFAULT_CONTENTION_SWEEP = (0.0, 0.05, 0.1, 0.25, 0.5, 0.75, 1.0)
@@ -38,9 +65,12 @@ class _Rng:
     """A tiny deterministic PRNG so the trace generator has no dependency
     on the stdlib `random` module's exact algorithm staying stable across
     Python versions (LCG, fixed constants) - reproducibility across
-    interpreter versions matters more here than statistical quality."""
+    interpreter versions matters more here than statistical quality.
+    Seeded from a SHA-256 digest of the seed's string encoding (see
+    module erratum) - never from Python's per-process-salted `hash()`."""
     def __init__(self, seed):
-        self.state = hash(seed) & 0xFFFFFFFFFFFFFFFF or 1
+        digest = hashlib.sha256(str(seed).encode()).digest()
+        self.state = (int.from_bytes(digest[:8], "big") & 0xFFFFFFFFFFFFFFFF) or 1
 
     def next_int(self, n):
         # xorshift64* - deterministic, fast, stdlib-free
@@ -100,7 +130,24 @@ def generate_trace(regions, region_positions_nm, n_keys, n_ops,
         if contend:
             key = rng.choice(recent_keys)
         else:
+            # explicitly avoid every key EVER touched so far - not merely
+            # the recency window - so an incidental collision (with a key
+            # touched long ago, still classified as a real dependency or
+            # concurrent pair once re-touched) can never masquerade as
+            # contention the caller did not ask for (see module erratum 2).
+            # This makes contention_ratio=0.0 achievable ONLY when n_keys
+            # comfortably exceeds n_ops - by pigeonhole, a smaller n_keys
+            # forces some reuse no matter what "avoid" set is used, which
+            # is a caller configuration choice, not something this
+            # function can paper over. A bounded number of retries handles
+            # the normal case; if the whole key space is already touched,
+            # fall back to accepting whatever is drawn rather than looping
+            # forever.
             key = f"k{rng.next_int(n_keys)}"
+            for _ in range(50):
+                if key not in last_writer_of_key:
+                    break
+                key = f"k{rng.next_int(n_keys)}"
 
         depends_on = []
         pred_id = last_writer_of_key.get(key)

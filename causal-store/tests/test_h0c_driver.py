@@ -41,6 +41,19 @@ def independent_trace(n):
     return [{"op_id": i, "depends_on": []} for i in range(n)]
 
 
+class SlowAdapter(Adapter):
+    """Every op takes `work_s` to execute - deliberately slower than the
+    open-loop `rate_per_s` schedule, so ops queue behind a single worker."""
+    name = "slow"
+
+    def __init__(self, work_s):
+        self.work_s = work_s
+
+    def apply_op(self, op):
+        time.sleep(self.work_s)
+        return OpResult(op["op_id"], True, commit_seq=op["op_id"])
+
+
 class TestDriver(unittest.TestCase):
     def test_closed_loop_respects_a_dependency_chain_under_concurrency(self):
         a = RecordingAdapter()
@@ -79,6 +92,36 @@ class TestDriver(unittest.TestCase):
         trace = independent_trace(15)
         results = driver.run(a, trace, mode="closed", concurrency=4)
         self.assertEqual([r.op_id for r in results], [op["op_id"] for op in trace])
+
+    def test_open_loop_latency_includes_queueing_delay_under_saturation(self):
+        # Regression for the fixed bug (see driver.py module erratum): the
+        # latency clock used to start only after a worker dequeued the
+        # op, hiding time spent waiting for a free worker. Single worker,
+        # each op takes 30ms, scheduled at 200/s (5ms apart) - the driver
+        # cannot possibly keep up, so ops queue up behind the one worker.
+        work_s = 0.03
+        rate_per_s = 200  # 5ms apart - far faster than the 30ms of work
+        n = 6
+        a = SlowAdapter(work_s)
+        results = driver.run(a, independent_trace(n), mode="open",
+                             concurrency=1, rate_per_s=rate_per_s)
+        # the last op's true queueing wait is roughly (n-1)*work_s minus
+        # the small scheduled offset - it must be well beyond a single
+        # op's own work duration, or the queueing delay was not captured.
+        last = results[-1]
+        self.assertGreater(last.latency_ns, work_s * 1e9 * (n - 1) * 0.5,
+                           "open-loop latency does not reflect queueing "
+                           "delay under saturation")
+
+    def test_closed_loop_latency_does_not_include_pre_issuance_time(self):
+        # sanity check on the fix: closed-loop latency should be close to
+        # the adapter's own work duration when there is no contention
+        # (concurrency comfortably exceeds the trace size).
+        work_s = 0.01
+        a = SlowAdapter(work_s)
+        results = driver.run(a, independent_trace(3), mode="closed", concurrency=8)
+        for r in results:
+            self.assertLess(r.latency_ns, work_s * 1e9 * 3)
 
 
 if __name__ == "__main__":

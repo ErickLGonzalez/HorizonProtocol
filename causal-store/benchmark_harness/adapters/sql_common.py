@@ -15,6 +15,19 @@ the dependent is even issued (see driver.py's docstring), a simple
 local, post-commit counter is sufficient for verify_order.py's
 correctness check regardless of how either database schedules
 transactions internally.
+
+(Erratum: an earlier version's `setup()` only did `CREATE TABLE IF NOT
+EXISTS`, never clearing prior rows. Every generated trace restarts
+`op_id` at 0 (workload_gen.generate_trace()), but a real database table
+persists across `setup()` calls - so the SECOND contention point, a
+repetition, or a rerun against the same database would try to INSERT
+`op_id=0` again, collide with the FIRST point's still-present row, and
+have every op with a colliding op_id caught by `apply_op`'s exception
+handler as an ordinary rejection. Nearly an entire sweep beyond its first
+point could silently measure duplicate-key failures rather than genuine
+CockroachDB/YugabyteDB commits. Fixed: `setup()` now clears the table
+before each run, so every `setup()` call starts from a genuinely clean
+slate regardless of what a prior invocation left behind.)
 """
 import itertools
 import threading
@@ -37,6 +50,8 @@ VALUES (%s, %s, %s, %s)
 """
 
 _CHECK_DEP_SQL = "SELECT 1 FROM causal_bench_events WHERE op_id = %s"
+
+_CLEAR_TABLE_SQL = "DELETE FROM causal_bench_events"
 
 
 class PostgresWireAdapter(Adapter):
@@ -74,7 +89,7 @@ class PostgresWireAdapter(Adapter):
                 f"{self.name}: could not connect to {self.dsn!r}: {exc}") from exc
         try:
             with conn.cursor() as cur:
-                for stmt in (_CREATE_TABLE_SQL, *self._extra_setup_sql):
+                for stmt in (_CREATE_TABLE_SQL, *self._extra_setup_sql, _CLEAR_TABLE_SQL):
                     cur.execute(stmt)
             conn.commit()
         finally:

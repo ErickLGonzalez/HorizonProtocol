@@ -57,6 +57,21 @@ class TestReport(unittest.TestCase):
         pt = build_point("causal-store", 0.1, results, 1.0, verdict)
         self.assertEqual(pt["status"], "OK")
 
+    def test_build_point_excludes_rejected_ops_from_latency_percentiles(self):
+        # Regression for the fixed bug (see report.py module erratum): a
+        # rejected op still carries a real latency_ns (it took time to
+        # fail), but it never reached "commit acknowledgment" - including
+        # it could make a system that fails fast look artificially
+        # low-latency. One slow accepted op, many fast rejected ops: the
+        # reported latency must reflect ONLY the accepted one.
+        results = [OpResult(0, True, commit_seq=0, latency_ns=500_000)] + \
+                 [OpResult(i, False, latency_ns=10, rejected_reason="x")
+                  for i in range(1, 20)]
+        verdict = {"ok": True, "checked_edges": 0, "violations": []}
+        pt = build_point("causal-store", 0.1, results, 1.0, verdict)
+        self.assertEqual(pt["latency_ns"][50], 500_000)
+        self.assertEqual(pt["latency_ns"][100], 500_000)
+
     def test_build_point_void_status_on_violation(self):
         results = [OpResult(0, True, commit_seq=0, latency_ns=100)]
         verdict = {"ok": False, "checked_edges": 1,

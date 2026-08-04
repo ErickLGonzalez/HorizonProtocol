@@ -6,7 +6,10 @@ Cockroach/YugabyteDB/Tiga must report AdapterUnavailable LOUDLY in this
 environment (no client library / cluster / packaged release), never
 silently skip and never fabricate a result.
 """
+import sys
+import types
 import unittest
+import unittest.mock
 
 from causalstore.geometry import C_NM_PER_NS
 from benchmark_harness import driver, verify_order
@@ -14,6 +17,7 @@ from benchmark_harness.adapters.base import AdapterUnavailable
 from benchmark_harness.adapters.baseline_adapter import TotalOrderBaselineAdapter
 from benchmark_harness.adapters.causalstore_adapter import CausalStoreAdapter
 from benchmark_harness.adapters.cockroach_adapter import CockroachAdapter
+from benchmark_harness.adapters.sql_common import PostgresWireAdapter
 from benchmark_harness.adapters.tiga_adapter import TigaAdapter
 from benchmark_harness.adapters.yugabyte_adapter import YugabyteAdapter
 from benchmark_harness.workload_gen import generate_trace
@@ -89,6 +93,101 @@ class TestCompetitorAdaptersReportUnavailableHonestly(unittest.TestCase):
             a = cls()
             with self.assertRaises(AdapterUnavailable):
                 a.setup(REGIONS)
+
+
+class _FakeDatabase:
+    """Shared state a fake psycopg2 `connect()` call always returns a
+    handle to - simulating a real database that PERSISTS across separate
+    connections/setup() calls, which is exactly the property the fixed
+    bug (see sql_common.py's module erratum) depended on to reproduce."""
+    def __init__(self):
+        self.rows = set()
+
+
+class _FakeCursor:
+    def __init__(self, db):
+        self.db = db
+        self._last_fetch = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def execute(self, sql, params=None):
+        s = sql.strip()
+        if s.startswith("SELECT 1"):
+            self._last_fetch = (1,) if params[0] in self.db.rows else None
+        elif s.startswith("INSERT"):
+            op_id = params[0]
+            if op_id in self.db.rows:
+                raise Exception("duplicate key value violates unique constraint")
+            self.db.rows.add(op_id)
+        elif s.startswith("DELETE"):
+            self.db.rows.clear()
+
+    def fetchone(self):
+        return self._last_fetch
+
+
+class _FakeConn:
+    def __init__(self, db):
+        self.db = db
+        self.autocommit = False
+
+    def cursor(self):
+        return _FakeCursor(self.db)
+
+    def commit(self):
+        pass
+
+    def rollback(self):
+        pass
+
+    def close(self):
+        pass
+
+
+class TestSqlCommonTableClearing(unittest.TestCase):
+    """Regression for the fixed bug: setup() used to only CREATE TABLE IF
+    NOT EXISTS, never clearing prior rows, so a second setup() against the
+    same persistent database collided with the first run's op_id=0 row
+    and reported an ordinary rejection instead of a real commit."""
+
+    def _fake_psycopg2(self, db):
+        return types.SimpleNamespace(connect=lambda dsn: _FakeConn(db))
+
+    def test_second_setup_against_same_database_clears_stale_rows(self):
+        db = _FakeDatabase()
+        with unittest.mock.patch.dict(sys.modules, {"psycopg2": self._fake_psycopg2(db)}):
+            a = PostgresWireAdapter(dsn="fake://shared-db")
+            a.setup(["r1"])
+            r1 = a.apply_op({"op_id": 0, "key": "k", "value": "v1", "depends_on": []})
+            self.assertTrue(r1.accepted)
+
+            # a second adapter instance/setup() against the SAME database
+            # (e.g. the next contention point in a sweep) must not collide
+            # with the first run's op_id=0 row.
+            b = PostgresWireAdapter(dsn="fake://shared-db")
+            b.setup(["r1"])
+            r2 = b.apply_op({"op_id": 0, "key": "k", "value": "v2", "depends_on": []})
+            self.assertTrue(r2.accepted,
+                            "second setup() did not clear stale rows from "
+                            "the first run - op_id=0 collided")
+
+    def test_without_the_fix_the_collision_would_have_been_a_rejection(self):
+        # sanity check that the fake actually models a real unique-key
+        # collision (proves the test is exercising the right failure mode)
+        db = _FakeDatabase()
+        db.rows.add(0)  # simulate a stale row already present, no clear
+        with unittest.mock.patch.dict(sys.modules, {"psycopg2": self._fake_psycopg2(db)}):
+            conn = _FakeConn(db)
+            with conn.cursor() as cur:
+                with self.assertRaises(Exception):
+                    cur.execute("INSERT INTO causal_bench_events (op_id, key_name, "
+                               "value_text, depends_on_op_id) VALUES (%s, %s, %s, %s)",
+                               (0, "k", "v", None))
 
 
 if __name__ == "__main__":

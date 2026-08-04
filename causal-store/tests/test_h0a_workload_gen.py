@@ -1,9 +1,14 @@
 """H-A: the workload generator is deterministic and its dependency graph
 is physically grounded. [SOUND]"""
+import os
+import subprocess
+import sys
 import unittest
 
 from causalstore.geometry import C_NM_PER_NS
 from benchmark_harness.workload_gen import DEFAULT_CONTENTION_SWEEP, generate_trace
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 REGIONS = ["us-east", "us-west", "eu-west"]
 POSITIONS = {
@@ -39,6 +44,43 @@ class TestWorkloadGen(unittest.TestCase):
         for op in out["trace"]:
             self.assertEqual(op["depends_on"], [])
         self.assertEqual(out["concurrent_pairs"], [])
+
+    def test_contention_zero_yields_zero_collisions_whenever_n_keys_exceeds_n_ops(self):
+        # Regression for the fixed bug (see module erratum 2): the
+        # non-contending draw used to sample uniformly from the WHOLE key
+        # space, so an incidental collision with the current recency
+        # window still slipped through uncontrolled. n_keys only needs to
+        # exceed n_ops (not be astronomically larger) for contention_ratio
+        # =0.0 to now guarantee zero collisions - the avoidance set is the
+        # FULL touched-key history, not just the recency window.
+        out = generate_trace(REGIONS, POSITIONS, n_keys=1000, n_ops=300,
+                             contention_ratio=0.0, seed="s3b")
+        for op in out["trace"]:
+            self.assertEqual(op["depends_on"], [])
+        self.assertEqual(out["concurrent_pairs"], [])
+
+    def test_seed_is_reproducible_across_interpreter_processes(self):
+        # Regression for the fixed bug (see module erratum): the old _Rng
+        # seeded from Python's built-in hash(), which is salted per
+        # PROCESS for strings unless PYTHONHASHSEED is fixed - so the
+        # "same" seed produced a different trace across independent runs.
+        # Run the generator in two subprocesses with DIFFERENT
+        # PYTHONHASHSEED values and confirm the trace is identical.
+        script = (
+            "import sys; sys.path.insert(0, %r)\n"
+            "from benchmark_harness.workload_gen import generate_trace\n"
+            "out = generate_trace(['a'], {'a': (0,0,0)}, n_keys=20, n_ops=20,\n"
+            "                     contention_ratio=0.5, seed='stable-seed-check')\n"
+            "print(out['trace'])\n" % ROOT
+        )
+        outputs = []
+        for hashseed in ("1", "42"):
+            env = dict(os.environ, PYTHONHASHSEED=hashseed)
+            r = subprocess.run([sys.executable, "-c", script],
+                               capture_output=True, text=True, env=env, check=True)
+            outputs.append(r.stdout)
+        self.assertEqual(outputs[0], outputs[1])
+        self.assertTrue(outputs[0].strip())  # sanity: actually produced output
 
     def test_same_region_same_key_pair_is_always_a_dependency(self):
         # two writes to the same key from the SAME region are never

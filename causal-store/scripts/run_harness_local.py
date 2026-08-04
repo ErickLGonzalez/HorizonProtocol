@@ -79,7 +79,13 @@ def _local_sweep():
 
     points = []
     for contention_ratio in DEFAULT_CONTENTION_SWEEP:
-        gen = generate_trace(regions, positions, n_keys=80, n_ops=300,
+        # n_keys deliberately >> n_ops: workload_gen.generate_trace() can
+        # only make contention_ratio the sole source of same-key
+        # collisions when a genuinely untouched key is available for the
+        # non-contending draw (see its module erratum 2) - with n_keys
+        # comparable to or smaller than n_ops, contention_ratio=0.0 would
+        # not mean zero contention no matter what the generator does.
+        gen = generate_trace(regions, positions, n_keys=2000, n_ops=300,
                              contention_ratio=contention_ratio,
                              seed=f"D1-HARNESS-local-{contention_ratio}")
         trace = gen["trace"]

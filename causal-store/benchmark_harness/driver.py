@@ -22,6 +22,22 @@ Uses only `concurrent.futures`/`threading`/`time` (stdlib). This driver
 measures wall-clock latency as observed IN THIS PROCESS; when adapters
 talk to real remote systems (a live run), that latency genuinely includes
 the network - see docs/benchmark-harness-spec.md.
+
+(Erratum: an earlier version started each op's latency clock INSIDE the
+worker task, after `ThreadPoolExecutor` had already dequeued it - so under
+saturation (`rate_per_s` exceeding the adapter's capacity, or a busy
+closed-loop pool), the time an op spent WAITING for a free worker was
+invisible to the reported latency. That is exactly the queueing delay
+open-loop mode exists to expose (module docstring: "exposing queueing
+under load") - omitting it made saturation look substantially faster than
+a real client would experience. Fixed: the latency clock now starts at
+`issued_at` - the scheduled target time for open-loop, or the moment the
+driver loop reaches the op for closed-loop - captured BEFORE
+`pool.submit()`, not inside the worker. The driver's own end-to-end
+measurement (issuance to result, including any dependency wait and any
+queueing wait) is now authoritative and always overwrites whatever an
+adapter set internally, since only the driver can see the queueing delay
+by construction.)
 """
 import threading
 import time
@@ -43,15 +59,13 @@ def run(adapter, trace, mode="closed", concurrency=8, rate_per_s=None):
     results = {}
     results_lock = threading.Lock()
 
-    def task(op):
+    def task(op, issued_at):
         for dep in op.get("depends_on", []):
             dep_future = futures.get(dep)
             if dep_future is not None:
                 dep_future.result()  # block until the predecessor committed
-        t0 = time.perf_counter()
         result = adapter.apply_op(op)
-        if result.latency_ns is None:
-            result.latency_ns = int((time.perf_counter() - t0) * 1e9)
+        result.latency_ns = int((time.perf_counter() - issued_at) * 1e9)
         with results_lock:
             results[op["op_id"]] = result
         return result
@@ -59,7 +73,8 @@ def run(adapter, trace, mode="closed", concurrency=8, rate_per_s=None):
     with ThreadPoolExecutor(max_workers=max(1, concurrency)) as pool:
         if mode == "closed":
             for op in trace:
-                futures[op["op_id"]] = pool.submit(task, op)
+                issued_at = time.perf_counter()
+                futures[op["op_id"]] = pool.submit(task, op, issued_at)
         else:  # open-loop: issue on a fixed schedule, don't wait for completion
             interval_s = 1.0 / rate_per_s
             t_start = time.perf_counter()
@@ -68,7 +83,11 @@ def run(adapter, trace, mode="closed", concurrency=8, rate_per_s=None):
                 delay = target - time.perf_counter()
                 if delay > 0:
                     time.sleep(delay)
-                futures[op["op_id"]] = pool.submit(task, op)
+                # the SCHEDULED time, not the (possibly later) actual
+                # submit time - latency is measured from when the op was
+                # supposed to be issued, the standard open-loop definition
+                # that avoids "coordinated omission."
+                futures[op["op_id"]] = pool.submit(task, op, target)
 
         for f in futures.values():
             f.result()  # propagate any exception; wait for full completion
