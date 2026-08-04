@@ -43,12 +43,31 @@ delivered, with completed items marked.
   integration (a squared-margin/nanosecond-unit mismatch in the original
   `latency_gate.py` that left its APPARATUS_LIMITED band practically
   inert at interplanetary scale).
+- **A1/A2 (H8, genuine multi-node capture)** integrated in a later pass;
+  see `docs/h8-spec.md`. Delivered as a labeled `MEASURED_MODEL` stand-in
+  (physically-consistent fiber/route-excess/clock-error model) over real
+  cloud-region geography, with `scripts/live_capture.py` as the
+  quarantined, non-CI on-ramp to a genuine live capture - provisioning
+  real hosts remains the next step, not attempted here. An erratum was
+  found and fixed during integration (`horizon/capture_verify.py`'s
+  original `classify()` used the declared conservative `c_eff` bound as an
+  absolute REJECT ceiling - wrongly rejecting real signals faster than
+  0.6c but still sub-vacuum - and read `c_eff` from the untrusted capture
+  object rather than trusted caller input; both are the same class of bug
+  `horizon.measure`'s own docstring already documents fixing once for H5).
+- **B1/"H9"** reconciled with the roadmap's own naming: the roadmap's H9
+  arrived as its own uploaded package after RT1 already existed. Rather
+  than a second, duplicate attacker module, H9's genuinely new attacks
+  (targeting H8's signed-capture and capture-verify surface) were added to
+  the same shared `redteam/attacks.py` RT1 uses, and H9 keeps its own
+  spec/certificate/gate identity (`docs/h9-spec.md`,
+  `certificates/h9_certificate.json`) reusing RT1's existing, more
+  rigorous timing-fuzz and ledger-cycle attacks rather than standing up
+  weaker duplicates. Eight attack classes combined, 13,000+ deterministic
+  trials, zero bypasses as of this writing.
 
 **Not attempted in this pass (explicitly deferred, not silently
 dropped):**
-- **A1/A2 (H8, genuine multi-node capture):** requires real,
-  geographically-separated hosts under the operator's control; out of
-  scope for an automated session without provisioned infrastructure.
 - **C1 (formally verified kernel):** requires a proof assistant (Lean 4
   or Dafny) not installed in this environment.
 

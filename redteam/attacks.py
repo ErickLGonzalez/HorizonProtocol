@@ -17,12 +17,14 @@ import hashlib
 import hmac
 from decimal import Decimal, getcontext
 
+from horizon.capture_verify import classify, verify_capture
 from horizon.certificate import build_cone_certificate, verify_certificate
 from horizon.events import canonical, make_event
 from horizon.geo_fixtures import build_synthetic_consistent_capture
 from horizon.geometry import C_NM_PER_NS, causally_admissible, dist2, min_light_time_ns
 from horizon.ledger import CausalLedger
 from horizon.measure import budget_witness, min_transit_time_ns_eff, verify_measured_certificate
+from horizon.signed_capture import sign_receipt, verify_receipt
 from horizon.simulate import broadcast
 from horizon.stations import demo_registry
 
@@ -233,6 +235,107 @@ def attack_ledger_cycle_fuzz(rng, trials=2000):
     return {"attack": "ledger_cycle_fuzz", "trials": trials, "bypasses": bypasses}
 
 
+# ---- RT-E: H8 signed-capture replay attack ----------------------------------
+def attack_h8_replay_fuzz(rng, trials=1000):
+    """Sign one legitimate H8 receipt, then try to reuse it for a different
+    event, node, position, time, or tier while keeping the original MAC -
+    the on-the-wire replay an attacker without a node key would have to
+    attempt. Every mutation must fail `verify_receipt` (its MAC covers the
+    whole body)."""
+    bypasses = []
+    good = sign_receipt("nodeA", [0, 0, 0], "EVENT-1", 1_000_000, "NTP")
+    assert verify_receipt(good)
+    fields = ("event_hash", "recv_time_ns", "node_id", "node_pos_nm", "tier")
+    for i in range(trials):
+        r = copy.deepcopy(good)
+        field = rng.choice(fields)
+        if field == "event_hash":
+            r["body"]["event_hash"] = f"EVENT-{i}-mutated"
+        elif field == "recv_time_ns":
+            r["body"]["recv_time_ns"] += rng.randint(1, 10 ** 9)
+        elif field == "node_id":
+            r["body"]["node_id"] = f"nodeB-{i}"
+        elif field == "node_pos_nm":
+            r["body"]["node_pos_nm"] = [rng.randint(1, 10 ** 9), 0, 0]
+        elif field == "tier":
+            r["body"]["tier"] = rng.choice(["PTP", "GNSS"])
+        if r == good:
+            continue  # mutation was a no-op (astronomically unlikely); skip
+        if verify_receipt(r):
+            bypasses.append({"trial": i, "mutated_field": field})
+    return {"attack": "h8_replay_fuzz", "trials": trials, "bypasses": bypasses}
+
+
+# ---- RT-F: H8 capture-verify boundary/trust-boundary attack -----------------
+def attack_h8_boundary_skew_fuzz(rng, trials=1000):
+    """Two questions against `horizon.capture_verify`, the class of bug found
+    and fixed once already during H8 review (see its module docstring
+    erratum), fuzzed here rather than only fixed-case tested:
+
+    (1) can an attacker force ADMITTED on a genuinely-impossible (more than
+        `u_ns` below the absolute vacuum floor) arrival by choosing an
+        adversarial `c_eff` passed to `classify`?
+    (2) can an attacker force the same by declaring an adversarial `c_eff`
+        INSIDE an otherwise-untrusted `capture` blob handed to
+        `verify_capture` (which must ignore it and use its own trusted
+        default)?
+
+    Neither should ever succeed: REJECTED is decided only by the absolute
+    vacuum floor, which is trusted geometry no adversary-supplied c_eff can
+    move."""
+    bypasses = []
+    for i in range(trials):
+        d_nm = rng.randint(1, 2_000_000) * 1_000_000_000
+        p0 = (0, 0, 0)
+        p1 = (d_nm, rng.randint(0, 10 ** 6), rng.randint(0, 10 ** 6))
+        vac = min_light_time_ns(p0, p1)
+        u = rng.randint(0, 10 ** 7)
+        # genuinely impossible: strictly more than u below the vacuum floor
+        recv = max(0, vac - u - rng.randint(1, 10 ** 6))
+        evil_num, evil_den = rng.randint(10 ** 6, 10 ** 9), 1  # declared superluminal
+
+        res = classify(0, p0, recv, p1, u, evil_num, evil_den)
+        if res["verdict"] == "ADMITTED":
+            bypasses.append({"trial": i, "vector": "classify_c_eff_param",
+                             "verdict": res["verdict"]})
+
+        registry = {"node": {"pos_nm": p1, "u_ns": u, "tier": "NTP"}}
+        receipt = sign_receipt("node", p1, "evt", recv, "NTP")
+        capture = {"event_hash": "evt", "t0_ns": 0, "p0_nm": list(p0),
+                  "c_eff": [evil_num, evil_den], "receipts": [receipt]}
+        res2 = verify_capture(capture, registry)
+        node_result = res2["per_receipt"][0]
+        if node_result["verdict"] == "ADMITTED":
+            bypasses.append({"trial": i, "vector": "capture_declared_c_eff",
+                             "verdict": node_result["verdict"]})
+    return {"attack": "h8_boundary_skew_fuzz", "trials": trials, "bypasses": bypasses}
+
+
+# ---- RT-G: named ledger-integrity scenarios ----------------------------------
+def attack_ledger_named_scenarios():
+    """A handful of fixed, human-readable ledger-integrity attempts,
+    complementing RT-D's randomized cycle fuzz with named scenarios a
+    reviewer can check by inspection: a plain backward-time edge, a
+    2-cycle via a second backward edge, and a spacelike edge."""
+    ledger = CausalLedger()
+    ledger.add_event("A", 0, (0, 0, 0))
+    ledger.add_event("B", 10, (C_NM_PER_NS, 0, 0))       # in A's future cone
+    ledger.add_event("C", 20, (2 * C_NM_PER_NS, 0, 0))   # in B's future cone
+    ledger.add_event("D", 0, (C_NM_PER_NS, 0, 0))        # spacelike to A
+    ledger.add_edge("A", "B")
+    ledger.add_edge("B", "C")
+
+    attempts = [
+        ("backward_C_to_A", ledger.add_edge("C", "A")["verdict"]),
+        ("backward_B_to_A", ledger.add_edge("B", "A")["verdict"]),
+        ("spacelike_A_to_D", ledger.add_edge("A", "D")["verdict"]),
+    ]
+    bypasses = [{"scenario": name, "verdict": v}
+               for name, v in attempts if v == "ADMITTED"]
+    return {"attack": "ledger_named_scenarios", "trials": len(attempts),
+           "bypasses": bypasses}
+
+
 def run_all(seed: str):
     import random
     rng = random.Random(seed)
@@ -242,4 +345,7 @@ def run_all(seed: str):
         attack_forgery_fuzz(rng),
         attack_measured_certificate_forgery_fuzz(rng),
         attack_ledger_cycle_fuzz(rng),
+        attack_h8_replay_fuzz(rng),
+        attack_h8_boundary_skew_fuzz(rng),
+        attack_ledger_named_scenarios(),
     ]

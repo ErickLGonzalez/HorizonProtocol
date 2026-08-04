@@ -151,7 +151,9 @@
     "horizon/beacon.py": "c6a0696c784ac83285f1d1fcd3b3728280e6aad1fb61416b6aae126f2e9b7ae7",
     "horizon/beacon_sim.py": "976dd9e637f20eadc4305bde14e9847e837d5618bc1cb0bc67d273293946d57e",
     "horizon/beq.py": "feb2b2e8ad8ef6c845357945ada18563c40e30a1ab5b6cbede6e96effea7a426",
+    "horizon/build_frame.py": "5e444a55b935ad57a49f7a6395499f4bc16f702bf54fc90c448d6f46eb6a5b01",
     "horizon/capture.py": "5abdbfc828842d92411cb0c999ea39aa0a503d6ecb94d8941d6da31f92826db8",
+    "horizon/capture_verify.py": "2f94d07f41833e41ddde153f434be5dbc68f6d854f68dd0ce3e456b7025c8bfa",
     "horizon/certificate.py": "102e1f2a3a2f3d047b6f07968ea73db776bf9b08a1291513c0919264e9f4e75e",
     "horizon/commit_sim.py": "8e86781cc8243a227fa2278afe24f8de8057ca42c4479b934077339f9abadcb9",
     "horizon/commitment.py": "4bf8609ed0a22cd6e72e4f36f9211f40192ba245403233adae44e814134a0fd1",
@@ -171,6 +173,7 @@
     "horizon/measure.py": "30561ea7fa0c6d5cf4f642dd04295f136046c4266e1fedbfcbb30be8bf27aa73",
     "horizon/quantum_interface.py": "5f697680806342bdfe7c6654b173fc26ec69309f358bc688054f0c25a98e49d6",
     "horizon/qubit_sim.py": "891b6e2677ff95b80212a25dd1e3e062713fc1be4c5a29d8f2f1d33e0a6712c9",
+    "horizon/signed_capture.py": "785f95c3ddd1b671e9335f6cc115d6a977a3b09a993e8f1a1b76e3be585a099a",
     "horizon/simulate.py": "a6b1760848f0a6b7f821999e7820d912b3edc741ddac834c4f38ef708ce7d1ce",
     "horizon/stations.py": "25d3ab2d40fd20d7fcad81b25e43c17e7f1385ed3acd52cb7dd8af31b2755830"
   },

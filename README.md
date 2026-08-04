@@ -20,6 +20,7 @@ verifiable primitives.
 | L0 | Timing fabric (synchronized, surveyed stations) | modeled in H1 |
 | L0 | Timing fabric over real measurements | **H5 (this release)** |
 | L0 | Timing fabric over real measurements, real geography | **H6 (this release)** |
+| L0 | Genuine multi-node capture, signed receipts, tiered clock uncertainty | **H8 (this release)** |
 | L0.5 | Deep-space latency-budget gate + BE(Q) collusion resistance | **H7 (this release)** |
 | L1 | Distance bounding / position proofs | **H3 (this release)** |
 | L2 | Relativistic commitments | **H2 (this release)** |
@@ -53,8 +54,8 @@ fabricates an order the geometry does not certify.
 ## Quickstart
 
 ```bash
-python3 scripts/run_all.py              # runs every H1-H7 + MNX1 + RT1 gate set + certificate validation
-python3 -m unittest discover tests -v   # 193 tests
+python3 scripts/run_all.py              # runs every H1-H9 + MNX1 + RT1 gate set + certificate validation
+python3 -m unittest discover tests -v   # 226 tests
 python3 scripts/validate_certificates.py
 python3 scripts/bench.py                # performance report (informational, not a gate)
 python3 scripts/demo_mnx.py             # MnemesisOS causal-memory demo, end to end
@@ -121,22 +122,38 @@ computed, not measured. See `docs/h1-spec.md` for the full statement.
   `distance.min_round_trip_ns` directly rather than a parallel
   implementation. Emits `CONDITIONAL(BE(Q))`, never an unconditional
   security claim.
+- **H8** — the program's first contact with real timing: cone certificates
+  from a physically-consistent, honestly-labeled `MEASURED_MODEL` capture
+  (not a computed or `SYNTHETIC_CONSISTENT` fixture) across real
+  geographically-separated cloud regions, with HMAC-signed per-node
+  receipts and tiered clock uncertainty (NTP/PTP/GNSS) (`docs/h8-spec.md`).
+  The key finding: a co-located node is `APPARATUS_LIMITED` at every tier
+  (no time-of-flight, no distance attestation, at any clock precision, by
+  construction — not a defect), while an intermediate node (~475 km)
+  demonstrably transitions `APPARATUS_LIMITED` → `ADMITTED` as the tier
+  tightens from NTP to PTP. `scripts/live_capture.py` is the quarantined,
+  non-CI on-ramp to a genuine live capture over provisioned hosts.
 
 **Known limitation demonstrated:** gate H3-C reproduces the classical
 collusion break of position verification (CGMO 2009) as `EXPECTED_ATTACK_SUCCESS` — see `docs/h3-spec.md`. Closing that gap is the design-only
 quantum layer (`docs/quantum-layer-spec.md`); it is not implemented here.
 
-## Companion program: independent red-team harness (RT1)
+## Companion program: independent red-team harness (RT1, extended by H9)
 
 `redteam/` is a separate attacker module (own certificate, own program
 name `RT1`) that tries to make gates ADMIT/PASS without authorization,
 hitting each gate through only its public API — never by importing
-verifier internals or reading a station's private key. Five attack
+verifier internals or reading a station's private key. Eight attack
 classes (differential timing fuzz against an independently-implemented
 Decimal-based reference, budgeted-gate boundary/margin fuzz,
 cone-certificate and measured-certificate forgery fuzz, causal-ledger
-cycle fuzz), 11,000+ deterministic trials, zero bypasses as of this
-writing. See `docs/redteam-spec.md`.
+cycle fuzz plus named scenarios, and — added for H8's capture surface —
+signed-capture replay fuzz and a capture-verify boundary/trust-boundary
+fuzz), 13,000+ deterministic trials, zero bypasses as of this writing.
+`docs/h9-spec.md` documents H9 — the roadmap's own name for the same
+harness extended to attack H8 — as one shared toolkit rather than a
+second, duplicate attacker package; see `docs/redteam-spec.md` for the
+full attack-class detail.
 
 ## Companion program: MnemesisOS convergence (MNX1)
 
@@ -158,10 +175,13 @@ without physical geometry. See `docs/mnemesis-convergence.md` and
   channel would plug into), but H7 is groundwork, not the full quantum
   layer — no quantum channel is implemented, only its documented contract.
 - `docs/engineering-roadmap.md` — the roadmap that scoped D1 (float
-  guard), D2 (benchmark), E1 (kernel consolidation), and the red-team
-  harness (RT1) delivered above, plus what remains open: genuine
-  multi-node network capture (needs real, operator-provisioned hosts) and
-  a machine-checked proof of the admissibility kernel (needs a proof
+  guard), D2 (benchmark), E1 (kernel consolidation), the red-team harness
+  (RT1/H9), and H8 (genuine multi-node capture, delivered as a labeled
+  `MEASURED_MODEL` stand-in plus a quarantined live on-ramp) delivered
+  above. What remains open: a genuine LIVE capture over real,
+  operator-provisioned hosts (H8 supplies the verifier and the on-ramp
+  script; running it against real infrastructure is the next step) and a
+  machine-checked proof of the admissibility kernel (needs a proof
   assistant not available in this environment).
 
 *Naming note: the working name during design was “Horos” (ὅρος, boundary

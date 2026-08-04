@@ -57,6 +57,21 @@ class TestReplayPass(unittest.TestCase):
         self.assertFalse(any("simulate" in n for n in imported), imported)
 
     def test_capture_module_never_imported_by_trusted_or_test_code(self):
+        # QUARANTINED_LIVE_TIMING_MODULES are H5/H6's own HEURISTIC, CI-
+        # excluded live-timing modules - never imported by any verifier,
+        # script runner, or test (checked below). This is deliberately an
+        # EXACT module-name match, not a "capture" substring match: H8
+        # introduces its own, legitimately different and legitimately
+        # imported modules that also contain the word "capture"
+        # (horizon.signed_capture, horizon.capture_verify, horizon.build_frame's
+        # capture-registry loading) - a substring match would wrongly flag
+        # those as if they were this quarantined pair.
+        # both the absolute form (`horizon.capture`, used by scripts/tests)
+        # and the bare relative-import form (`.capture` parses as module
+        # name "capture", used within the horizon/ package itself) must be
+        # covered.
+        QUARANTINED_LIVE_TIMING_MODULES = {"horizon.capture", "horizon.h6_capture",
+                                           "capture", "h6_capture"}
         import ast
         import glob
         offenders = []
@@ -66,8 +81,7 @@ class TestReplayPass(unittest.TestCase):
             # capture.py may reference itself; h6_capture.py is H6's own
             # quarantined live-capture module and legitimately reuses
             # capture.py's SNTP query rather than duplicating it - both are
-            # HEURISTIC, both excluded from CI, and neither is imported by
-            # any verifier, script runner, or test (checked below).
+            # HEURISTIC, both excluded from CI.
             if os.path.basename(path) in ("capture.py", "h6_capture.py"):
                 continue
             with open(path) as f:
@@ -78,7 +92,7 @@ class TestReplayPass(unittest.TestCase):
                     names = [a.name for a in node.names]
                 elif isinstance(node, ast.ImportFrom) and node.module:
                     names = [node.module]
-                if any("capture" in n for n in names):
+                if any(n in QUARANTINED_LIVE_TIMING_MODULES for n in names):
                     offenders.append(path)
         self.assertEqual(offenders, [],
                          f"horizon.capture imported outside its own module: {offenders}")

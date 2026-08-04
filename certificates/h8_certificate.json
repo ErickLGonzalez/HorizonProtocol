@@ -1,56 +1,57 @@
 {
-  "adversary_model": "single forger without station keys; colluding multi-site adversaries and key compromise are OUT OF SCOPE at H1 (see docs/h1-spec.md)",
+  "adversary_model": "forger without node keys (rogue-key spoof REJECTED at signature gate) or without access to trusted c_eff/registry parameters (declared c_eff inside a capture is provenance only, never fed into classification); colluding multi-node adversaries OUT OF SCOPE (H9 red-team quantifies residual surface)",
   "aggregate": "PASS",
-  "benchmark_id": "H1",
+  "benchmark_id": "H8",
+  "capture_origin": "MEASURED_MODEL (committed replay; live_capture.py is the real on-ramp)",
   "certificate_version": "1",
   "claim_class": "ENGINEERING_REFERENCE",
   "empirical_claim": "NONE",
   "execution_tier": "BENCHMARK",
+  "finding": "co-located node (zero flight) is APPARATUS_LIMITED at every tier; an intermediate node (~475 km) transitions APPARATUS_LIMITED->ADMITTED from NTP to PTP; distant nodes ADMITTED at all tiers",
   "gates": [
     {
-      "description": "exact light-cone geometry kernel",
-      "gate": "H1-A",
+      "description": "signed capture round-trip + deterministic replay",
+      "gate": "H8-A",
       "result": "PASS",
-      "soundness_tag": "SOUND",
-      "unittest_tail": "OK"
+      "soundness_tag": "SOUND"
     },
     {
-      "description": "receipt authenticity round-trip",
-      "gate": "H1-B",
+      "description": "honest capture: ADMITTED/APPARATUS_LIMITED, no spurious reject",
+      "gate": "H8-B",
       "result": "PASS",
-      "soundness_tag": "SOUND",
-      "unittest_tail": "OK"
+      "soundness_tag": "SOUND"
     },
     {
-      "description": "cone certificate + standalone verifier",
-      "gate": "H1-C",
+      "description": "rogue-key spoof REJECTED at signature gate",
+      "gate": "H8-C",
       "result": "PASS",
-      "soundness_tag": "SOUND",
-      "unittest_tail": "OK"
+      "soundness_tag": "SOUND"
     },
     {
-      "description": "causal ledger admissibility / concurrency",
-      "gate": "H1-D",
+      "description": "APPARATUS_LIMITED->ADMITTED across timing tiers",
+      "gate": "H8-D",
       "result": "PASS",
-      "soundness_tag": "SOUND",
-      "unittest_tail": "OK"
+      "soundness_tag": "SOUND"
     },
     {
-      "description": "negative controls REJECTED with witnesses",
-      "gate": "H1-E",
+      "description": "trust-boundary + real-fast-signal regression coverage",
+      "gate": "H8-E",
       "result": "PASS",
-      "soundness_tag": "SOUND",
-      "unittest_tail": "OK"
+      "soundness_tag": "SOUND"
     }
   ],
   "heuristic_warnings": [
     {
-      "location": "horizon/stations.py",
-      "warning": "HMAC with demo-derived symmetric keys stands in for signatures; key distribution trusted"
+      "location": "horizon/signed_capture.py::measure_now",
+      "warning": "live system-time measurement; non-deterministic; not in verifier path"
     },
     {
-      "location": "horizon/simulate.py",
-      "warning": "arrival times computed, not measured; simulator excluded from trusted path"
+      "location": "scripts/live_capture.py",
+      "warning": "manual live capture; quarantined from CI and verifier"
+    },
+    {
+      "location": "data/h8_capture_*.json",
+      "warning": "MEASURED_MODEL: physically-consistent capture model (fiber c_eff=3/5, route excess 1.3x, tier clock error); a stand-in for genuine live capture"
     }
   ],
   "program": "HorizonProtocol",
@@ -87,10 +88,36 @@
     "horizon/simulate.py": "a6b1760848f0a6b7f821999e7820d912b3edc741ddac834c4f38ef708ce7d1ce",
     "horizon/stations.py": "25d3ab2d40fd20d7fcad81b25e43c17e7f1385ed3acd52cb7dd8af31b2755830"
   },
+  "tier_verdicts": {
+    "NTP": {
+      "eu-west-1": "ADMITTED",
+      "us-east-1": "APPARATUS_LIMITED",
+      "us-east-2": "APPARATUS_LIMITED",
+      "us-west-2": "ADMITTED"
+    },
+    "PTP": {
+      "eu-west-1": "ADMITTED",
+      "us-east-1": "APPARATUS_LIMITED",
+      "us-east-2": "ADMITTED",
+      "us-west-2": "ADMITTED"
+    }
+  },
+  "timing_tiers": {
+    "GNSS": 1000,
+    "NTP": 5000000,
+    "PTP": 50000
+  },
   "unit_convention": {
     "c": 299792458,
-    "c_units": "nm/ns (exact integer)",
+    "c_eff": [
+      3,
+      5
+    ],
     "position": "nanometers (int)",
+    "route_excess": [
+      13,
+      10
+    ],
     "time": "nanoseconds (int)"
   }
 }
