@@ -1,0 +1,182 @@
+{
+  "adversary_model": "forger without node keys (HMAC demo keys; Ed25519 is the deployment target) or without access to trusted c_eff/registry parameters; colluding multi-node adversaries OUT OF SCOPE",
+  "aggregate": "PASS",
+  "auth_note": "Receipts signed with HMAC-SHA256 demo keys derived from node_id (horizon.signed_capture). Production target: per-VM Ed25519 keys.",
+  "benchmark_id": "H8-LIVE",
+  "capture_origin": "LIVE_CAPTURE",
+  "capture_path": "data/h8_live_capture_PTP_1.json",
+  "capture_sha256": "54d93eaa99da0d224902ead0ad1d1319cd8365f60e88e23d35e5553eec449a68",
+  "captured_at": "2026-08-04T10:53:17.737893Z",
+  "certificate_version": "1",
+  "claim_class": "ENGINEERING_REFERENCE",
+  "clock_offsets_ns": {
+    "eu-west-1": 1369,
+    "us-east-1": 2304,
+    "us-east-2": -2726,
+    "us-west-2": -5065
+  },
+  "empirical_claim": "NONE",
+  "execution_tier": "LIVE",
+  "finding": "tier=PTP; aggregate=PASS; verdicts=eu-west-1:ADMITTED,us-east-1:ADMITTED,us-east-2:ADMITTED,us-west-2:ADMITTED; at least one receipt ADMITTED on real measured times",
+  "gates": [
+    {
+      "description": "multi-node LIVE_CAPTURE collected from >=3 regions",
+      "gate": "H8-LIVE-A",
+      "result": "PASS",
+      "soundness_tag": "HEURISTIC"
+    },
+    {
+      "description": "unmodified verify_capture over measured u_ns overlay",
+      "gate": "H8-LIVE-B",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    },
+    {
+      "description": "no honest receipt REJECTED (falsifier F1)",
+      "gate": "H8-LIVE-C",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    }
+  ],
+  "heuristic_warnings": [
+    {
+      "location": "scripts/live_orchestrate.py",
+      "warning": "HEURISTIC live capture path; quarantined from CI/verifier"
+    },
+    {
+      "location": "horizon/signed_capture.py::measure_now",
+      "warning": "live system-time stamp; non-deterministic"
+    },
+    {
+      "location": "horizon/signed_capture.py::_key",
+      "warning": "HMAC demo key derivation; not deployment-grade auth"
+    }
+  ],
+  "issued_at": "2026-08-04T10:54:56Z",
+  "measured_u_ns": {
+    "eu-west-1": 118222,
+    "us-east-1": 31109,
+    "us-east-2": 27039,
+    "us-west-2": 32839
+  },
+  "per_receipt": [
+    {
+      "node_id": "us-east-1",
+      "tier": "PTP",
+      "verdict": "ADMITTED",
+      "witness": {
+        "dt_adjusted_ns": 2312959,
+        "dt_ns": 2281850,
+        "margin_below_vacuum_floor_ns": -2312959,
+        "margin_from_typical_floor_ns": 2312959,
+        "resolution_band_ns": 62218,
+        "typical_floor_ns": 0,
+        "u_ns": 31109,
+        "vacuum_floor_ns": 0
+      }
+    },
+    {
+      "node_id": "us-east-2",
+      "tier": "PTP",
+      "verdict": "ADMITTED",
+      "witness": {
+        "dt_adjusted_ns": 45556315,
+        "dt_ns": 45529276,
+        "margin_below_vacuum_floor_ns": -41310771,
+        "margin_from_typical_floor_ns": 38480409,
+        "resolution_band_ns": 54078,
+        "typical_floor_ns": 7075906,
+        "u_ns": 27039,
+        "vacuum_floor_ns": 4245544
+      }
+    },
+    {
+      "node_id": "us-west-2",
+      "tier": "PTP",
+      "verdict": "ADMITTED",
+      "witness": {
+        "dt_adjusted_ns": 117084317,
+        "dt_ns": 117051478,
+        "margin_below_vacuum_floor_ns": -105763854,
+        "margin_from_typical_floor_ns": 98216878,
+        "resolution_band_ns": 65678,
+        "typical_floor_ns": 18867439,
+        "u_ns": 32839,
+        "vacuum_floor_ns": 11320463
+      }
+    },
+    {
+      "node_id": "eu-west-1",
+      "tier": "PTP",
+      "verdict": "ADMITTED",
+      "witness": {
+        "dt_adjusted_ns": 122075626,
+        "dt_ns": 121957404,
+        "margin_below_vacuum_floor_ns": -101318543,
+        "margin_from_typical_floor_ns": 87480487,
+        "resolution_band_ns": 236444,
+        "typical_floor_ns": 34595139,
+        "u_ns": 118222,
+        "vacuum_floor_ns": 20757083
+      }
+    }
+  ],
+  "position_sources": {
+    "eu-west-1": "azure-region-published",
+    "us-east-1": "azure-region-published",
+    "us-east-2": "azure-region-published",
+    "us-west-2": "azure-region-published"
+  },
+  "program": "HorizonProtocol",
+  "promotion_allowed": false,
+  "python_version": "3.12.3",
+  "registry_frame_origin": {
+    "llh": [
+      37.3719,
+      -79.8164,
+      90.0
+    ],
+    "name": "azure-eastus"
+  },
+  "source_hashes": {
+    "horizon/build_frame.py": "5e444a55b935ad57a49f7a6395499f4bc16f702bf54fc90c448d6f46eb6a5b01",
+    "horizon/capture_verify.py": "07570d2a6c3ee31196c50472315b395da1c64acb58f5146c1bd26f6f0598648b",
+    "horizon/events.py": "be117a3145df1a89d44bab130391b35e502bddb2fbdfa69430bea578a29cbda2",
+    "horizon/geometry.py": "d9e7a851b2284a963f7ca7b43f6e99a57408406093aed85ef7fcf4caec1c0240",
+    "horizon/measure.py": "30561ea7fa0c6d5cf4f642dd04295f136046c4266e1fedbfcbb30be8bf27aa73",
+    "horizon/signed_capture.py": "785f95c3ddd1b671e9335f6cc115d6a977a3b09a993e8f1a1b76e3be585a099a"
+  },
+  "tier_nominal": "PTP",
+  "tier_verdicts": {
+    "PTP": {
+      "eu-west-1": "ADMITTED",
+      "us-east-1": "ADMITTED",
+      "us-east-2": "ADMITTED",
+      "us-west-2": "ADMITTED"
+    }
+  },
+  "timing_tiers_nominal": {
+    "GNSS": 1000,
+    "NTP": 5000000,
+    "PTP": 50000
+  },
+  "u_ns_overlay": {
+    "fallback_nominal": {},
+    "used_measured": {
+      "eu-west-1": 118222,
+      "us-east-1": 31109,
+      "us-east-2": 27039,
+      "us-west-2": 32839
+    }
+  },
+  "unit_convention": {
+    "c": 299792458,
+    "c_eff": [
+      3,
+      5
+    ],
+    "position": "nanometers (int)",
+    "time": "nanoseconds (int)"
+  },
+  "verifier": "horizon.capture_verify.verify_capture (unmodified)"
+}

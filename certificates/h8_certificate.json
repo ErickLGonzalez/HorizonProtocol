@@ -56,7 +56,7 @@
   ],
   "program": "HorizonProtocol",
   "promotion_allowed": false,
-  "python_version": "3.11.15",
+  "python_version": "3.12.3",
   "source_hashes": {
     "horizon/__init__.py": "513a2bd5e2c85ba7c6fb372a429cd2cab8430c5389302f9d2c929618ab48d29e",
     "horizon/beacon.py": "c6a0696c784ac83285f1d1fcd3b3728280e6aad1fb61416b6aae126f2e9b7ae7",

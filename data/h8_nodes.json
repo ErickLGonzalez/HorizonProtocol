@@ -1,14 +1,59 @@
 {
-  "_comment": "Real cloud regions; frame origin = us-east-1. Measured-capture model applies fiber speed and route excess. us-east-2 (~475 km) is the intermediate node used to demonstrate the NTP->PTP APPARATUS_LIMITED->ADMITTED tier transition (H8-D).",
+  "_comment": "Azure region surveyed positions for H8-LIVE. Frame origin = us-east-1 (eastus). Coordinates from Azure region published lat/long (position_source=azure-region-published). eu-west-1 mapped to westeurope after northeurope SkuNotAvailable/QuotaExceeded. Measured u_ns overlaid at verify time from chrony/PTP logs.",
   "frame_origin": {
-    "name": "aws-us-east-1",
-    "llh": [38.9445, -77.4558, 90.0]
+    "name": "azure-eastus",
+    "llh": [
+      37.3719,
+      -79.8164,
+      90.0
+    ]
   },
   "quantization_nm": 1,
   "nodes": [
-    {"id": "us-east-1", "llh": [38.9445, -77.4558, 90.0],  "tier": "NTP"},
-    {"id": "us-west-2", "llh": [45.8399, -119.7006, 100.0], "tier": "NTP"},
-    {"id": "eu-west-1", "llh": [53.4129, -8.2439, 80.0],    "tier": "NTP"},
-    {"id": "us-east-2", "llh": [40.0946, -82.7755, 250.0],  "tier": "NTP"}
+    {
+      "id": "us-east-1",
+      "llh": [
+        37.3719,
+        -79.8164,
+        90.0
+      ],
+      "tier": "NTP",
+      "azure_region": "eastus",
+      "position_source": "azure-region-published"
+    },
+    {
+      "id": "us-east-2",
+      "llh": [
+        41.5908,
+        -93.6208,
+        250.0
+      ],
+      "tier": "NTP",
+      "azure_region": "centralus",
+      "position_source": "azure-region-published"
+    },
+    {
+      "id": "us-west-2",
+      "llh": [
+        47.233,
+        -119.852,
+        100.0
+      ],
+      "tier": "NTP",
+      "azure_region": "westus2",
+      "position_source": "azure-region-published"
+    },
+    {
+      "id": "eu-west-1",
+      "llh": [
+        52.3667,
+        4.8945,
+        80.0
+      ],
+      "tier": "NTP",
+      "azure_region": "westeurope",
+      "position_source": "azure-region-published",
+      "_note": "northeurope capacity unavailable; deployed to westeurope (Netherlands)"
+    }
   ]
 }

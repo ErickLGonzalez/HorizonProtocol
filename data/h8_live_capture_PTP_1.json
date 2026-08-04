@@ -1,0 +1,284 @@
+{
+  "auth_note": "Receipts signed with HMAC-SHA256 demo keys derived from node_id (horizon.signed_capture). Production target: per-VM Ed25519 keys.",
+  "c_eff": [
+    3,
+    5
+  ],
+  "captured_at": "2026-08-04T10:53:17.737893Z",
+  "clock_logs": {
+    "eu-west-1": {
+      "after": {
+        "available": true,
+        "last_offset_s": 1.369e-06,
+        "leap_status": "Normal",
+        "measured_offset_ns": 1369,
+        "measured_u_ns": 118222,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : 50484330 (PHC0)\nStratum         : 1\nRef time (UTC)  : Tue Aug 04 10:53:06 2026\nSystem time     : 0.000001291 seconds fast of NTP time\nLast offset     : +0.000001369 seconds\nRMS offset      : 0.000050883 seconds\nFrequency       : 89.779 ppm slow\nResidual freq   : +0.037 ppm\nSkew            : 1.971 ppm\nRoot delay      : 0.000000001 seconds\nRoot dispersion : 0.000065969 seconds\nUpdate interval : 8.0 seconds\nLeap status     : Normal",
+        "ref_id": "50484330 (PHC0)",
+        "rms_offset_s": 5.0883e-05,
+        "root_delay_s": 1e-09,
+        "root_dispersion_s": 6.5969e-05,
+        "stratum": 1,
+        "system_time_offset_s": 1.291e-06,
+        "update_interval_s": 8.0
+      },
+      "before": {
+        "available": true,
+        "last_offset_s": 1.369e-06,
+        "leap_status": "Normal",
+        "measured_offset_ns": 1369,
+        "measured_u_ns": 118212,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : 50484330 (PHC0)\nStratum         : 1\nRef time (UTC)  : Tue Aug 04 10:53:06 2026\nSystem time     : 0.000001291 seconds fast of NTP time\nLast offset     : +0.000001369 seconds\nRMS offset      : 0.000050883 seconds\nFrequency       : 89.779 ppm slow\nResidual freq   : +0.037 ppm\nSkew            : 1.971 ppm\nRoot delay      : 0.000000001 seconds\nRoot dispersion : 0.000065959 seconds\nUpdate interval : 8.0 seconds\nLeap status     : Normal",
+        "ref_id": "50484330 (PHC0)",
+        "rms_offset_s": 5.0883e-05,
+        "root_delay_s": 1e-09,
+        "root_dispersion_s": 6.5959e-05,
+        "stratum": 1,
+        "system_time_offset_s": 1.291e-06,
+        "update_interval_s": 8.0
+      }
+    },
+    "us-east-1": {
+      "after": {
+        "available": true,
+        "last_offset_s": 2.304e-06,
+        "leap_status": "Normal",
+        "measured_offset_ns": 2304,
+        "measured_u_ns": 31109,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : 50484330 (PHC0)\nStratum         : 1\nRef time (UTC)  : Tue Aug 04 10:53:07 2026\nSystem time     : 0.000002580 seconds fast of NTP time\nLast offset     : +0.000002304 seconds\nRMS offset      : 0.000005737 seconds\nFrequency       : 22.309 ppm slow\nResidual freq   : +0.003 ppm\nSkew            : 0.175 ppm\nRoot delay      : 0.000000001 seconds\nRoot dispersion : 0.000023067 seconds\nUpdate interval : 8.0 seconds\nLeap status     : Normal",
+        "ref_id": "50484330 (PHC0)",
+        "rms_offset_s": 5.737e-06,
+        "root_delay_s": 1e-09,
+        "root_dispersion_s": 2.3067e-05,
+        "stratum": 1,
+        "system_time_offset_s": 2.58e-06,
+        "update_interval_s": 8.0
+      },
+      "before": {
+        "available": true,
+        "last_offset_s": 2.304e-06,
+        "leap_status": "Normal",
+        "measured_offset_ns": 2304,
+        "measured_u_ns": 31107,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : 50484330 (PHC0)\nStratum         : 1\nRef time (UTC)  : Tue Aug 04 10:53:07 2026\nSystem time     : 0.000002580 seconds fast of NTP time\nLast offset     : +0.000002304 seconds\nRMS offset      : 0.000005737 seconds\nFrequency       : 22.309 ppm slow\nResidual freq   : +0.003 ppm\nSkew            : 0.175 ppm\nRoot delay      : 0.000000001 seconds\nRoot dispersion : 0.000023065 seconds\nUpdate interval : 8.0 seconds\nLeap status     : Normal",
+        "ref_id": "50484330 (PHC0)",
+        "rms_offset_s": 5.737e-06,
+        "root_delay_s": 1e-09,
+        "root_dispersion_s": 2.3065e-05,
+        "stratum": 1,
+        "system_time_offset_s": 2.58e-06,
+        "update_interval_s": 8.0
+      }
+    },
+    "us-east-2": {
+      "after": {
+        "available": true,
+        "last_offset_s": -2.726e-06,
+        "leap_status": "Normal",
+        "measured_offset_ns": -2726,
+        "measured_u_ns": 27039,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : 50484330 (PHC0)\nStratum         : 1\nRef time (UTC)  : Tue Aug 04 10:53:11 2026\nSystem time     : 0.000003340 seconds slow of NTP time\nLast offset     : -0.000002726 seconds\nRMS offset      : 0.000009129 seconds\nFrequency       : 15.442 ppm slow\nResidual freq   : -0.008 ppm\nSkew            : 0.289 ppm\nRoot delay      : 0.000000001 seconds\nRoot dispersion : 0.000015183 seconds\nUpdate interval : 8.0 seconds\nLeap status     : Normal",
+        "ref_id": "50484330 (PHC0)",
+        "rms_offset_s": 9.129e-06,
+        "root_delay_s": 1e-09,
+        "root_dispersion_s": 1.5183e-05,
+        "stratum": 1,
+        "system_time_offset_s": 3.34e-06,
+        "update_interval_s": 8.0
+      },
+      "before": {
+        "available": true,
+        "last_offset_s": -2.726e-06,
+        "leap_status": "Normal",
+        "measured_offset_ns": -2726,
+        "measured_u_ns": 27035,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : 50484330 (PHC0)\nStratum         : 1\nRef time (UTC)  : Tue Aug 04 10:53:11 2026\nSystem time     : 0.000003341 seconds slow of NTP time\nLast offset     : -0.000002726 seconds\nRMS offset      : 0.000009129 seconds\nFrequency       : 15.442 ppm slow\nResidual freq   : -0.008 ppm\nSkew            : 0.289 ppm\nRoot delay      : 0.000000001 seconds\nRoot dispersion : 0.000015179 seconds\nUpdate interval : 8.0 seconds\nLeap status     : Normal",
+        "ref_id": "50484330 (PHC0)",
+        "rms_offset_s": 9.129e-06,
+        "root_delay_s": 1e-09,
+        "root_dispersion_s": 1.5179e-05,
+        "stratum": 1,
+        "system_time_offset_s": 3.341e-06,
+        "update_interval_s": 8.0
+      }
+    },
+    "us-west-2": {
+      "after": {
+        "available": true,
+        "last_offset_s": -5.065e-06,
+        "leap_status": "Normal",
+        "measured_offset_ns": -5065,
+        "measured_u_ns": 32839,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : 50484330 (PHC0)\nStratum         : 1\nRef time (UTC)  : Tue Aug 04 10:53:08 2026\nSystem time     : 0.000004534 seconds slow of NTP time\nLast offset     : -0.000005065 seconds\nRMS offset      : 0.000007884 seconds\nFrequency       : 10.767 ppm slow\nResidual freq   : -0.007 ppm\nSkew            : 0.179 ppm\nRoot delay      : 0.000000001 seconds\nRoot dispersion : 0.000019889 seconds\nUpdate interval : 8.0 seconds\nLeap status     : Normal",
+        "ref_id": "50484330 (PHC0)",
+        "rms_offset_s": 7.884e-06,
+        "root_delay_s": 1e-09,
+        "root_dispersion_s": 1.9889e-05,
+        "stratum": 1,
+        "system_time_offset_s": 4.534e-06,
+        "update_interval_s": 8.0
+      },
+      "before": {
+        "available": true,
+        "last_offset_s": -5.065e-06,
+        "leap_status": "Normal",
+        "measured_offset_ns": -5065,
+        "measured_u_ns": 32837,
+        "ptp_device_present": true,
+        "raw": "Reference ID    : 50484330 (PHC0)\nStratum         : 1\nRef time (UTC)  : Tue Aug 04 10:53:08 2026\nSystem time     : 0.000004536 seconds slow of NTP time\nLast offset     : -0.000005065 seconds\nRMS offset      : 0.000007884 seconds\nFrequency       : 10.767 ppm slow\nResidual freq   : -0.007 ppm\nSkew            : 0.179 ppm\nRoot delay      : 0.000000001 seconds\nRoot dispersion : 0.000019887 seconds\nUpdate interval : 8.0 seconds\nLeap status     : Normal",
+        "ref_id": "50484330 (PHC0)",
+        "rms_offset_s": 7.884e-06,
+        "root_delay_s": 1e-09,
+        "root_dispersion_s": 1.9887e-05,
+        "stratum": 1,
+        "system_time_offset_s": 4.536e-06,
+        "update_interval_s": 8.0
+      }
+    }
+  },
+  "clock_offsets_ns": {
+    "eu-west-1": 1369,
+    "us-east-1": 2304,
+    "us-east-2": -2726,
+    "us-west-2": -5065
+  },
+  "emitter_clock": {
+    "after": {
+      "available": true,
+      "last_offset_s": 2.304e-06,
+      "leap_status": "Normal",
+      "measured_offset_ns": 2304,
+      "measured_u_ns": 31317,
+      "ptp_device_present": true,
+      "raw": "Reference ID    : 50484330 (PHC0)\nStratum         : 1\nRef time (UTC)  : Tue Aug 04 10:53:07 2026\nSystem time     : 0.000002549 seconds fast of NTP time\nLast offset     : +0.000002304 seconds\nRMS offset      : 0.000005737 seconds\nFrequency       : 22.309 ppm slow\nResidual freq   : +0.003 ppm\nSkew            : 0.175 ppm\nRoot delay      : 0.000000001 seconds\nRoot dispersion : 0.000023275 seconds\nUpdate interval : 8.0 seconds\nLeap status     : Normal",
+      "ref_id": "50484330 (PHC0)",
+      "rms_offset_s": 5.737e-06,
+      "root_delay_s": 1e-09,
+      "root_dispersion_s": 2.3275e-05,
+      "stratum": 1,
+      "system_time_offset_s": 2.549e-06,
+      "update_interval_s": 8.0
+    },
+    "before": {
+      "available": true,
+      "last_offset_s": 2.304e-06,
+      "leap_status": "Normal",
+      "measured_offset_ns": 2304,
+      "measured_u_ns": 31104,
+      "ptp_device_present": true,
+      "raw": "Reference ID    : 50484330 (PHC0)\nStratum         : 1\nRef time (UTC)  : Tue Aug 04 10:53:07 2026\nSystem time     : 0.000002581 seconds fast of NTP time\nLast offset     : +0.000002304 seconds\nRMS offset      : 0.000005737 seconds\nFrequency       : 22.309 ppm slow\nResidual freq   : +0.003 ppm\nSkew            : 0.175 ppm\nRoot delay      : 0.000000001 seconds\nRoot dispersion : 0.000023062 seconds\nUpdate interval : 8.0 seconds\nLeap status     : Normal",
+      "ref_id": "50484330 (PHC0)",
+      "rms_offset_s": 5.737e-06,
+      "root_delay_s": 1e-09,
+      "root_dispersion_s": 2.3062e-05,
+      "stratum": 1,
+      "system_time_offset_s": 2.581e-06,
+      "update_interval_s": 8.0
+    }
+  },
+  "emitter_id": "us-east-1",
+  "errors": [],
+  "event_hash": "40ae3ec6da18e04549dcd6de109f9ab9a538355b71e4562d532879bdb1f86549",
+  "experiment": "H8-LIVE",
+  "measured_u_ns": {
+    "eu-west-1": 118222,
+    "us-east-1": 31109,
+    "us-east-2": 27039,
+    "us-west-2": 32839
+  },
+  "origin": "LIVE_CAPTURE",
+  "p0_nm": [
+    0,
+    0,
+    0
+  ],
+  "payload": {
+    "emitter": "us-east-1",
+    "experiment": "H8-LIVE",
+    "nonce": "2185b75bf3ecf48c59c905e8d4c255cd",
+    "run": 2,
+    "tier_nominal": "PTP"
+  },
+  "payload_hash": "76bad12fd435d8b38f55221de6dd7bb7e2ad0d1a9408207b699daa75c65e6115",
+  "position_sources": {
+    "eu-west-1": "azure-region-published",
+    "us-east-1": "azure-region-published",
+    "us-east-2": "azure-region-published",
+    "us-west-2": "azure-region-published"
+  },
+  "receipts": [
+    {
+      "body": {
+        "event_hash": "40ae3ec6da18e04549dcd6de109f9ab9a538355b71e4562d532879bdb1f86549",
+        "node_id": "us-east-1",
+        "node_pos_nm": [
+          0,
+          0,
+          0
+        ],
+        "recv_time_ns": 1785840797559206649,
+        "tier": "PTP"
+      },
+      "mac": "2b7acb319def268ebb30feb6656de280323424c54934a9d6cf13f862a84659b0"
+    },
+    {
+      "body": {
+        "event_hash": "40ae3ec6da18e04549dcd6de109f9ab9a538355b71e4562d532879bdb1f86549",
+        "node_id": "us-east-2",
+        "node_pos_nm": [
+          -1139944342747732,
+          551757355463925,
+          -126744695547737
+        ],
+        "recv_time_ns": 1785840797602454075,
+        "tier": "PTP"
+      },
+      "mac": "15bf5c4059b466fa8ed96961ef051c11452d0857fa337d6171b99dfd65fb865d"
+    },
+    {
+      "body": {
+        "event_hash": "40ae3ec6da18e04549dcd6de109f9ab9a538355b71e4562d532879bdb1f86549",
+        "node_id": "us-west-2",
+        "node_pos_nm": [
+          -2790975563731287,
+          1707172649350440,
+          -902121643682484
+        ],
+        "recv_time_ns": 1785840797673976277,
+        "tier": "PTP"
+      },
+      "mac": "a065347c7dc8587bc8b404cc30f70d59fea83a2ed88cfa5b0353a00ccaf8116c"
+    },
+    {
+      "body": {
+        "event_hash": "40ae3ec6da18e04549dcd6de109f9ab9a538355b71e4562d532879bdb1f86549",
+        "node_id": "eu-west-1",
+        "node_pos_nm": [
+          3886158898365151,
+          3797973292723388,
+          -3032592625746300
+        ],
+        "recv_time_ns": 1785840797678882203,
+        "tier": "PTP"
+      },
+      "mac": "a02c09db22c072b994d7a8c97c9261ab92dbd87de17808bdcb4545fc9e06d530"
+    }
+  ],
+  "route_excess_note": "measured RTTs recorded separately; c_eff accounts for medium",
+  "rtts_ns": {
+    "eu-west-1": 172538919,
+    "us-east-1": 0,
+    "us-east-2": 54914515,
+    "us-west-2": 149745615
+  },
+  "run": 2,
+  "t0_ns": 1785840797556924799,
+  "tier_nominal": "PTP"
+}
