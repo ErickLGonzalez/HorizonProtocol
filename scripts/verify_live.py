@@ -227,6 +227,12 @@ def main(argv=None) -> int:
         },
     ]
 
+    if any(g["result"] == "FAIL" for g in gates):
+        failed = [g["gate"] for g in gates if g["result"] == "FAIL"]
+        print(f"refusing to write certificate; failed gates: {failed}",
+              file=sys.stderr)
+        return 1
+
     cert = {
         "certificate_version": "1",
         "benchmark_id": "H8-LIVE",

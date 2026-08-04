@@ -68,19 +68,13 @@ class TestVerifyLiveAuth(unittest.TestCase):
         self.assertIn("us-east-1", meta["bad_mac"])
 
     def test_main_refuses_missing_measured_u(self):
-        cap = self._minimal_capture(with_body_u=False)
-        # Need a plausible LIVE_CAPTURE shape for load_registry path; write
-        # a temp file and invoke main — it must exit non-zero before cert.
         with tempfile.TemporaryDirectory() as td:
             path = os.path.join(td, "cap.json")
-            # Use a real multi-node capture stripped of body u to exercise
-            # the refusal path end-to-end.
             real = os.path.join(ROOT, "data", "h8_live_capture_PTP_1.json")
             with open(real) as f:
                 live = json.load(f)
             for r in live["receipts"]:
                 r["body"].pop("measured_u_ns", None)
-                # Re-sign without u so MAC is valid but u absent.
                 b = r["body"]
                 from horizon.signed_capture import sign_receipt as sr
                 new_r = sr(b["node_id"], b["node_pos_nm"], b["event_hash"],
@@ -92,6 +86,23 @@ class TestVerifyLiveAuth(unittest.TestCase):
             rc = self.vl.main([path, "--out", os.path.join(td, "out.json")])
             self.assertEqual(rc, 1)
             self.assertFalse(os.path.exists(os.path.join(td, "out.json")))
+
+    def test_main_refuses_fewer_than_three_regions(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = os.path.join(td, "cap.json")
+            real = os.path.join(ROOT, "data", "h8_live_capture_PTP_1.json")
+            with open(real) as f:
+                live = json.load(f)
+            # Keep a single receipt only — H8-LIVE-A must block the certificate.
+            live["receipts"] = live["receipts"][:1]
+            nid = live["receipts"][0]["body"]["node_id"]
+            live["measured_u_ns"] = {nid: live["measured_u_ns"][nid]}
+            with open(path, "w") as f:
+                json.dump(live, f)
+            out = os.path.join(td, "out.json")
+            rc = self.vl.main([path, "--out", out])
+            self.assertEqual(rc, 1)
+            self.assertFalse(os.path.exists(out))
 
 
 if __name__ == "__main__":
