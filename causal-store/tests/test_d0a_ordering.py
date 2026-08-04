@@ -55,6 +55,25 @@ class TestOrdering(unittest.TestCase):
         c = geo(required_ns + 5000, far_nm, u=1000)
         self.assertTrue(o.resolves(a, c))
 
+    def test_before_returns_false_when_pair_is_unresolved(self):
+        # Regression for the fixed bug (see ordering.py erratum 2): before()
+        # used to report a definite verdict even when resolves() said the
+        # pair was unresolved, contradicting the class's own docstring
+        # ("otherwise reports unresolved... caller treats as concurrent").
+        # Two co-located writes 1ns apart with 1000ns uncertainty each are
+        # unresolved (combined_u=2000ns, required_ns=0).
+        o = GeometricOrdering()
+        a = geo(0, 0, u=1000)
+        b = geo(1, 0, u=1000)
+        self.assertFalse(o.resolves(a, b))
+        self.assertFalse(o.before(a, b))
+        self.assertFalse(o.before(b, a))
+        self.assertTrue(o.concurrent(a, b))
+        # widen the gap beyond the uncertainty band -> a definite verdict
+        c = geo(5000, 0, u=1000)
+        self.assertTrue(o.resolves(a, c))
+        self.assertTrue(o.before(a, c))
+
     def test_logical_happens_before(self):
         o = LogicalOrdering()
         self.assertTrue(o.before(vc(n1=1), vc(n1=2, n2=1)))

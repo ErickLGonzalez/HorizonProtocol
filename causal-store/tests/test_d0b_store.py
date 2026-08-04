@@ -74,6 +74,25 @@ class TestStore(unittest.TestCase):
         self.assertEqual(r["status"], "RESOLVED")
         self.assertEqual(r["value"], "B")
 
+    def test_retried_write_is_idempotent_not_a_spurious_conflict(self):
+        # Regression for the fixed bug (see store.py module erratum 2): a
+        # retry of the exact same write (same key/value/origin/clock, hence
+        # the same deterministic event_id) used to be classified as
+        # "concurrent with itself" (equal clocks -> before() False both
+        # ways) and appended as a second frontier entry sharing the first
+        # one's event_id, producing a permanent spurious CONFLICT.
+        s = CausalStore(LogicalOrdering())
+        clock = {"vc": {"n1": 1}}
+        r1 = s.write("k", "v", "n1", clock)
+        r2 = s.write("k", "v", "n1", clock)
+        self.assertEqual(r1.event_id, r2.event_id)
+        self.assertEqual(r2.mode, "duplicate_ignored")
+        self.assertFalse(r2.coordinated)
+        r = s.read("k")
+        self.assertEqual(r["status"], "RESOLVED")
+        self.assertEqual(r["value"], "v")
+        self.assertEqual(s.stats["total"], 1)  # the retry must not double-count
+
 
 if __name__ == "__main__":
     unittest.main()

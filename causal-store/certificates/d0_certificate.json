@@ -74,8 +74,8 @@
   "source_hashes": {
     "causalstore/__init__.py": "6fae33180f98aa088646375b8261bd31d2f4fcbfcf03ef4ee5f8808abed15482",
     "causalstore/geometry.py": "d9e7a851b2284a963f7ca7b43f6e99a57408406093aed85ef7fcf4caec1c0240",
-    "causalstore/ordering.py": "dcb667af58e951ed0672da4f68daca5bba03a2a7e9ee91275a28380416351513",
-    "causalstore/store.py": "961f82419a308425d76bebf89b9b75f27178aff1202b758c4ae5d41e4d709755"
+    "causalstore/ordering.py": "eb62b1c512d0f41e8334883713de9b95a8a3583dd76600ff4670f693f176a18c",
+    "causalstore/store.py": "9c0b889066d3eb4e31965531fe417e620bda4246365e7bac0f29824d3557ab30"
   },
   "thesis": "performance-first: spacelike-independent writes commit without coordination; only genuine causal dependencies serialize. Targets geo-distributed transaction latency where wide-area consensus round trips dominate.",
   "unit_convention": {

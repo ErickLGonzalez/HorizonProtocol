@@ -34,6 +34,25 @@ this was not a cosmetic bug. Fixed: `resolves()` now compares the MARGIN to
 uncertainty, not the raw elapsed time - the same "compare to the true floor,
 never to a disconnected proxy quantity" discipline HorizonProtocol's own
 H5/H7/H8 budgeted gates already apply.)
+
+(Erratum 2: `GeometricOrdering.before()` computed the exact geometric verdict
+but never consulted `resolves()` at all, so an unresolved pair (one where
+clock uncertainty cannot rule out the opposite order) was still reported as
+a definite `before`/`after` - contradicting this class's own docstring
+("otherwise reports unresolved... caller treats as concurrent"). This was
+invisible through `HybridOrdering`, which always checks `geo.resolves()`
+itself before trusting `geo.before()` - but `GeometricOrdering` is also a
+supported STANDALONE L2 implementation (used directly by `CausalStore` in
+tests and `bench/geo_workload.py`), and there nothing enforced the promise.
+Concretely confirmed: two co-located writes 1ns apart with 1000ns uncertainty
+each (`combined_u=2000ns`, `required_ns=0`) are unresolved (`resolves()` is
+False), yet `before()` reported the later one as a definite causal successor
+- exactly the ambiguous case `CausalStore.write()` needs surfaced, not
+hidden, since it decides whether to supersede or retain a value. Fixed:
+`before()` now returns False whenever `resolves()` is False, so an unresolved
+pair falls through to `concurrent()` = True on both instances of this class,
+matching the documented contract without requiring every caller to know
+about `resolves()` itself.)
 """
 from .geometry import C_NM_PER_NS, admissibility_witness, causally_admissible, min_light_time_ns
 
@@ -53,6 +72,12 @@ class GeometricOrdering:
         # a strictly before b, admissible even crediting uncertainty against us:
         # require b later than a by more than the combined uncertainty AND inside cone
         if tb <= ta:
+            return False
+        # an unresolved pair (clock uncertainty cannot rule out the opposite
+        # order) must never be reported as a definite before/after - see
+        # module erratum 2. Both before(a,b) and before(b,a) fall to False,
+        # so concurrent(a,b) correctly reports True for an unresolved pair.
+        if not self.resolves(a, b):
             return False
         return causally_admissible(ta, pa, tb, pb)
 

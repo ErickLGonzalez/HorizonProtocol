@@ -19,7 +19,7 @@ TRUSTED_MODULES = ["causalstore/geometry.py", "causalstore/ordering.py"]
 # reporting-metric exception (see causalstore/store.py). Kept as an exact
 # line number, not a broad module exemption, so any OTHER float creeping into
 # store.py's write()/read() decision path still fails this test.
-EXEMPT_STORE_LINE = 177
+EXEMPT_STORE_LINE = 200
 
 
 class FloatFinder(ast.NodeVisitor):

@@ -27,7 +27,20 @@ reported CONFLICT between B and C, though C is causally BEFORE B. Fixed:
 `write()` now checks, before any other classification, whether any current
 frontier member dominates (is causally after) the incoming write; if so the
 write is REJECTED with witness, the same "reject, don't silently admit"
-pattern already used for `supersedes_non_ancestor`.)
+pattern already used for `supersedes_non_ancestor`.
+
+Erratum 2: a retried write - same key/value/origin/clock, hence the same
+deterministic `event_id` - has `tb <= ta` against its own earlier copy (equal
+clock), so `before()` returns False both directions and `concurrent()` reports
+True. The retry fell into the "all concurrent" branch and was appended as a
+SECOND backend entry sharing the first one's `event_id`. `_frontier()`'s
+same-ID exclusion (`o["event_id"] != e["event_id"]`) then meant neither copy
+could ever mark the other superseded, so `read()` reported a permanent
+spurious CONFLICT between two identical candidates for what was, semantically,
+one write retried once - retries are routine in a distributed store and must
+be transparent. Fixed: `write()` now checks for an existing event with the
+same `event_id` before doing anything else and returns that original result
+without appending a duplicate or touching stats.)
 """
 import hashlib
 import json
@@ -84,6 +97,16 @@ class CausalStore:
 
     def write(self, key, value, origin_node, clock, supersedes=None):
         eid = event_id({"k": key, "v": value}, origin_node, clock)
+
+        # a retry of an already-committed write is idempotent: same key,
+        # value, origin, and clock hash to the same event_id. Short-circuit
+        # before any classification or stats update (see module erratum 2) -
+        # otherwise it can be appended as a spurious concurrent duplicate.
+        existing = self._find(eid)
+        if existing is not None:
+            return CommitResult(eid, "duplicate_ignored", False, "ADMITTED",
+                                supersedes=existing["supersedes"])
+
         ev = {"event_id": eid, "key": key, "value": value,
               "origin_node": origin_node, "clock": clock,
               "supersedes": list(supersedes or [])}
