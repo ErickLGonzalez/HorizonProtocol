@@ -1,0 +1,73 @@
+{
+  "adversary_model": "an independent attacker with no privileged access to verifier internals, private keys, or trusted caller state - attacks constructed and submitted through each gate's PUBLIC API only; zero bypasses is the pass condition for every attack class; any nonzero residual is reported as an explicit count, never silently treated as zero",
+  "aggregate": "PASS",
+  "attack_reports": [
+    {
+      "attack": "timing_fuzz_differential",
+      "bypass_count": 0,
+      "bypasses": [],
+      "trials": 5000
+    },
+    {
+      "attack": "budgeted_gate_boundary_fuzz",
+      "bypass_count": 0,
+      "bypasses": [],
+      "trials": 3000
+    },
+    {
+      "attack": "cone_certificate_forgery_fuzz",
+      "bypass_count": 0,
+      "bypasses": [],
+      "trials": 500
+    },
+    {
+      "attack": "measured_certificate_forgery_fuzz",
+      "bypass_count": 0,
+      "bypasses": [],
+      "trials": 500
+    },
+    {
+      "attack": "ledger_cycle_fuzz",
+      "bypass_count": 0,
+      "bypasses": [],
+      "trials": 2000
+    }
+  ],
+  "benchmark_id": "RT1",
+  "certificate_version": "1",
+  "claim_class": "ENGINEERING_REFERENCE",
+  "empirical_claim": "NONE",
+  "execution_tier": "BENCHMARK",
+  "gates": [
+    {
+      "description": "attacks hit only the public API; zero bypasses across every attack class",
+      "gate": "RT-hygiene",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    }
+  ],
+  "heuristic_warnings": [
+    {
+      "location": "redteam/attacks.py",
+      "warning": "RT-A's independent reference implementation uses Decimal-based real-number arithmetic (a deliberately different algorithm from the exact-integer kernel it cross-checks); it is the attacker's tool, not a security gate itself"
+    }
+  ],
+  "program": "HorizonProtocol Red-Team Harness",
+  "promotion_allowed": false,
+  "python_version": "3.11.15",
+  "seeds": [
+    "REDTEAM-FROZEN-SEED-v1"
+  ],
+  "source_hashes": {
+    "redteam/__init__.py": "0f28ffd5d8ec72eb6b24d8ce5263ab6370df18c12630f1bd19e1c43928615abf",
+    "redteam/attacks.py": "d269ffec0c79afec91f318e30baed4ffb85d2d504f3f6818958c351788be3ced"
+  },
+  "total_bypasses": 0,
+  "total_trials": 11000,
+  "unit_convention": {
+    "c": 299792458,
+    "c_units": "nm/ns (exact integer)",
+    "position": "nanometers (int)",
+    "time": "nanoseconds (int)"
+  }
+}

@@ -23,3 +23,5 @@ jobs:
         run: python3 scripts/run_all.py
       - name: Validate certificates
         run: python3 scripts/validate_certificates.py
+      - name: Performance benchmark (informational, never fails the build)
+        run: python3 scripts/bench.py

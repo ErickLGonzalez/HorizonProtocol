@@ -23,8 +23,12 @@ RUNNERS = [
      "   real-measurement bridge; APPARATUS_LIMITED honored on marginal fixture"),
     ("H6", "scripts/run_h6.py", "h6_certificate.json",
      "   multi-node cone certificates over real geography; same H5 gate reused"),
+    ("H7", "scripts/run_h7.py", "h7_certificate.json",
+     "   deep-space latency-budget gate + BE(Q) tracker; CONDITIONAL(BE(Q))"),
     ("MNX1", "scripts/run_mnx.py", "mnx_certificate.json",
      "   MnemesisOS causal memory; ordering matches the ledger edge-for-edge"),
+    ("RT1", "scripts/run_redteam.py", "redteam_certificate.json",
+     "   independent red-team harness; zero bypasses across every attack class"),
 ]
 
 
