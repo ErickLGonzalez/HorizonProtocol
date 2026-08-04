@@ -16,10 +16,13 @@ The entire HorizonProtocol security stack reduces to one predicate,
   artifact in its own right, until someone with a Dafny installation reverifies it.
 - `tests/test_kernel_proof.py` — runs the Z3 proof as a test (all PROVEN), plus
   a sensitivity regression test (see erratum below).
-- `tests/test_proof_matches_code.py` — binds the proof to the shipped code: the
-  proven predicate must equal `horizon/geometry.py::causally_admissible` on an
-  exhaustive boundary grid, so the verified spec and the running function cannot
-  diverge.
+- `tests/test_proof_matches_code.py` — binds the proof to the shipped code two
+  ways: the proven T1 predicate must equal `horizon.geometry.causally_admissible`
+  on a boundary-concentrated, multi-magnitude SAMPLE (honestly not exhaustive -
+  see its own erratum note), and `horizon.geometry.min_light_time_ns`'s actual
+  return value must satisfy T5's witness conditions on the same sample (T5
+  itself proves only that ANY value satisfying those conditions is minimal,
+  never that this specific function produces one).
 
 ## The load-bearing theorem
 T1 (faithfulness): the exact-integer squared predicate `(c*dt)^2 >= |dp|^2` is

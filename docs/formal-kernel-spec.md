@@ -9,9 +9,13 @@
 The entire HorizonProtocol security stack reduces to one predicate,
 `causally_admissible` (`horizon/geometry.py`) - a total, integer, branch-free
 function small enough to *prove* correct rather than merely test. This
-benchmark discharges that proof with the Z3 SMT solver, and binds it to the
-shipped code so the verified spec and the running function cannot diverge.
-See `formal/README.md` for the artifact layout and how to run it.
+benchmark discharges that proof with the Z3 SMT solver, and samples the proof
+against the shipped code across representative magnitudes so a coding-level
+divergence between the verified spec and the running function is likely to
+be caught, though - honestly, see section 5 - a finite sample cannot
+GUARANTEE no divergence anywhere over an infinite integer domain the way the
+Z3 proof itself guarantees its abstract claim. See `formal/README.md` for
+the artifact layout and how to run it.
 
 ## 2. Method
 
@@ -69,7 +73,37 @@ full analysis, and `formal/kernel.dfy` for the analogous (not independently
 Dafny-reverified in this environment - see its own comment) fix in the
 companion spec.
 
-## 5. Trust boundary: the one non-stdlib dependency
+## 5. Erratum: two gaps between "proven" and "the code proven about"
+
+A proof is about an ABSTRACT predicate; nothing connects it to a concrete
+Python function unless something explicitly checks that. Review found two
+places this repository had not yet closed that gap:
+
+- `formal/tests/test_proof_matches_code.py` bound T1 to
+  `causally_admissible` using only a small, fixed-magnitude sample (`dt` in
+  `0..4`, a few nanometers of offset), while its original name and
+  docstring implied this "guarantees" no divergence - a real divergence at
+  an untested magnitude (e.g. only at interplanetary scale) would have
+  passed silently. Fixed: renamed to `test_boundary_grid_sample` and
+  reworded to state plainly what a finite sample can and cannot establish,
+  and widened to sample across small, terrestrial, and interplanetary
+  magnitudes rather than one.
+- T5 (min-light-time minimality) proves that ANY value `m` satisfying its
+  two witness conditions is minimal - it never itself claims that
+  `horizon.geometry.min_light_time_ns`'s actual return value satisfies
+  those conditions. An implementation that always returned an incorrect
+  value could leave T5 (and the whole Z3 proof suite) PROVEN while the
+  certificate implied the boundary-corrected search algorithm itself was
+  verified. Fixed: `test_min_light_time_matches_witness_sample` checks the
+  real function's output against T5's exact witness conditions across the
+  same multi-magnitude sample.
+
+Neither fix is a substitute for a full symbolic binding of the Python
+implementation into the Z3 model (a much larger undertaking); both are
+honest, sampled checks that catch a coding-level divergence a proof about
+the abstract predicate shape cannot, by construction, catch on its own.
+
+## 7. Trust boundary: the one non-stdlib dependency
 
 `z3-solver` (pip) is confined entirely to `formal/` - never imported by
 `horizon/`, `redteam/`, `mnemesis/`, or any file under `tests/`. It is an
@@ -80,7 +114,7 @@ installs still reaches `ALL HORIZON GATES GREEN` on the pure-stdlib path.
 When `z3-solver` IS installed, the proof runs for real and must pass like any
 other gate.
 
-## 6. Registered falsifiers
+## 8. Registered falsifiers
 
 - F1: any theorem reporting COUNTEREXAMPLE (`sat`) → the kernel disagrees with
   its own specification; the highest-severity defect this program can record,
@@ -89,15 +123,24 @@ other gate.
   being verified (the section 4 erratum class) → the proof provides no real
   assurance even though it appears to pass; must be caught by a sensitivity
   regression test, not merely reviewed by inspection.
-- F3: `formal/tests/test_proof_matches_code.py` finding any input on which the
-  proven predicate and `horizon.geometry.causally_admissible` disagree → the
-  verified spec and the shipped code have diverged.
+- F3: `formal/tests/test_proof_matches_code.py` finding any sampled input on
+  which the proven T1 predicate and `horizon.geometry.causally_admissible`
+  disagree → the verified spec and the shipped code have diverged.
 - F4: `z3-solver` (or any other non-stdlib import) appearing anywhere outside
   `formal/`, or `scripts/run_all.py`/the main `unittest discover tests`
   requiring it to pass → violates the stdlib-only discipline this exception
   was scoped to.
+- F5: `formal/tests/test_proof_matches_code.py` finding any sampled input on
+  which `horizon.geometry.min_light_time_ns`'s return value fails T5's
+  witness conditions, or a code-to-proof binding test being narrowed back to
+  a single magnitude / removed entirely → reintroduces the section 5
+  erratum (a proof whose connection to the shipped code is asserted, not
+  checked).
+- F6: any docstring or spec text describing a finite, sampled code-to-proof
+  binding test as "exhaustive" over an infinite domain → the section 5
+  overclaiming erratum, restated.
 
-## 7. Claim scope
+## 9. Claim scope
 
 C1 certifies that `causally_admissible`'s exact-integer formulation is
 equivalent to the real-number light-cone condition on every integer input,

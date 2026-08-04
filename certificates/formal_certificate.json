@@ -14,7 +14,7 @@
       "soundness_tag": "SOUND"
     },
     {
-      "description": "proven predicate matches horizon.geometry.causally_admissible exactly",
+      "description": "causally_admissible and min_light_time_ns match their proven theorems on a representative, honestly-non-exhaustive sample",
       "gate": "C1-B",
       "result": "PASS",
       "soundness_tag": "SOUND"
@@ -33,7 +33,7 @@
     "formal/kernel.dfy": "5e36aac9431f8eac30d1d9e673db1c80caad6e5f343131d347e8aa37c27e8b2f",
     "formal/kernel_proof.py": "0f61fa309f3be683b0be37b623bada17bf46a5ee9e8538cfb2e99fd98a6be6d0",
     "formal/tests/test_kernel_proof.py": "06e66b71df1397d106890585874603b54838fb08cb2b79fba4146fd5d0f6b55f",
-    "formal/tests/test_proof_matches_code.py": "a688eb8c0a722aea42444a2926592b27fdac57ac06cb2a76887e55750f19a658",
+    "formal/tests/test_proof_matches_code.py": "2c825dd940b1726cb385b2f0c4d621de74e1d25b82c4eca1e0cdc8735acf6ae7",
     "horizon/geometry.py": "d9e7a851b2284a963f7ca7b43f6e99a57408406093aed85ef7fcf4caec1c0240"
   },
   "theorems": [

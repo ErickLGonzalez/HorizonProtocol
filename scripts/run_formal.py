@@ -31,7 +31,8 @@ from formal.kernel_proof import run_all as run_theorems  # noqa: E402
 GATE_TESTS = [
     ("C1-A", "formal.tests.test_kernel_proof", "all five theorems PROVEN by Z3"),
     ("C1-B", "formal.tests.test_proof_matches_code",
-    "proven predicate matches horizon.geometry.causally_admissible exactly"),
+    "causally_admissible and min_light_time_ns match their proven "
+    "theorems on a representative, honestly-non-exhaustive sample"),
 ]
 
 
