@@ -1,0 +1,87 @@
+{
+  "adversary_model": "not applicable - this is a performance/correctness engineering benchmark, not an adversarial security gate; the only decision under adversarial pressure (the light-cone admissibility test in geometry.py) is the machine-checked HorizonProtocol kernel, whose adversary model is recorded against H1-H9, not re-litigated here",
+  "aggregate": "PASS",
+  "benchmark": {
+    "assumptions": {
+      "local_commit_ms": 0.05,
+      "wide_area_rtt_ms": 80.0
+    },
+    "coordinated_writes": 730,
+    "coordination_free_rate": 0.854,
+    "keys": 2000,
+    "modeled_avg_latency_ms": {
+      "causal_store": 11.723,
+      "speedup_x": 6.8,
+      "total_order_baseline": 80.0
+    },
+    "regions": 5,
+    "writes": 5000
+  },
+  "benchmark_id": "D0",
+  "certificate_version": "1",
+  "claim_class": "ENGINEERING_REFERENCE",
+  "empirical_claim": "NONE",
+  "execution_tier": "BENCHMARK",
+  "gates": [
+    {
+      "description": "L2 ordering contract: geometric/logical/hybrid",
+      "gate": "D0-A",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    },
+    {
+      "description": "coordination-free commit + conflict retention",
+      "gate": "D0-B",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    },
+    {
+      "description": "persistence behind swappable interface; no DB dependency",
+      "gate": "D0-C",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    },
+    {
+      "description": "coordination-free advantage real + deterministic",
+      "gate": "D0-D",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    },
+    {
+      "description": "exactness boundary: ordering/geometry contain no floats",
+      "gate": "D0-E",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    },
+    {
+      "description": "vendored geometry kernel hash-matches horizon/geometry.py",
+      "gate": "D0-F",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    }
+  ],
+  "heuristic_warnings": [
+    {
+      "location": "bench/geo_workload.py",
+      "warning": "latency is MODELED from RTT/local-commit assumptions, not measured on real wide-area links; real deployment must measure"
+    }
+  ],
+  "interop_note": "engine depends ONLY on the L2 ordering contract and the StoreBackend contract; a memory/database layer plugs in later WITHOUT the engine importing it (in-memory backend ships for testing)",
+  "l2_contract": "before(a,b) / concurrent(a,b) / witness(a,b); event clock geometric or vc",
+  "program": "causal-store",
+  "promotion_allowed": false,
+  "python_version": "3.11.15",
+  "source_hashes": {
+    "causalstore/__init__.py": "6fae33180f98aa088646375b8261bd31d2f4fcbfcf03ef4ee5f8808abed15482",
+    "causalstore/geometry.py": "d9e7a851b2284a963f7ca7b43f6e99a57408406093aed85ef7fcf4caec1c0240",
+    "causalstore/ordering.py": "eb62b1c512d0f41e8334883713de9b95a8a3583dd76600ff4670f693f176a18c",
+    "causalstore/store.py": "9c0b889066d3eb4e31965531fe417e620bda4246365e7bac0f29824d3557ab30"
+  },
+  "thesis": "performance-first: spacelike-independent writes commit without coordination; only genuine causal dependencies serialize. Targets geo-distributed transaction latency where wide-area consensus round trips dominate.",
+  "unit_convention": {
+    "c": 299792458,
+    "c_units": "nm/ns (exact integer)",
+    "position": "nanometers (int)",
+    "time": "nanoseconds (int)"
+  }
+}
