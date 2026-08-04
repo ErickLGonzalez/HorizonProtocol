@@ -1,0 +1,77 @@
+{
+  "c_eff": [
+    3,
+    5
+  ],
+  "origin": "SPOOF",
+  "p0_nm": [
+    0,
+    0,
+    0
+  ],
+  "payload_hash": "d32e6fe57f74651072c79043e7d950c7dcaac2b5ccc7ae0caa3645345ef6a9c3",
+  "receipts": [
+    {
+      "body": {
+        "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
+        "node_id": "us-east-1",
+        "node_pos_nm": [
+          0,
+          0,
+          0
+        ],
+        "recv_time_ns": 1000000000,
+        "tier": "NTP"
+      },
+      "mac": "f4a2b64bdd05472793952118d175167bc2a069e372b006a18d7cb2e6af93f2bb"
+    },
+    {
+      "body": {
+        "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
+        "node_id": "eu-west-1",
+        "node_pos_nm": [
+          3561900768196695,
+          3136054046082241,
+          -2113594004365602
+        ],
+        "recv_time_ns": 1039875311,
+        "tier": "NTP"
+      },
+      "mac": "717e7ead9c4225f83462c2d1905c29ae02e69c1fa27ce1f30ebb2dcc5403cbe1"
+    },
+    {
+      "body": {
+        "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
+        "node_id": "us-east-2",
+        "node_pos_nm": [
+          -453008449848499,
+          140915101947183,
+          -17489625609335
+        ],
+        "recv_time_ns": 1003934638,
+        "tier": "NTP"
+      },
+      "mac": "884291d1df436fa2624bfe1d34753d318daa730f07edbb8630f261146d88e5bd"
+    },
+    {
+      "body": {
+        "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
+        "node_id": "us-west-2",
+        "node_pos_nm": [
+          -2992522065482674,
+          1490775140211840,
+          -945167923313490
+        ],
+        "recv_time_ns": 1000500000,
+        "tier": "NTP"
+      },
+      "mac": "5d4998b2a47ee4fb85cc829959bd69312e891c43ab16060f98f8edc563af629a"
+    }
+  ],
+  "route_excess": [
+    13,
+    10
+  ],
+  "seed": "H8-CAPTURE-MODEL-v1",
+  "t0_ns": 1000000000
+}

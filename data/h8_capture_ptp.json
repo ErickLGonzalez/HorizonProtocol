@@ -1,0 +1,77 @@
+{
+  "c_eff": [
+    3,
+    5
+  ],
+  "origin": "MEASURED_MODEL",
+  "p0_nm": [
+    0,
+    0,
+    0
+  ],
+  "payload_hash": "d32e6fe57f74651072c79043e7d950c7dcaac2b5ccc7ae0caa3645345ef6a9c3",
+  "receipts": [
+    {
+      "body": {
+        "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
+        "node_id": "us-east-1",
+        "node_pos_nm": [
+          0,
+          0,
+          0
+        ],
+        "recv_time_ns": 1000000000,
+        "tier": "PTP"
+      },
+      "mac": "4d5c4af954683855e94d0fab33c395b9dbd9a8798a4028c221a1e214e59c06a5"
+    },
+    {
+      "body": {
+        "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
+        "node_id": "us-west-2",
+        "node_pos_nm": [
+          -2992522065482674,
+          1490775140211840,
+          -945167923313490
+        ],
+        "recv_time_ns": 1025091136,
+        "tier": "PTP"
+      },
+      "mac": "4919b6ad8cbd8aa0ff31a6ca850836cc509c65a58d9de25d987e506aeacef256"
+    },
+    {
+      "body": {
+        "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
+        "node_id": "eu-west-1",
+        "node_pos_nm": [
+          3561900768196695,
+          3136054046082241,
+          -2113594004365602
+        ],
+        "recv_time_ns": 1037524181,
+        "tier": "PTP"
+      },
+      "mac": "9c29dda42bbf1d644dbbfeedbc076128eec5fd292618826589dd304e22f58a16"
+    },
+    {
+      "body": {
+        "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
+        "node_id": "us-east-2",
+        "node_pos_nm": [
+          -453008449848499,
+          140915101947183,
+          -17489625609335
+        ],
+        "recv_time_ns": 1003437763,
+        "tier": "PTP"
+      },
+      "mac": "965672f7f221f0e09a442d67c04477b1bf20ef5d127344baa40dcc89ec5d98d9"
+    }
+  ],
+  "route_excess": [
+    13,
+    10
+  ],
+  "seed": "H8-CAPTURE-MODEL-v1",
+  "t0_ns": 1000000000
+}

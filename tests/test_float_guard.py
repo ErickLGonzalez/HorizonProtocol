@@ -36,6 +36,9 @@ TRUSTED_MODULES = [
     "horizon/latency_gate.py",
     "horizon/beq.py",
     "horizon/deepspace_protocol.py",
+    "horizon/signed_capture.py",
+    "horizon/capture_verify.py",
+    "horizon/build_frame.py",
     "mnemesis/memory.py",
     "mnemesis/vclock.py",
 ]

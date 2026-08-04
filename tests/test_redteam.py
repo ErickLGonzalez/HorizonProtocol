@@ -11,7 +11,10 @@ import unittest
 
 from redteam import SEED
 from redteam.attacks import (attack_boundary_fuzz, attack_forgery_fuzz,
+                             attack_h8_boundary_skew_fuzz,
+                             attack_h8_replay_fuzz,
                              attack_ledger_cycle_fuzz,
+                             attack_ledger_named_scenarios,
                              attack_measured_certificate_forgery_fuzz,
                              attack_timing_fuzz)
 
@@ -40,6 +43,18 @@ class TestRedTeam(unittest.TestCase):
 
     def test_ledger_cycle_fuzz_zero_bypasses(self):
         report = attack_ledger_cycle_fuzz(self.rng, trials=1000)
+        self.assertEqual(report["bypasses"], [])
+
+    def test_h8_replay_fuzz_zero_bypasses(self):
+        report = attack_h8_replay_fuzz(self.rng, trials=1000)
+        self.assertEqual(report["bypasses"], [])
+
+    def test_h8_boundary_skew_fuzz_zero_bypasses(self):
+        report = attack_h8_boundary_skew_fuzz(self.rng, trials=1000)
+        self.assertEqual(report["bypasses"], [])
+
+    def test_ledger_named_scenarios_zero_bypasses(self):
+        report = attack_ledger_named_scenarios()
         self.assertEqual(report["bypasses"], [])
 
     def test_deterministic_across_reruns(self):

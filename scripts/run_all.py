@@ -25,10 +25,14 @@ RUNNERS = [
      "   multi-node cone certificates over real geography; same H5 gate reused"),
     ("H7", "scripts/run_h7.py", "h7_certificate.json",
      "   deep-space latency-budget gate + BE(Q) tracker; CONDITIONAL(BE(Q))"),
+    ("H8", "scripts/run_h8.py", "h8_certificate.json",
+     "   genuine multi-node capture; APPARATUS_LIMITED->ADMITTED tier transition"),
     ("MNX1", "scripts/run_mnx.py", "mnx_certificate.json",
      "   MnemesisOS causal memory; ordering matches the ledger edge-for-edge"),
     ("RT1", "scripts/run_redteam.py", "redteam_certificate.json",
      "   independent red-team harness; zero bypasses across every attack class"),
+    ("H9", "scripts/run_h9.py", "h9_certificate.json",
+     "   independent red-team harness targeting H8's capture surface; zero bypasses"),
 ]
 
 

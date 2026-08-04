@@ -31,6 +31,24 @@
       "bypass_count": 0,
       "bypasses": [],
       "trials": 2000
+    },
+    {
+      "attack": "h8_replay_fuzz",
+      "bypass_count": 0,
+      "bypasses": [],
+      "trials": 1000
+    },
+    {
+      "attack": "h8_boundary_skew_fuzz",
+      "bypass_count": 0,
+      "bypasses": [],
+      "trials": 1000
+    },
+    {
+      "attack": "ledger_named_scenarios",
+      "bypass_count": 0,
+      "bypasses": [],
+      "trials": 3
     }
   ],
   "benchmark_id": "RT1",
@@ -60,10 +78,10 @@
   ],
   "source_hashes": {
     "redteam/__init__.py": "0f28ffd5d8ec72eb6b24d8ce5263ab6370df18c12630f1bd19e1c43928615abf",
-    "redteam/attacks.py": "d269ffec0c79afec91f318e30baed4ffb85d2d504f3f6818958c351788be3ced"
+    "redteam/attacks.py": "4923e1cee6dca95148bc5559f03dc637d6a6a7df47483a7d75d5a74c45cd21ea"
   },
   "total_bypasses": 0,
-  "total_trials": 11000,
+  "total_trials": 13003,
   "unit_convention": {
     "c": 299792458,
     "c_units": "nm/ns (exact integer)",

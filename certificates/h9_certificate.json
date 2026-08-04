@@ -1,60 +1,80 @@
 {
-  "adversary_model": "single forger without station keys; colluding multi-site adversaries and key compromise are OUT OF SCOPE at H1 (see docs/h1-spec.md)",
+  "adversary_model": "an independent attacker with no privileged access to verifier internals, node keys, or trusted caller state - attacks constructed and submitted through each gate's PUBLIC API only (horizon.signed_capture, horizon.capture_verify, horizon.geometry, horizon.ledger); zero bypasses is the pass condition for every attack class",
   "aggregate": "PASS",
-  "benchmark_id": "H1",
+  "attack_reports": {
+    "h8_boundary_skew": {
+      "bypass_count": 0,
+      "bypasses": [],
+      "trials": 1000
+    },
+    "h8_replay": {
+      "bypass_count": 0,
+      "bypasses": [],
+      "trials": 1000
+    },
+    "ledger_cycle": {
+      "bypass_count": 0,
+      "bypasses": [],
+      "trials": 2000
+    },
+    "ledger_named": {
+      "bypass_count": 0,
+      "bypasses": [],
+      "trials": 3
+    },
+    "timing_fuzz": {
+      "bypass_count": 0,
+      "bypasses": [],
+      "trials": 5000
+    }
+  },
+  "attacks_bypassed_security": false,
+  "benchmark_id": "H9",
   "certificate_version": "1",
   "claim_class": "ENGINEERING_REFERENCE",
   "empirical_claim": "NONE",
   "execution_tier": "BENCHMARK",
   "gates": [
     {
-      "description": "exact light-cone geometry kernel",
-      "gate": "H1-A",
+      "description": "timing fuzz (reuses RT-A): zero misclassifications",
+      "gate": "H9-A",
       "result": "PASS",
-      "soundness_tag": "SOUND",
-      "unittest_tail": "OK"
+      "soundness_tag": "SOUND"
     },
     {
-      "description": "receipt authenticity round-trip",
-      "gate": "H1-B",
+      "description": "H8 replay forgeries rejected",
+      "gate": "H9-B",
       "result": "PASS",
-      "soundness_tag": "SOUND",
-      "unittest_tail": "OK"
+      "soundness_tag": "SOUND"
     },
     {
-      "description": "cone certificate + standalone verifier",
-      "gate": "H1-C",
+      "description": "no impossible arrival admitted (H8 trust boundary)",
+      "gate": "H9-C",
       "result": "PASS",
-      "soundness_tag": "SOUND",
-      "unittest_tail": "OK"
+      "soundness_tag": "SOUND"
     },
     {
-      "description": "causal ledger admissibility / concurrency",
-      "gate": "H1-D",
+      "description": "ledger refuses cycles/backward/spacelike edges",
+      "gate": "H9-D",
       "result": "PASS",
-      "soundness_tag": "SOUND",
-      "unittest_tail": "OK"
+      "soundness_tag": "SOUND"
     },
     {
-      "description": "negative controls REJECTED with witnesses",
-      "gate": "H1-E",
+      "description": "attacks use public gates only; independent oracle",
+      "gate": "H9-E",
       "result": "PASS",
-      "soundness_tag": "SOUND",
-      "unittest_tail": "OK"
+      "soundness_tag": "SOUND"
     }
   ],
   "heuristic_warnings": [
     {
-      "location": "horizon/stations.py",
-      "warning": "HMAC with demo-derived symmetric keys stands in for signatures; key distribution trusted"
-    },
-    {
-      "location": "horizon/simulate.py",
-      "warning": "arrival times computed, not measured; simulator excluded from trusted path"
+      "location": "redteam/attacks.py",
+      "warning": "RT-A/H9-A's independent reference implementation uses Decimal-based real-number arithmetic (a deliberately different algorithm from the exact-integer kernel it cross-checks); it is the attacker's tool, not a security gate itself"
     }
   ],
   "program": "HorizonProtocol",
   "promotion_allowed": false,
+  "purpose": "independent red-team, reusing RT1's shared attacker module, extended to attack H8's signed-capture and capture-verify surface; see docs/h9-spec.md section 2 for why this is one harness, not two",
   "python_version": "3.11.15",
   "source_hashes": {
     "horizon/__init__.py": "513a2bd5e2c85ba7c6fb372a429cd2cab8430c5389302f9d2c929618ab48d29e",
@@ -85,8 +105,12 @@
     "horizon/qubit_sim.py": "891b6e2677ff95b80212a25dd1e3e062713fc1be4c5a29d8f2f1d33e0a6712c9",
     "horizon/signed_capture.py": "785f95c3ddd1b671e9335f6cc115d6a977a3b09a993e8f1a1b76e3be585a099a",
     "horizon/simulate.py": "a6b1760848f0a6b7f821999e7820d912b3edc741ddac834c4f38ef708ce7d1ce",
-    "horizon/stations.py": "25d3ab2d40fd20d7fcad81b25e43c17e7f1385ed3acd52cb7dd8af31b2755830"
+    "horizon/stations.py": "25d3ab2d40fd20d7fcad81b25e43c17e7f1385ed3acd52cb7dd8af31b2755830",
+    "redteam/__init__.py": "0f28ffd5d8ec72eb6b24d8ce5263ab6370df18c12630f1bd19e1c43928615abf",
+    "redteam/attacks.py": "4923e1cee6dca95148bc5559f03dc637d6a6a7df47483a7d75d5a74c45cd21ea"
   },
+  "total_bypasses": 0,
+  "total_trials": 9003,
   "unit_convention": {
     "c": 299792458,
     "c_units": "nm/ns (exact integer)",

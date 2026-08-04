@@ -26,14 +26,17 @@ silently treated as zero.
 caller would use: `horizon.geometry.causally_admissible`,
 `horizon.certificate.verify_certificate`,
 `horizon.measure.verify_measured_certificate`,
-`horizon.ledger.CausalLedger`, and the world-model builders needed to
-produce an honest baseline to mutate (`horizon.simulate.broadcast`,
-`horizon.geo_fixtures.build_synthetic_consistent_capture`,
+`horizon.ledger.CausalLedger`, `horizon.capture_verify.classify` /
+`verify_capture`, `horizon.signed_capture.sign_receipt` / `verify_receipt`,
+and the world-model builders needed to produce an honest baseline to mutate
+(`horizon.simulate.broadcast`, `horizon.geo_fixtures.build_synthetic_consistent_capture`,
 `horizon.stations.demo_registry`). It never reads a `Station`'s private
-key (`test_attacks_module_never_reaches_into_private_station_state`
+key or an H8 node's derived key (`test_attacks_module_never_reaches_into_private_station_state`
 asserts this by source inspection) - every forgery is constructed by
 mutating the on-the-wire JSON representation (receipt bodies, hex-encoded
-MACs), exactly as an external attacker without station keys would have to.
+MACs) or passing adversarial parameters through each function's own public
+signature, exactly as an external attacker without station keys would have
+to.
 
 ## 3. Attack classes
 
@@ -70,11 +73,34 @@ MACs), exactly as an external attacker without station keys would have to.
   construction, making a directed cycle in admitted edges impossible - and
   this fuzzes that invariant rather than only asserting it holds by
   inspection.
+- **RT-E, H8 signed-capture replay fuzz:** signs one legitimate H8 receipt
+  and repeatedly tries to reuse it for a different event, node, position,
+  time, or tier while keeping the original MAC - the on-the-wire replay an
+  attacker without a node key would have to attempt. Every mutation must
+  fail `horizon.signed_capture.verify_receipt`.
+- **RT-F, H8 capture-verify boundary/trust-boundary fuzz:** attacks
+  `horizon.capture_verify` three ways at once - trying to force a
+  non-REJECTED verdict on a genuinely-impossible (more than `u_ns` below
+  the absolute vacuum floor) arrival by (1) passing an adversarial `c_eff`
+  directly to `classify`, (2) declaring an adversarial `c_eff` INSIDE an
+  otherwise-untrusted `capture` blob handed to `verify_capture`, which must
+  ignore it; and (3) taking a legitimately-signed receipt and re-pairing it
+  with a self-chosen, more convenient claimed emission position the
+  original signature never covered, which must be caught at the
+  `event_binding` gate. These are the exact classes of bug found and fixed
+  during H8 review (see `horizon/capture_verify.py`'s module docstring
+  erratums 1 and 2) - fuzzed here rather than only fixed-case tested, the
+  same discipline RT-C' already applies to `horizon.measure`'s equivalent
+  trust boundary.
+- **RT-G, named ledger-integrity scenarios:** a handful of fixed,
+  human-readable `CausalLedger` attempts (a plain backward-time edge, a
+  2-cycle via a second backward edge, a spacelike edge) complementing RT-D's
+  randomized fuzz with scenarios a reviewer can check by inspection.
 
 ## 4. Determinism
 
 Every attack class draws from a single `random.Random` seeded by the
-frozen constant `redteam.SEED`, so a full red-team run (11,000+ trials
+frozen constant `redteam.SEED`, so a full red-team run (13,000+ trials
 across all classes as of this writing) is bit-reproducible;
 `test_deterministic_across_reruns` asserts this for one attack class as a
 representative check.
