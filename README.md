@@ -3,7 +3,7 @@
 [![gates](https://github.com/ErickLGonzalez/HorizonProtocol/actions/workflows/gates.yml/badge.svg)](https://github.com/ErickLGonzalez/HorizonProtocol/actions/workflows/gates.yml)
 
 **Trust rooted in causal structure.** A cryptographic stack whose certificate
-authority is the speed of light.
+authority is the speed of casuality.
 
 HorizonProtocol is the engineering companion to a simple physical thesis: an
 observer's operational reality is worldline-indexed — its causal domain,
