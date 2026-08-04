@@ -39,9 +39,12 @@ nominal: it is derived at capture time from chrony tracking as
 u_ns = max(1000, round(1e9 * (|root_dispersion| + |rms_offset| + |root_delay| + |last_offset|)))
 ```
 
-and recorded per node in each capture's `measured_u_ns` / `clock_offsets_ns`.
-`scripts/verify_live.py` overlays those measured values into the registry
-before calling the unmodified verifier.
+and recorded per node in each capture's `measured_u_ns` / `clock_offsets_ns`,
+and MAC-bound into each receipt body as `body.measured_u_ns`.
+`scripts/verify_live.py` overlays only those authenticated measured values
+into the registry before calling the unmodified verifier; missing or
+unsigned uncertainty for a receipt contributor is a hard refusal (no
+nominal-tier fallback).
 
 ### NTP tier
 
@@ -76,7 +79,7 @@ locked to `PHC0` stratum 1 before the committed PTP run.
 | `data/h8_live_capture_NTP_1.json` | LIVE_CAPTURE, NTP tier, 4 receipts |
 | `data/h8_live_capture_PTP_1.json` | LIVE_CAPTURE, PTP tier, 4 receipts (run 2, PHC-locked) |
 | `certificates/h8_live_certificate.json` | primary (PTP) certificate |
-| `certificates/h8_live_certificate_ntp.json` | NTP-tier certificate |
+| `certificates/h8_live_ntp_certificate.json` | NTP-tier certificate |
 | `scripts/live_orchestrate.py` | quarantined multi-node orchestrator |
 | `scripts/verify_live.py` | quarantined live verifier wrapper |
 
@@ -138,10 +141,11 @@ No honest receipt was REJECTED (falsifier F1 clear).
 ## 6. Authentication caveat
 
 Receipts use the existing HMAC-SHA256 demo key derivation in
-`horizon.signed_capture` (key = SHA-256 of a fixed prefix + `node_id`).
-This proves the plumbing and the H8-C spoof gate; it is **not**
-deployment-grade authentication. Production target: independent per-VM
-Ed25519 private keys.
+`horizon.signed_capture` (key = SHA-256 of a fixed prefix + `node_id`),
+and the MAC covers `measured_u_ns` so a plaintext capture/MITM edit cannot
+inflate the clock budget without forging the receipt. This proves the
+plumbing and the H8-C spoof gate; it is **not** deployment-grade
+authentication. Production target: independent per-VM Ed25519 private keys.
 
 ---
 

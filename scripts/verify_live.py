@@ -2,9 +2,10 @@
 """Verify a LIVE_CAPTURE with the unmodified capture verifier. [manual only]
 
 Loads a live capture JSON + node registry, overlays each node's measured
-`u_ns` from the capture's chrony/PTP log (never a nominal guess), calls
-`horizon.capture_verify.verify_capture`, prints per-receipt verdicts with
-exact integer witnesses, and writes `certificates/h8_live_certificate.json`.
+`u_ns` from the MAC-bound receipt body (never a nominal guess, never an
+unsigned capture-level field alone), calls `horizon.capture_verify.verify_capture`,
+prints per-receipt verdicts with exact integer witnesses, and writes
+`certificates/h8_live_certificate.json`.
 
 Quarantined from CI. Does not modify the verifier.
 """
@@ -23,6 +24,7 @@ sys.path.insert(0, ROOT)
 
 from horizon.build_frame import TIERS, load_registry  # noqa: E402
 from horizon.capture_verify import verify_capture  # noqa: E402
+from horizon.signed_capture import verify_receipt  # noqa: E402
 
 
 def sha256_file(path: str) -> str:
@@ -33,28 +35,63 @@ def sha256_file(path: str) -> str:
     return h.hexdigest()
 
 
-def overlay_measured_u(reg: dict, capture: dict, tier: str) -> dict:
-    """Return a registry copy whose per-node u_ns is the *measured*
-    uncertainty from the capture. Falls back to the tier nominal only when
-    a node has no measured value — and records that fallback in the
-    returned meta so the report cannot silently claim a measurement.
+def authenticated_measured_u(capture: dict, receipt_nodes: set) -> tuple:
+    """Extract per-node u_ns exclusively from MAC-verified receipt bodies.
+
+    Returns (measured_map, meta). Refuses unsigned capture-level
+    `measured_u_ns` and refuses any receipt contributor without a
+    MAC-bound measured value — no silent TIERS[tier] fallback.
     """
-    measured = dict(capture.get("measured_u_ns") or {})
+    measured = {}
+    meta = {"used_authenticated": {}, "missing": [], "bad_mac": []}
+    top = dict(capture.get("measured_u_ns") or {})
+
+    for r in capture.get("receipts") or []:
+        body = r.get("body") or {}
+        nid = body.get("node_id")
+        if nid not in receipt_nodes:
+            continue
+        if not verify_receipt(r):
+            meta["bad_mac"].append(nid)
+            continue
+        if "measured_u_ns" not in body or body["measured_u_ns"] is None:
+            meta["missing"].append(nid)
+            continue
+        u = int(body["measured_u_ns"])
+        measured[nid] = u
+        meta["used_authenticated"][nid] = u
+        # Capture-level map is provenance only; mismatch is a hard error.
+        if nid in top and int(top[nid]) != u:
+            meta.setdefault("top_level_mismatch", {})[nid] = {
+                "body": u, "capture": int(top[nid]),
+            }
+
+    for nid in sorted(receipt_nodes):
+        if nid not in measured and nid not in meta["bad_mac"]:
+            if nid not in meta["missing"]:
+                meta["missing"].append(nid)
+
+    return measured, meta
+
+
+def overlay_measured_u(reg: dict, measured: dict, tier: str) -> dict:
+    """Return a registry copy whose per-node u_ns is the authenticated
+    measured uncertainty. Only nodes present in `measured` are overlaid;
+    callers must ensure every receipt contributor is present.
+    """
     out = {}
-    meta = {"used_measured": {}, "fallback_nominal": {}}
     for nid, node in reg.items():
         n = dict(node)
         n["tier"] = tier
-        if nid in measured and measured[nid] is not None:
-            u = int(measured[nid])
-            n["u_ns"] = u
-            meta["used_measured"][nid] = u
+        if nid in measured:
+            n["u_ns"] = int(measured[nid])
         else:
-            u = int(TIERS[tier])
-            n["u_ns"] = u
-            meta["fallback_nominal"][nid] = u
+            # Non-contributing registry nodes keep the tier nominal for
+            # completeness; they are never consulted by verify_capture
+            # unless a receipt names them (which would have failed earlier).
+            n["u_ns"] = int(TIERS[tier])
         out[nid] = n
-    return out, meta
+    return out
 
 
 def main(argv=None) -> int:
@@ -79,11 +116,26 @@ def main(argv=None) -> int:
     _, reg, spec = (load_registry(args.registry) if args.registry
                     else load_registry())
     tier = capture.get("tier_nominal") or "NTP"
-    live_reg, u_meta = overlay_measured_u(reg, capture, tier)
 
     # Require coverage of every node that actually contributed a receipt;
     # do not invent a coverage set broader than the live run.
     receipt_nodes = {r["body"]["node_id"] for r in capture["receipts"]}
+    measured, u_meta = authenticated_measured_u(capture, receipt_nodes)
+
+    if u_meta["bad_mac"]:
+        print(f"refusing: receipt MAC failed for {u_meta['bad_mac']}",
+              file=sys.stderr)
+        return 1
+    if u_meta["missing"]:
+        print(f"refusing: receipt contributors missing MAC-bound "
+              f"measured_u_ns: {u_meta['missing']}", file=sys.stderr)
+        return 1
+    if u_meta.get("top_level_mismatch"):
+        print(f"refusing: capture measured_u_ns mismatches receipt body: "
+              f"{u_meta['top_level_mismatch']}", file=sys.stderr)
+        return 1
+
+    live_reg = overlay_measured_u(reg, measured, tier)
     result = verify_capture(capture, live_reg,
                             required_node_ids=receipt_nodes)
 
@@ -153,7 +205,9 @@ def main(argv=None) -> int:
         },
         {
             "gate": "H8-LIVE-B",
-            "description": "unmodified verify_capture over measured u_ns overlay",
+            "description": (
+                "unmodified verify_capture over MAC-bound measured u_ns overlay"
+            ),
             "soundness_tag": "SOUND",
             "result": "PASS" if agg in ("PASS", "APPARATUS_LIMITED") else "FAIL",
         },
@@ -162,6 +216,14 @@ def main(argv=None) -> int:
             "description": "no honest receipt REJECTED (falsifier F1)",
             "soundness_tag": "SOUND",
             "result": "PASS" if "REJECTED" not in verdicts.values() else "FAIL",
+        },
+        {
+            "gate": "H8-LIVE-D",
+            "description": (
+                "every receipt contributor carries MAC-bound measured_u_ns"
+            ),
+            "soundness_tag": "SOUND",
+            "result": "PASS",
         },
     ]
 
@@ -177,12 +239,14 @@ def main(argv=None) -> int:
         "adversary_model": (
             "forger without node keys (HMAC demo keys; Ed25519 is the "
             "deployment target) or without access to trusted c_eff/registry "
-            "parameters; colluding multi-node adversaries OUT OF SCOPE"
+            "parameters; measured_u_ns is MAC-bound in each receipt body so "
+            "inflating the clock budget requires forging the receipt; "
+            "colluding multi-node adversaries OUT OF SCOPE"
         ),
         "captured_at": capture.get("captured_at"),
         "tier_nominal": tier,
         "clock_offsets_ns": capture.get("clock_offsets_ns") or {},
-        "measured_u_ns": capture.get("measured_u_ns") or {},
+        "measured_u_ns": measured,
         "u_ns_overlay": u_meta,
         "position_sources": capture.get("position_sources") or {},
         "capture_path": os.path.relpath(args.capture, ROOT),
@@ -194,7 +258,8 @@ def main(argv=None) -> int:
         "aggregate": agg,
         "finding": "; ".join(finding_parts),
         "auth_note": capture.get("auth_note") or (
-            "HMAC-SHA256 demo keys; production target is per-VM Ed25519"
+            "HMAC-SHA256 demo keys; measured_u_ns MAC-bound in receipt body; "
+            "production target is per-VM Ed25519"
         ),
         "heuristic_warnings": [
             {

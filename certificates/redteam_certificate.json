@@ -72,7 +72,7 @@
   ],
   "program": "HorizonProtocol Red-Team Harness",
   "promotion_allowed": false,
-  "python_version": "3.11.15",
+  "python_version": "3.12.3",
   "seeds": [
     "REDTEAM-FROZEN-SEED-v1"
   ],

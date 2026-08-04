@@ -1,5 +1,5 @@
 {
-  "auth_note": "Receipts signed with HMAC-SHA256 demo keys derived from node_id (horizon.signed_capture). Production target: per-VM Ed25519 keys.",
+  "auth_note": "Receipts signed with HMAC-SHA256 demo keys derived from node_id (horizon.signed_capture); measured_u_ns is MAC-bound in each receipt body. Production target: per-VM Ed25519 keys.",
   "c_eff": [
     3,
     5
@@ -217,6 +217,7 @@
     {
       "body": {
         "event_hash": "b1185239ea97b6b89d13332d6db68bfa4762e4f6695d70f57e0a8c80fcbf699e",
+        "measured_u_ns": 5026591,
         "node_id": "us-east-1",
         "node_pos_nm": [
           0,
@@ -226,11 +227,12 @@
         "recv_time_ns": 1785840513934709480,
         "tier": "NTP"
       },
-      "mac": "487ec7279280186789593b7c31ee97b0ff984a37f7662cab5dd4342db85ba5c7"
+      "mac": "c7b9e7232472a84149d59a92fabfbfc5058d9eef4b831539930e2af3820322d1"
     },
     {
       "body": {
         "event_hash": "b1185239ea97b6b89d13332d6db68bfa4762e4f6695d70f57e0a8c80fcbf699e",
+        "measured_u_ns": 25102226,
         "node_id": "us-east-2",
         "node_pos_nm": [
           -1139944342747732,
@@ -240,11 +242,12 @@
         "recv_time_ns": 1785840513980202022,
         "tier": "NTP"
       },
-      "mac": "37a8db98f0b26e45de12a28f9350a3492d2329ef85d4e9bed820ed38bb1c8b2c"
+      "mac": "71c0e5b27e5806c12ffd54482daabf81dd0a544966a6d59a1c2af764b4c21023"
     },
     {
       "body": {
         "event_hash": "b1185239ea97b6b89d13332d6db68bfa4762e4f6695d70f57e0a8c80fcbf699e",
+        "measured_u_ns": 10769901,
         "node_id": "us-west-2",
         "node_pos_nm": [
           -2790975563731287,
@@ -254,11 +257,12 @@
         "recv_time_ns": 1785840514046608733,
         "tier": "NTP"
       },
-      "mac": "d1a248432ab21f5d5f0fda2d96894f1a6213b75cf4a6dc1f262830ed550cafae"
+      "mac": "5bcf9ede0b7abd1950ce278913788385390b376920795dd5828996d7adcb78ce"
     },
     {
       "body": {
         "event_hash": "b1185239ea97b6b89d13332d6db68bfa4762e4f6695d70f57e0a8c80fcbf699e",
+        "measured_u_ns": 7690696,
         "node_id": "eu-west-1",
         "node_pos_nm": [
           3886158898365151,
@@ -268,7 +272,7 @@
         "recv_time_ns": 1785840514067704888,
         "tier": "NTP"
       },
-      "mac": "9b4e50012762e6105ea8aee95f424527a756fc94aa59adad873a99bdb2a0cfc5"
+      "mac": "4f806a88e8222ad5ebbad921225849d2ae5fac3402bd2272a9ed6f00469b96ab"
     }
   ],
   "route_excess_note": "measured RTTs recorded separately; c_eff accounts for medium",

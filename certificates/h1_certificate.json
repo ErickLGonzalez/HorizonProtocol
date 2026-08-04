@@ -55,7 +55,7 @@
   ],
   "program": "HorizonProtocol",
   "promotion_allowed": false,
-  "python_version": "3.11.15",
+  "python_version": "3.12.3",
   "source_hashes": {
     "horizon/__init__.py": "513a2bd5e2c85ba7c6fb372a429cd2cab8430c5389302f9d2c929618ab48d29e",
     "horizon/beacon.py": "c6a0696c784ac83285f1d1fcd3b3728280e6aad1fb61416b6aae126f2e9b7ae7",
@@ -83,7 +83,7 @@
     "horizon/measure.py": "30561ea7fa0c6d5cf4f642dd04295f136046c4266e1fedbfcbb30be8bf27aa73",
     "horizon/quantum_interface.py": "5f697680806342bdfe7c6654b173fc26ec69309f358bc688054f0c25a98e49d6",
     "horizon/qubit_sim.py": "891b6e2677ff95b80212a25dd1e3e062713fc1be4c5a29d8f2f1d33e0a6712c9",
-    "horizon/signed_capture.py": "785f95c3ddd1b671e9335f6cc115d6a977a3b09a993e8f1a1b76e3be585a099a",
+    "horizon/signed_capture.py": "56c3fe47e65e3d8ad0086300ff75225cd8c45bccd73199e7c8d8f120a524debb",
     "horizon/simulate.py": "a6b1760848f0a6b7f821999e7820d912b3edc741ddac834c4f38ef708ce7d1ce",
     "horizon/stations.py": "25d3ab2d40fd20d7fcad81b25e43c17e7f1385ed3acd52cb7dd8af31b2755830"
   },

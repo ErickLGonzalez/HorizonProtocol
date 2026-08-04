@@ -186,7 +186,11 @@ def run_responder(node_id: str, port: int, registry_path: str | None) -> int:
             tier = msg.get("tier", "NTP")
             clock_pre = read_chrony_tracking()
             t_net_in = time.time_ns()
-            receipt = measure_now(node_id, pos, ehash, tier)
+            # Bind measured uncertainty into the receipt MAC so a
+            # plaintext MITM cannot inflate u_ns without the node key.
+            u_ns = clock_pre.get("measured_u_ns")
+            receipt = measure_now(node_id, pos, ehash, tier,
+                                  measured_u_ns=u_ns)
             clock_post = read_chrony_tracking()
             _send_json_line(conn, {
                 "cmd": "RECEIPT",
@@ -199,7 +203,8 @@ def run_responder(node_id: str, port: int, registry_path: str | None) -> int:
             print(json.dumps({
                 "served": True, "peer": list(addr),
                 "recv_time_ns": receipt["body"]["recv_time_ns"],
-                "measured_u_ns": clock_post.get("measured_u_ns"),
+                "measured_u_ns": receipt["body"].get(
+                    "measured_u_ns", clock_post.get("measured_u_ns")),
             }, sort_keys=True), flush=True)
 
 
@@ -275,13 +280,19 @@ def run_emitter(args) -> int:
 
     if include_self:
         self_clock_pre = read_chrony_tracking()
-        self_receipt = measure_now(emit_id, p0_nm, claim_hash, args.tier)
+        self_u = self_clock_pre.get("measured_u_ns")
+        self_receipt = measure_now(emit_id, p0_nm, claim_hash, args.tier,
+                                   measured_u_ns=self_u)
         self_clock_post = read_chrony_tracking()
         receipts.append(self_receipt)
         clock_logs[emit_id] = {"before": self_clock_pre, "after": self_clock_post}
         if self_clock_post.get("measured_offset_ns") is not None:
             clock_offsets_ns[emit_id] = self_clock_post["measured_offset_ns"]
-        if self_clock_post.get("measured_u_ns") is not None:
+        # Prefer MAC-bound body value; fall back to post-stamp chrony.
+        body_u = self_receipt["body"].get("measured_u_ns")
+        if body_u is not None:
+            measured_u_ns[emit_id] = body_u
+        elif self_clock_post.get("measured_u_ns") is not None:
             measured_u_ns[emit_id] = self_clock_post["measured_u_ns"]
         rtts_ns[emit_id] = 0
 
@@ -304,7 +315,11 @@ def run_emitter(args) -> int:
                 after = resp.get("clock_after") or {}
                 if after.get("measured_offset_ns") is not None:
                     clock_offsets_ns[nid] = after["measured_offset_ns"]
-                if after.get("measured_u_ns") is not None:
+                body_u = (resp.get("receipt") or {}).get("body", {}).get(
+                    "measured_u_ns")
+                if body_u is not None:
+                    measured_u_ns[nid] = body_u
+                elif after.get("measured_u_ns") is not None:
                     measured_u_ns[nid] = after["measured_u_ns"]
         except (OSError, ValueError, json.JSONDecodeError) as e:
             with lock:
