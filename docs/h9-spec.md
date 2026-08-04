@@ -37,12 +37,14 @@ compensating benefit.
   reused for a different event, node, position, time, or tier; all rejected
   by `horizon.signed_capture.verify_receipt`.
 - **H9-C** (RT-F): H8 capture-verify boundary and trust-boundary fuzz - the
-  class of bug found and fixed once already during H8 review (see
-  `horizon/capture_verify.py`'s module docstring erratum), fuzzed here
-  rather than only fixed-case tested. `impossible_admitted == 0` is the
-  requirement, whether the adversary attacks `classify`'s own `c_eff`
-  parameter or smuggles an adversarial `c_eff` inside an otherwise-untrusted
-  `capture` blob.
+  classes of bug found and fixed during H8 review (see
+  `horizon/capture_verify.py`'s module docstring erratums 1 and 2), fuzzed
+  here rather than only fixed-case tested. Requirement: no genuinely-impossible
+  arrival is ever admitted, whether the adversary attacks `classify`'s own
+  `c_eff` parameter, smuggles an adversarial `c_eff` inside an
+  otherwise-untrusted `capture` blob, or re-pairs a legitimately-signed
+  receipt with a self-chosen emission claim the original signature never
+  covered (must be caught at `event_binding`).
 - **H9-D** (reuses RT-D, plus RT-G): causal-ledger cycle fuzz and named
   backward/spacelike-edge scenarios.
 - **H9-E**: hygiene - the H8-surface attacks exist, use only public

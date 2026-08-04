@@ -79,15 +79,19 @@ to.
   attacker without a node key would have to attempt. Every mutation must
   fail `horizon.signed_capture.verify_receipt`.
 - **RT-F, H8 capture-verify boundary/trust-boundary fuzz:** attacks
-  `horizon.capture_verify` two ways at once - trying to force ADMITTED on a
-  genuinely-impossible (more than `u_ns` below the absolute vacuum floor)
-  arrival by (1) passing an adversarial `c_eff` directly to `classify`, and
-  (2) declaring an adversarial `c_eff` INSIDE an otherwise-untrusted
-  `capture` blob handed to `verify_capture`, which must ignore it. This is
-  the exact class of bug found and fixed once already during H8 review (see
-  `horizon/capture_verify.py`'s module docstring erratum) - fuzzed here
-  rather than only fixed-case tested, the same discipline RT-C' already
-  applies to `horizon.measure`'s equivalent trust boundary.
+  `horizon.capture_verify` three ways at once - trying to force a
+  non-REJECTED verdict on a genuinely-impossible (more than `u_ns` below
+  the absolute vacuum floor) arrival by (1) passing an adversarial `c_eff`
+  directly to `classify`, (2) declaring an adversarial `c_eff` INSIDE an
+  otherwise-untrusted `capture` blob handed to `verify_capture`, which must
+  ignore it; and (3) taking a legitimately-signed receipt and re-pairing it
+  with a self-chosen, more convenient claimed emission position the
+  original signature never covered, which must be caught at the
+  `event_binding` gate. These are the exact classes of bug found and fixed
+  during H8 review (see `horizon/capture_verify.py`'s module docstring
+  erratums 1 and 2) - fuzzed here rather than only fixed-case tested, the
+  same discipline RT-C' already applies to `horizon.measure`'s equivalent
+  trust boundary.
 - **RT-G, named ledger-integrity scenarios:** a handful of fixed,
   human-readable `CausalLedger` attempts (a plain backward-time edge, a
   2-cycle via a second backward edge, a spacelike edge) complementing RT-D's

@@ -21,6 +21,12 @@ real deployment issues independent, unpredictable per-node keys. The live path
 non-deterministic, and is never imported by the verifier. Gates run against
 COMMITTED captures for determinism.
 
+`event_hash` is not a hash of the raw payload alone: it is
+`capture_verify.bound_event_hash(payload_hash, t0_ns, p0_nm)`, binding the
+claimed emission time and position into the same commitment a receipt signs
+over (section 4c) - a receipt for one `(t0_ns, p0_nm)` claim cannot be
+replayed against a different one.
+
 ## 3. Honest measurement model
 
 Committed captures (`MEASURED_MODEL`) apply: fiber speed `c_eff = 3/5` (matching
@@ -103,6 +109,64 @@ genuine `0.8c` signal is ADMITTED (not REJECTED) at a sufficiently precise
 tier, while a genuinely-impossible arrival is still REJECTED where the tier
 can resolve it.
 
+### 4b. Erratum: a negative raw elapsed time was rejected before clock uncertainty was applied
+
+`classify()` used to REJECT immediately whenever the RAW elapsed time
+(`recv_time_ns - t0_ns`) was negative, before adding the declared clock
+uncertainty `u_ns` in the claimant's favor. A co-located, genuinely honest
+receipt whose raw elapsed time was slightly negative purely from ordinary
+clock skew (e.g. `dt = -1` ns with `u_ns = 10` ns) was REJECTED outright,
+even though the adjusted time (`dt + u_ns = 9`) was comfortably
+non-negative and should have been resolved by the ordinary vacuum-floor
+comparison like any other measurement. Fixed: there is no separate raw-`dt`
+pre-check; `eff = dt + u_ns` is compared directly against `vacuum_floor_ns`
+(always `>= 0`), so a genuinely impossible raw `dt` is still REJECTED via
+that same comparison, and ordinary clock skew within budget is not.
+
+### 4c. Erratum: the claimed emission time and position were never authenticated
+
+An earlier version took a receipt's only authenticated content to be
+`event_hash` as a hash of the raw PAYLOAD alone - independent of the
+claimed emission `t0_ns`/`p0_nm`. Since `verify_capture` then read
+`t0_ns`/`p0_nm` straight from the untrusted `capture` object with nothing
+binding them to what any receipt actually signed, an attacker holding ANY
+legitimately-signed receipt for ANY real event could pair it with a
+SELF-CHOSEN `t0_ns`/`p0_nm` (e.g. the receiving node's own position, making
+the light-cone gate trivially satisfiable for any `recv_time_ns`) and
+manufacture a PASS/ADMITTED verdict certifying an entirely fabricated
+emission claim - the signature never covered the claim being certified.
+
+Fixed: the hash a receipt actually signs is now
+`bound_event_hash(payload_hash, t0_ns, p0_nm)` = `event_hash({"payload_hash":
+..., "t0_ns": ..., "p0_nm": ...})` (section 2). `verify_capture` recomputes
+this hash from the capture's own `payload_hash`/`t0_ns`/`p0_nm` and checks
+every receipt's `event_hash` field against the RECOMPUTED value, not merely
+against the capture's own (equally untrusted) `event_hash`/`payload_hash`
+field. Changing `t0_ns` or `p0_nm` after receipts are signed therefore
+changes the expected hash those receipts no longer match, and is caught at
+the `event_binding` gate exactly like any other tampered field.
+
+### 4d. Erratum: no floor on receipt count or distinctness
+
+`verify_capture` used to iterate whatever receipts a capture happened to
+contain with no check on their count or distinctness, so a capture
+containing a single valid receipt - or the same valid receipt repeated -
+could reach a non-REJECTED aggregate, defeating H8's own core claim of
+genuine MULTI-node corroboration. Fixed: `verify_capture` always rejects an
+empty capture (`nonempty_receipts`) or one repeating the same `node_id`
+across receipts (`distinct_sources`, mirroring
+`horizon.measure.verify_measured_certificate`'s identical gate exactly),
+and optionally - when the trusted caller supplies `required_node_ids` -
+rejects a capture that does not cover every one of them (`node_coverage`).
+`scripts/run_h8.py` passes the full registered node set as
+`required_node_ids` when verifying the committed captures, so the official
+H8-B/H8-D runs enforce genuine full coverage, not merely "at least one
+receipt."
+
+`tests/test_h8e_trust_boundary.py` regression-tests 4b, 4c, and 4d;
+`redteam/attacks.py`'s `attack_h8_boundary_skew_fuzz` (RT-F / H9-C) fuzzes
+4c as a permanent adversarial check.
+
 ## 5. Tiers and the resolution finding
 
 Tiers: NTP (U≈5 ms), PTP (U≈50 µs), GNSS (U≈1 µs). Consequences, all
@@ -122,13 +186,15 @@ demonstrated over the same real-geography registry (`data/h8_nodes.json`):
 - H8-A: signed receipt round-trip; any tamper breaks the signature; committed
   capture replays identically; ≥3 real nodes at real separations.
 - H8-B: honest capture yields only ADMITTED / APPARATUS_LIMITED (no spurious
-  REJECTED for a real in-budget signal); at least one node is APPARATUS_LIMITED.
+  REJECTED for a real in-budget signal); at least one node is APPARATUS_LIMITED;
+  verified with `required_node_ids` set to the full registry (section 4d).
 - H8-C: rogue-key spoof (co-located adversary claiming a distant node) REJECTED
   at the signature gate.
 - H8-D: APPARATUS_LIMITED→ADMITTED transition across tiers; verifier imports no
   live-capture path.
-- H8-E: trust-boundary and real-fast-signal regression coverage for the
-  section 4a erratum.
+- H8-E: regression coverage for sections 4a-4d: the trust-boundary and
+  real-fast-signal fixes, clock-skew-tolerant negative-`dt` handling,
+  emission-claim binding, and receipt count/distinctness/coverage.
 
 ## 7. Registered falsifiers
 
@@ -140,6 +206,14 @@ demonstrated over the same real-geography registry (`data/h8_nodes.json`):
   basis other than the absolute vacuum floor, or reading `c_eff` from the
   untrusted `capture` object rather than trusted caller input → reintroduces
   the section 4a erratum.
+- F6: `verify_capture` reaching a non-REJECTED verdict for a receipt whose
+  `event_hash` does not equal `bound_event_hash` of the capture's OWN
+  `payload_hash`/`t0_ns`/`p0_nm` → reintroduces the section 4c erratum
+  (unauthenticated emission claim).
+- F7: `verify_capture` reaching a non-REJECTED aggregate on an empty capture
+  or one with a repeated `node_id` across receipts, or accepting a capture
+  missing a caller-required node when `required_node_ids` is supplied →
+  reintroduces the section 4d erratum.
 
 ## 8. Claim scope
 

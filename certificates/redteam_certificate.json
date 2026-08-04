@@ -78,7 +78,7 @@
   ],
   "source_hashes": {
     "redteam/__init__.py": "0f28ffd5d8ec72eb6b24d8ce5263ab6370df18c12630f1bd19e1c43928615abf",
-    "redteam/attacks.py": "e7434d62c1c96ffa5b93aec2b26cc072af9cde2e1627d619ddc63c3b604ce340"
+    "redteam/attacks.py": "4923e1cee6dca95148bc5559f03dc637d6a6a7df47483a7d75d5a74c45cd21ea"
   },
   "total_bypasses": 0,
   "total_trials": 13003,

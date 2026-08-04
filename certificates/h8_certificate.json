@@ -64,7 +64,7 @@
     "horizon/beq.py": "feb2b2e8ad8ef6c845357945ada18563c40e30a1ab5b6cbede6e96effea7a426",
     "horizon/build_frame.py": "5e444a55b935ad57a49f7a6395499f4bc16f702bf54fc90c448d6f46eb6a5b01",
     "horizon/capture.py": "5abdbfc828842d92411cb0c999ea39aa0a503d6ecb94d8941d6da31f92826db8",
-    "horizon/capture_verify.py": "2f94d07f41833e41ddde153f434be5dbc68f6d854f68dd0ce3e456b7025c8bfa",
+    "horizon/capture_verify.py": "07570d2a6c3ee31196c50472315b395da1c64acb58f5146c1bd26f6f0598648b",
     "horizon/certificate.py": "102e1f2a3a2f3d047b6f07968ea73db776bf9b08a1291513c0919264e9f4e75e",
     "horizon/commit_sim.py": "8e86781cc8243a227fa2278afe24f8de8057ca42c4479b934077339f9abadcb9",
     "horizon/commitment.py": "4bf8609ed0a22cd6e72e4f36f9211f40192ba245403233adae44e814134a0fd1",

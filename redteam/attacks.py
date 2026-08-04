@@ -17,7 +17,7 @@ import hashlib
 import hmac
 from decimal import Decimal, getcontext
 
-from horizon.capture_verify import classify, verify_capture
+from horizon.capture_verify import bound_event_hash, classify, verify_capture
 from horizon.certificate import build_cone_certificate, verify_certificate
 from horizon.events import canonical, make_event
 from horizon.geo_fixtures import build_synthetic_consistent_capture
@@ -268,9 +268,9 @@ def attack_h8_replay_fuzz(rng, trials=1000):
 
 # ---- RT-F: H8 capture-verify boundary/trust-boundary attack -----------------
 def attack_h8_boundary_skew_fuzz(rng, trials=1000):
-    """Two questions against `horizon.capture_verify`, the class of bug found
-    and fixed once already during H8 review (see its module docstring
-    erratum), fuzzed here rather than only fixed-case tested:
+    """Three questions against `horizon.capture_verify`, the classes of bug
+    found and fixed during H8 review (see its module docstring erratums 1
+    and 2), fuzzed here rather than only fixed-case tested:
 
     (1) can an attacker force ADMITTED on a genuinely-impossible (more than
         `u_ns` below the absolute vacuum floor) arrival by choosing an
@@ -279,10 +279,14 @@ def attack_h8_boundary_skew_fuzz(rng, trials=1000):
         INSIDE an otherwise-untrusted `capture` blob handed to
         `verify_capture` (which must ignore it and use its own trusted
         default)?
+    (3) can an attacker take a legitimately-signed receipt and re-pair it
+        with a SELF-CHOSEN, more convenient claimed emission position
+        (here: the receiving node's own position, trivially satisfying any
+        light-cone gate) that nothing in the original signature covered?
 
-    Neither should ever succeed: REJECTED is decided only by the absolute
-    vacuum floor, which is trusted geometry no adversary-supplied c_eff can
-    move."""
+    None of these should ever succeed: REJECTED/event_binding is decided
+    only by trusted geometry and the bound event hash, neither of which an
+    adversary-supplied field can move."""
     bypasses = []
     for i in range(trials):
         d_nm = rng.randint(1, 2_000_000) * 1_000_000_000
@@ -300,14 +304,28 @@ def attack_h8_boundary_skew_fuzz(rng, trials=1000):
                              "verdict": res["verdict"]})
 
         registry = {"node": {"pos_nm": p1, "u_ns": u, "tier": "NTP"}}
-        receipt = sign_receipt("node", p1, "evt", recv, "NTP")
-        capture = {"event_hash": "evt", "t0_ns": 0, "p0_nm": list(p0),
+        ehash = bound_event_hash("evt", 0, p0)
+        receipt = sign_receipt("node", p1, ehash, recv, "NTP")
+        capture = {"payload_hash": "evt", "t0_ns": 0, "p0_nm": list(p0),
                   "c_eff": [evil_num, evil_den], "receipts": [receipt]}
         res2 = verify_capture(capture, registry)
         node_result = res2["per_receipt"][0]
         if node_result["verdict"] == "ADMITTED":
             bypasses.append({"trial": i, "vector": "capture_declared_c_eff",
                              "verdict": node_result["verdict"]})
+
+        # (3) same legitimately-signed receipt, but the verifier is handed
+        # a capture claiming emission from the receiver's OWN position -
+        # a claim the receipt's signature never covered.
+        forged_capture = {"payload_hash": "evt", "t0_ns": 0, "p0_nm": list(p1),
+                          "c_eff": [3, 5], "receipts": [receipt]}
+        res3 = verify_capture(forged_capture, registry)
+        node_result3 = res3["per_receipt"][0]
+        if node_result3["verdict"] != "REJECTED" or \
+           node_result3["witness"].get("gate") != "event_binding":
+            bypasses.append({"trial": i, "vector": "unbound_emission_claim",
+                             "verdict": node_result3["verdict"],
+                             "gate": node_result3["witness"].get("gate")})
     return {"attack": "h8_boundary_skew_fuzz", "trials": trials, "bypasses": bypasses}
 
 

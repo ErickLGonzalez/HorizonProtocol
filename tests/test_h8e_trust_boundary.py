@@ -1,20 +1,26 @@
 """H8-E: trust boundary + real-fast-signal regression tests. [SOUND]
 
-Regression coverage for the two bugs found and fixed during review of the
-originally-shipped `horizon/capture_verify.py` (see its module docstring
-erratum): (1) using the conservative c_eff bound as if it were an absolute
-speed ceiling, wrongly REJECTING a genuine, honest signal that happened to
-travel faster than 0.6c but still well below vacuum c; (2) reading `c_eff`
-directly from the untrusted `capture` object being classified, letting a
-forger declare a superluminal bound to force an otherwise-impossible receipt
-ADMITTED.
+Regression coverage for the bugs found and fixed during review of
+`horizon/capture_verify.py` (see its module docstring erratums 1-4):
+(1) using the conservative c_eff bound as if it were an absolute speed
+ceiling, wrongly REJECTING a genuine, honest signal that happened to travel
+faster than 0.6c but still well below vacuum c, and reading `c_eff`
+directly from the untrusted `capture` object rather than trusted caller
+input; (2) the claimed emission time/position were never bound into what a
+receipt actually signs, letting an attacker pair a legitimately-signed
+receipt with a self-chosen `t0_ns`/`p0_nm`; (3) a negative raw elapsed time
+was REJECTED before the declared clock uncertainty was applied in the
+claimant's favor; (4) a capture with no receipts, or with the same node's
+receipt repeated, could reach a non-REJECTED aggregate, and no coverage
+check existed for a caller that requires a specific node set.
 """
+import copy
 import json
 import os
 import unittest
 
 from horizon.build_frame import load_registry
-from horizon.capture_verify import classify, verify_capture
+from horizon.capture_verify import bound_event_hash, classify, verify_capture
 from horizon.geometry import C_NM_PER_NS
 
 DATA = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
@@ -79,6 +85,85 @@ class TestTrustBoundary(unittest.TestCase):
             res = classify(0, p0, t_ftl, p1, u_ns)
             self.assertEqual(res["verdict"], "REJECTED",
                              f"u_ns={u_ns}: {res}")
+
+    def test_tampering_claimed_emission_after_signing_is_rejected(self):
+        # a legitimately-signed capture whose t0_ns/p0_nm are changed after
+        # the fact (e.g. to claim emission from the receiving node's own
+        # position, trivially satisfying the light-cone gate for any
+        # receipt) must be REJECTED - the receipts no longer match the
+        # bound event hash for the new claim.
+        cap = _load("h8_capture_ntp.json")
+        forged = copy.deepcopy(cap)
+        forged["p0_nm"] = list(self.reg["us-west-2"]["pos_nm"])  # co-locate with a receiver
+        res = verify_capture(forged, self.reg)
+        self.assertEqual(res["aggregate"], "REJECTED")
+        self.assertTrue(all(p["witness"].get("gate") == "event_binding"
+                            for p in res["per_receipt"]))
+
+    def test_tampering_claimed_emission_time_after_signing_is_rejected(self):
+        cap = _load("h8_capture_ntp.json")
+        forged = copy.deepcopy(cap)
+        forged["t0_ns"] = cap["t0_ns"] - 10 ** 9  # claim an earlier emission
+        res = verify_capture(forged, self.reg)
+        self.assertEqual(res["aggregate"], "REJECTED")
+        self.assertTrue(all(p["witness"].get("gate") == "event_binding"
+                            for p in res["per_receipt"]))
+
+    def test_bound_event_hash_changes_with_the_claim(self):
+        h1 = bound_event_hash("payload123", 0, (0, 0, 0))
+        h2 = bound_event_hash("payload123", 0, (1, 0, 0))
+        h3 = bound_event_hash("payload123", 1, (0, 0, 0))
+        self.assertNotEqual(h1, h2)
+        self.assertNotEqual(h1, h3)
+
+    def test_empty_capture_rejected(self):
+        cap = _load("h8_capture_ntp.json")
+        empty = {**cap, "receipts": []}
+        res = verify_capture(empty, self.reg)
+        self.assertEqual(res["aggregate"], "REJECTED")
+        self.assertEqual(res["witness"]["gate"], "nonempty_receipts")
+
+    def test_duplicated_single_receipt_rejected(self):
+        # a single valid receipt, repeated, must not manufacture apparent
+        # multi-node corroboration.
+        cap = _load("h8_capture_ntp.json")
+        one = copy.deepcopy(cap)
+        one["receipts"] = [one["receipts"][0], one["receipts"][0]]
+        res = verify_capture(one, self.reg)
+        self.assertEqual(res["aggregate"], "REJECTED")
+        self.assertEqual(res["witness"]["gate"], "distinct_sources")
+
+    def test_single_real_node_capture_rejected_under_required_coverage(self):
+        # a single genuinely-valid receipt from one real node, with no
+        # tampering at all, must still be REJECTED once the trusted caller
+        # requires full coverage of the known registry (H8's own "genuine
+        # multi-node capture" claim, enforced by scripts/run_h8.py).
+        cap = _load("h8_capture_ntp.json")
+        one = copy.deepcopy(cap)
+        one["receipts"] = [one["receipts"][0]]
+        res = verify_capture(one, self.reg, required_node_ids=set(self.reg.keys()))
+        self.assertEqual(res["aggregate"], "REJECTED")
+        self.assertEqual(res["witness"]["gate"], "node_coverage")
+        # ...but is otherwise a perfectly valid single-node observation
+        # when the caller does not require full coverage.
+        res_uncovered = verify_capture(one, self.reg)
+        self.assertNotEqual(res_uncovered.get("witness", {}).get("gate"), "node_coverage")
+
+    def test_negative_raw_dt_within_clock_budget_not_spuriously_rejected(self):
+        # co-located node, raw dt slightly negative purely from clock skew
+        # within the declared u_ns budget - must not be REJECTED outright;
+        # the adjusted time is comfortably non-negative.
+        res = classify(1_000_000, (0, 0, 0), 999_999, (0, 0, 0), u_ns=10)
+        self.assertNotEqual(res["verdict"], "REJECTED")
+
+    def test_negative_raw_dt_beyond_clock_budget_still_rejected(self):
+        # genuinely impossible even with the full clock-uncertainty benefit
+        d_m = 475_000
+        p0 = (0, 0, 0)
+        p1 = (d_m * 1_000_000_000, 0, 0)
+        res = classify(10 ** 9, p0, 0, p1, u_ns=10)  # arrives ~1s "before" emission
+        self.assertEqual(res["verdict"], "REJECTED")
+        self.assertEqual(res["witness"]["reason"], "below_vacuum_floor")
 
 
 if __name__ == "__main__":

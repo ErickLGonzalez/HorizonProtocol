@@ -43,7 +43,7 @@ def main():
         r = {k: {**v, "u_ns": TIERS[tier], "tier": tier} for k, v in reg.items()}
         with open(os.path.join(ROOT, "data", f"h8_capture_{tier.lower()}.json")) as f:
             cap = json.load(f)
-        res = verify_capture(cap, r)
+        res = verify_capture(cap, r, required_node_ids=set(reg.keys()))
         tier_results[tier] = {p["node_id"]: p["verdict"] for p in res["per_receipt"]}
 
     src = {}

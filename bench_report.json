@@ -1,63 +1,63 @@
 {
   "certificate_verification_ns_per_call_by_station_count": {
-    "1": 11816.6665,
-    "10": 111427.78,
-    "100": 1042779.555,
-    "5": 57839.6525,
-    "50": 536431.31
+    "1": 8764.269,
+    "10": 83429.785,
+    "100": 875230.175,
+    "5": 41900.0225,
+    "50": 429047.265
   },
   "gate_at_magnitudes": {
     "earth_mars_max (~401,000,000 km)": {
-      "causally_admissible_ns_per_call": 558.9233,
+      "causally_admissible_ns_per_call": 427.2786,
       "distance_km": 401000000,
       "min_light_time_ns": 1337592021745,
-      "min_light_time_ns_ns_per_call": 1551.06405
+      "min_light_time_ns_ns_per_call": 1139.9697
     },
     "earth_mars_opposition (~78,000,000 km)": {
-      "causally_admissible_ns_per_call": 571.0461,
+      "causally_admissible_ns_per_call": 429.0915,
       "distance_km": 78000000,
       "min_light_time_ns": 260179994255,
-      "min_light_time_ns_ns_per_call": 1529.7047
+      "min_light_time_ns_ns_per_call": 1104.7413
     },
     "earth_moon (~384,000 km)": {
-      "causally_admissible_ns_per_call": 547.99335,
+      "causally_admissible_ns_per_call": 424.35255,
       "distance_km": 384000,
       "min_light_time_ns": 1280886126,
-      "min_light_time_ns_ns_per_call": 1302.139
+      "min_light_time_ns_ns_per_call": 952.07615
     },
     "terrestrial (~12,000 km, antipodal)": {
-      "causally_admissible_ns_per_call": 494.1473,
+      "causally_admissible_ns_per_call": 374.82295,
       "distance_km": 12000,
       "min_light_time_ns": 40027692,
-      "min_light_time_ns_ns_per_call": 1211.8176
+      "min_light_time_ns_ns_per_call": 898.20375
     }
   },
-  "ledger_precedes_fitted_scaling_exponent": 1.9293145342756624,
+  "ledger_precedes_fitted_scaling_exponent": 1.9299316284396975,
   "ledger_reachability_by_edge_count": {
     "10": {
-      "add_edge_ns_per_call": 5267.6,
-      "precedes_ns_per_call": 5170.6
+      "add_edge_ns_per_call": 2868.8,
+      "precedes_ns_per_call": 3720.4
     },
     "100": {
-      "add_edge_ns_per_call": 2132.1,
-      "precedes_ns_per_call": 346816.65
+      "add_edge_ns_per_call": 2259.37,
+      "precedes_ns_per_call": 252437.65
     },
     "1000": {
-      "add_edge_ns_per_call": 2566.765,
-      "precedes_ns_per_call": 34768545.8
+      "add_edge_ns_per_call": 1862.365,
+      "precedes_ns_per_call": 25243269.6
     },
     "50": {
-      "add_edge_ns_per_call": 2077.98,
-      "precedes_ns_per_call": 84400.4
+      "add_edge_ns_per_call": 1750.48,
+      "precedes_ns_per_call": 61919.725
     },
     "500": {
-      "add_edge_ns_per_call": 2403.818,
-      "precedes_ns_per_call": 8726083.2
+      "add_edge_ns_per_call": 1880.034,
+      "precedes_ns_per_call": 6315712.4
     }
   },
   "ledger_scaling_finding": "CausalLedger.precedes scans the FULL edge set for every visited node (not an adjacency-list restricted scan): fitted exponent 1.93 on this run. An exponent near 1.0 would be linear in edge count (adjacency-list BFS); an exponent near 2.0 is consistent with the O(edges) full-set scan per visited node this implementation performs. This is a finding, not a fix: per docs/engineering-roadmap.md D2, if reachability is worse than linear, file it and consider an additive transitive-closure or adjacency-list cache that does not touch the security gate (add_edge's causally_admissible check is unaffected either way).",
   "note": "informational only - not a security gate, not a certificate; always exits 0",
-  "platform": "Linux-6.18.5-x86_64-with-glibc2.39",
+  "platform": "Linux-6.18.5-fc-v18-x86_64-with-glibc2.39",
   "python_version": "3.11.15",
   "type": "performance_report"
 }

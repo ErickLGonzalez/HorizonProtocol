@@ -3,17 +3,17 @@
     3,
     5
   ],
-  "event_hash": "699193a35e4296f057f0a5b02f71f3f8d1753284464a71d4229b24ee5f68e1e5",
   "origin": "MEASURED_MODEL",
   "p0_nm": [
     0,
     0,
     0
   ],
+  "payload_hash": "d32e6fe57f74651072c79043e7d950c7dcaac2b5ccc7ae0caa3645345ef6a9c3",
   "receipts": [
     {
       "body": {
-        "event_hash": "699193a35e4296f057f0a5b02f71f3f8d1753284464a71d4229b24ee5f68e1e5",
+        "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
         "node_id": "us-east-1",
         "node_pos_nm": [
           0,
@@ -23,11 +23,11 @@
         "recv_time_ns": 1000000000,
         "tier": "PTP"
       },
-      "mac": "62a83ed179a0352a310070b453cbacf05b413baebb03052bb6634be041939a17"
+      "mac": "4d5c4af954683855e94d0fab33c395b9dbd9a8798a4028c221a1e214e59c06a5"
     },
     {
       "body": {
-        "event_hash": "699193a35e4296f057f0a5b02f71f3f8d1753284464a71d4229b24ee5f68e1e5",
+        "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
         "node_id": "us-west-2",
         "node_pos_nm": [
           -2992522065482674,
@@ -37,11 +37,11 @@
         "recv_time_ns": 1025091136,
         "tier": "PTP"
       },
-      "mac": "873626dae6bfcf5669f2e12f12eafc0cee99d887b1494d7d9d20de74f82b6e31"
+      "mac": "4919b6ad8cbd8aa0ff31a6ca850836cc509c65a58d9de25d987e506aeacef256"
     },
     {
       "body": {
-        "event_hash": "699193a35e4296f057f0a5b02f71f3f8d1753284464a71d4229b24ee5f68e1e5",
+        "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
         "node_id": "eu-west-1",
         "node_pos_nm": [
           3561900768196695,
@@ -51,11 +51,11 @@
         "recv_time_ns": 1037524181,
         "tier": "PTP"
       },
-      "mac": "1f86329cbe4214c4445e05677fa7b25d822528d1d166d6bea381d885228ac02c"
+      "mac": "9c29dda42bbf1d644dbbfeedbc076128eec5fd292618826589dd304e22f58a16"
     },
     {
       "body": {
-        "event_hash": "699193a35e4296f057f0a5b02f71f3f8d1753284464a71d4229b24ee5f68e1e5",
+        "event_hash": "7ece3f00e365a5cadc3a46dfda2180955fd2964fbce3d235b10b6c627b2021f0",
         "node_id": "us-east-2",
         "node_pos_nm": [
           -453008449848499,
@@ -65,7 +65,7 @@
         "recv_time_ns": 1003437763,
         "tier": "PTP"
       },
-      "mac": "abebffbdee32dcb48c12bfc60231a81e2d4857def41ac4accfb45ef898039b72"
+      "mac": "965672f7f221f0e09a442d67c04477b1bf20ef5d127344baa40dcc89ec5d98d9"
     }
   ],
   "route_excess": [

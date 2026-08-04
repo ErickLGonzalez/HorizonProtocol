@@ -27,6 +27,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from horizon.build_frame import TIERS, load_registry  # noqa: E402
+from horizon.capture_verify import bound_event_hash  # noqa: E402
+from horizon.events import event_hash  # noqa: E402
 from horizon.geometry import C_NM_PER_NS, dist2  # noqa: E402
 from horizon.measure import C_EFF_DEN, C_EFF_NUM  # noqa: E402
 from horizon.signed_capture import sign_receipt  # noqa: E402
@@ -61,7 +63,10 @@ def build_capture(reg, tier_override=None, origin="MEASURED_MODEL"):
     p0 = tuple(reg[emit]["pos_nm"])
     t0 = 1_000_000_000
     payload = {"doc": "h8-real-capture", "n": 1}
-    ehash = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+    payload_hash = event_hash(payload)
+    # the hash receipts actually sign - binds the claimed t0/p0, not just
+    # the payload (see horizon/capture_verify.py's module erratum 2)
+    ehash = bound_event_hash(payload_hash, t0, p0)
     ren, red = ROUTE_EXCESS
     receipts = []
     for nid, node in reg.items():
@@ -74,7 +79,7 @@ def build_capture(reg, tier_override=None, origin="MEASURED_MODEL"):
         recv = t0 + prop
         tier = tier_override or node["tier"]
         receipts.append(sign_receipt(nid, node["pos_nm"], ehash, recv, tier))
-    return {"origin": origin, "seed": SEED, "event_hash": ehash,
+    return {"origin": origin, "seed": SEED, "payload_hash": payload_hash,
             "t0_ns": t0, "p0_nm": list(p0), "c_eff": list(C_EFF),
             "route_excess": list(ROUTE_EXCESS), "receipts": receipts}
 
@@ -103,8 +108,9 @@ def main():
     import hmac
     from horizon.events import canonical
     rogue_key = _h.sha256(b"ROGUE").digest()
+    spoof_ehash = bound_event_hash(spoof["payload_hash"], spoof["t0_ns"], spoof["p0_nm"])
     body = {"node_id": "us-west-2", "node_pos_nm": reg["us-west-2"]["pos_nm"],
-            "event_hash": spoof["event_hash"],
+            "event_hash": spoof_ehash,
             "recv_time_ns": spoof["t0_ns"] + 500_000,  # arrives ~instantly
             "tier": "NTP"}
     spoof_receipt = {"body": body,
