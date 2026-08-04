@@ -19,6 +19,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Run test suite
         run: python3 -m unittest discover tests -v
+      - name: Install optional formal-proof dependency (z3-solver)
+        run: pip install z3-solver
+        continue-on-error: true
       - name: Run all gate sets
         run: python3 scripts/run_all.py
       - name: Validate certificates

@@ -25,8 +25,13 @@ delivered, with completed items marked.
   time vs. station count, and ledger reachability vs. edge count with a
   fitted scaling exponent. Confirmed the suspected finding: `precedes()`
   fits ~O(edges^1.9) on this run (see `bench_report.json`), consistent
-  with its full-edge-set scan per visited node. Reported, not fixed (a
-  cache would be additive future work per this roadmap's own D2 note).
+  with its full-edge-set scan per visited node. Filed AND fixed in a
+  later pass: `horizon/reachability_cache.py` adds an additive, opt-in
+  `precedes_fast()` (adjacency-indexed BFS) fitting ~O(edges^1.0) on the
+  same measurements, cross-checked for agreement against the kept,
+  unchanged `precedes()` reference in `tests/test_reachability_cache.py` -
+  exactly the "additive transitive-closure cache" this roadmap's own D2
+  note anticipated.
 - **E1 (kernel consolidation):** `tests/test_kernel_consolidation.py`
   makes "exactly one canonical kernel" a permanent, CI-enforced invariant
   (no duplicate `causally_admissible`/`CausalLedger`/etc. definitions
@@ -65,11 +70,31 @@ delivered, with completed items marked.
   rigorous timing-fuzz and ledger-cycle attacks rather than standing up
   weaker duplicates. Eight attack classes combined, 13,000+ deterministic
   trials, zero bypasses as of this writing.
+- **C1 (formally verified kernel)** integrated in a later pass; see
+  `docs/formal-kernel-spec.md` and `formal/`. Five theorems discharged by
+  the Z3 SMT solver (`z3-solver`, pip-installed - this repository's only
+  non-stdlib dependency, confined entirely to `formal/` and reported as
+  SKIPPED rather than FAIL by `scripts/run_all.py` when not installed, so
+  the rest of the repository stays stdlib-only). Reviewing the
+  originally-shipped proof found one theorem (null-cone exactness)
+  formulated as a self-referential integer tautology that reported
+  "PROVEN" regardless of the underlying predicate's correctness -
+  concretely confirmed the query stayed `unsat` even against a
+  deliberately broken predicate, meaning it provided zero real assurance.
+  Fixed to route through genuine free variables so the proof is actually
+  sensitive to the kernel it verifies, with a regression test
+  (`test_biased_predicate_is_caught`) asserting exactly that sensitivity
+  going forward - the same "prove it's not vacuous" discipline this
+  program already applies to its adversarial testing.
 
-**Not attempted in this pass (explicitly deferred, not silently
-dropped):**
-- **C1 (formally verified kernel):** requires a proof assistant (Lean 4
-  or Dafny) not installed in this environment.
+Roadmap Phase A/B/C/D/E are now all closed: H8 (A), H9/RT1 (B), the
+formal kernel proof (C), the float guard and benchmark (D), and kernel
+consolidation (E, ongoing as a standing CI invariant rather than a
+one-time task - see `tests/test_kernel_consolidation.py`). Nothing from
+this roadmap remains explicitly deferred as of this writing; the next
+open item outside its scope is a genuine LIVE H8 capture over real,
+operator-provisioned hosts (the verifier and on-ramp script are ready;
+provisioning infrastructure is not something this environment can do).
 
 ---
 

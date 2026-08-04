@@ -1,0 +1,77 @@
+{
+  "adversary_model": "not applicable - this is a machine-checked mathematical proof of kernel correctness (Z3 SMT solver over the integers), not an adversarial security test; see docs/formal-kernel-spec.md",
+  "aggregate": "PASS",
+  "benchmark_id": "C1",
+  "certificate_version": "1",
+  "claim_class": "ENGINEERING_REFERENCE",
+  "empirical_claim": "NONE",
+  "execution_tier": "BENCHMARK",
+  "gates": [
+    {
+      "description": "all five theorems PROVEN by Z3",
+      "gate": "C1-A",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    },
+    {
+      "description": "proven predicate matches horizon.geometry.causally_admissible exactly",
+      "gate": "C1-B",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    }
+  ],
+  "heuristic_warnings": [
+    {
+      "location": "formal/kernel.dfy",
+      "warning": "human-readable Dafny companion to the enforced Z3 proof; the Dafny toolchain is not available in this environment, so this file has not been independently machine-verified by `dafny verify` - treat as best-effort, not as an additionally-enforced artifact"
+    }
+  ],
+  "program": "HorizonProtocol",
+  "promotion_allowed": false,
+  "python_version": "3.11.15",
+  "source_hashes": {
+    "formal/kernel.dfy": "5e36aac9431f8eac30d1d9e673db1c80caad6e5f343131d347e8aa37c27e8b2f",
+    "formal/kernel_proof.py": "0f61fa309f3be683b0be37b623bada17bf46a5ee9e8538cfb2e99fd98a6be6d0",
+    "formal/tests/test_kernel_proof.py": "06e66b71df1397d106890585874603b54838fb08cb2b79fba4146fd5d0f6b55f",
+    "formal/tests/test_proof_matches_code.py": "a688eb8c0a722aea42444a2926592b27fdac57ac06cb2a76887e55750f19a658",
+    "horizon/geometry.py": "d9e7a851b2284a963f7ca7b43f6e99a57408406093aed85ef7fcf4caec1c0240"
+  },
+  "theorems": [
+    {
+      "note": "integer squared gate equals real light-cone condition exactly",
+      "result": "PROVEN",
+      "theorem": "T1_faithfulness",
+      "z3_status": "unsat"
+    },
+    {
+      "note": "no closed causal loop from the gate (strict future is antisymmetric); reduces to time-order irreflexivity, does not by itself exercise the spatial comparison - see module docstring",
+      "result": "PROVEN",
+      "theorem": "T2_antisymmetry",
+      "z3_status": "unsat"
+    },
+    {
+      "note": "on-cone admissible; one squared-nm beyond rejected; boundary is sharp with no tolerance, grounded in real dx/dy/dz - see module docstring for what this does and does not add beyond T1/T5",
+      "result": "PROVEN",
+      "theorem": "T3_null_cone_exact",
+      "z3_status": "unsat"
+    },
+    {
+      "note": "the future light cone only grows with time",
+      "result": "PROVEN",
+      "theorem": "T4_future_monotone",
+      "z3_status": "unsat"
+    },
+    {
+      "note": "the boundary-corrected min light time is truly minimal",
+      "result": "PROVEN",
+      "theorem": "T5_min_light_time",
+      "z3_status": "unsat"
+    }
+  ],
+  "unit_convention": {
+    "c": 299792458,
+    "c_units": "nm/ns (exact integer)",
+    "position": "nanometers (int)",
+    "time": "nanoseconds (int)"
+  }
+}
