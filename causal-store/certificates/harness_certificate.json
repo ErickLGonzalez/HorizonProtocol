@@ -1,0 +1,478 @@
+{
+  "adversary_model": "not applicable - this is a correctness/performance engineering harness, not an adversarial security gate",
+  "aggregate": "PASS",
+  "benchmark_id": "D1-HARNESS",
+  "certificate_version": "1",
+  "claim_class": "ENGINEERING_REFERENCE",
+  "empirical_claim": "NONE",
+  "execution_tier": "BENCHMARK",
+  "gates": [
+    {
+      "description": "workload generator: deterministic, physically-grounded dependency graph",
+      "gate": "H-A",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    },
+    {
+      "description": "correctness gate catches an injected causality violation",
+      "gate": "H-B",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    },
+    {
+      "description": "driver respects depends_on ordering under concurrency, closed and open loop",
+      "gate": "H-C",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    },
+    {
+      "description": "percentile/throughput math; report assembly flags VOID points",
+      "gate": "H-D",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    },
+    {
+      "description": "adapter contract: causalstore/baseline conform; unavailable competitors report loudly",
+      "gate": "H-E",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    },
+    {
+      "description": "LIVE network probe functions never referenced outside topology_probe.py",
+      "gate": "H-F",
+      "result": "PASS",
+      "soundness_tag": "SOUND"
+    }
+  ],
+  "heuristic_warnings": [
+    {
+      "location": "benchmark_harness/topology_probe.py",
+      "warning": "this run used local_topology() (0ns loopback); no real inter-region network was measured"
+    },
+    {
+      "location": "benchmark_harness/adapters/baseline_adapter.py",
+      "warning": "coordination_rtt_ns=0 in this run; the baseline's latency numbers here are correctness-only, not a performance claim (see module docstring)"
+    },
+    {
+      "location": "benchmark_harness/adapters/{cockroach,yugabyte}_adapter.py",
+      "warning": "written per each system's documented client API but not exercised against a live cluster in this build; reported as UNAVAILABLE here, never faked (see honest_scope in the report and module docstrings)"
+    }
+  ],
+  "local_sweep_report": {
+    "any_void_points": false,
+    "curves": {
+      "causal-store": [
+        {
+          "acceptance_rate": 1.0,
+          "contention_ratio": 0.0,
+          "correctness": {
+            "checked_edges": 0,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {
+            "coordinated": 0,
+            "coordination_free": 300,
+            "coordination_free_rate": 1.0,
+            "total": 300
+          },
+          "latency_ns": {
+            "50": 3390281,
+            "90": 5856538,
+            "99": 6420292,
+            "99.9": 6774258,
+            "100": 6774258
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "causal-store",
+          "throughput_ops_per_s": 23156.44
+        },
+        {
+          "acceptance_rate": 1.0,
+          "contention_ratio": 0.05,
+          "correctness": {
+            "checked_edges": 4,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {
+            "coordinated": 0,
+            "coordination_free": 300,
+            "coordination_free_rate": 1.0,
+            "total": 300
+          },
+          "latency_ns": {
+            "50": 3307702,
+            "90": 5914477,
+            "99": 6555111,
+            "99.9": 6907574,
+            "100": 6907574
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "causal-store",
+          "throughput_ops_per_s": 24998.4
+        },
+        {
+          "acceptance_rate": 1.0,
+          "contention_ratio": 0.1,
+          "correctness": {
+            "checked_edges": 4,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {
+            "coordinated": 0,
+            "coordination_free": 300,
+            "coordination_free_rate": 1.0,
+            "total": 300
+          },
+          "latency_ns": {
+            "50": 3257139,
+            "90": 5986858,
+            "99": 6666656,
+            "99.9": 6737765,
+            "100": 6737765
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "causal-store",
+          "throughput_ops_per_s": 25770.88
+        },
+        {
+          "acceptance_rate": 1.0,
+          "contention_ratio": 0.25,
+          "correctness": {
+            "checked_edges": 24,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {
+            "coordinated": 17,
+            "coordination_free": 283,
+            "coordination_free_rate": 0.9433333333333334,
+            "total": 300
+          },
+          "latency_ns": {
+            "50": 4047887,
+            "90": 15116909,
+            "99": 18527090,
+            "99.9": 18947005,
+            "100": 18947005
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "causal-store",
+          "throughput_ops_per_s": 12449.37
+        },
+        {
+          "acceptance_rate": 0.9967,
+          "contention_ratio": 0.5,
+          "correctness": {
+            "checked_edges": 41,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {
+            "coordinated": 57,
+            "coordination_free": 242,
+            "coordination_free_rate": 0.8066666666666666,
+            "total": 300
+          },
+          "latency_ns": {
+            "50": 6510280,
+            "90": 12804291,
+            "99": 13865435,
+            "99.9": 14676786,
+            "100": 14676786
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "causal-store",
+          "throughput_ops_per_s": 13649.68
+        },
+        {
+          "acceptance_rate": 1.0,
+          "contention_ratio": 0.75,
+          "correctness": {
+            "checked_edges": 53,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {
+            "coordinated": 141,
+            "coordination_free": 159,
+            "coordination_free_rate": 0.53,
+            "total": 300
+          },
+          "latency_ns": {
+            "50": 7892932,
+            "90": 15422322,
+            "99": 17471893,
+            "99.9": 17988002,
+            "100": 17988002
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "causal-store",
+          "throughput_ops_per_s": 12253.89
+        },
+        {
+          "acceptance_rate": 0.95,
+          "contention_ratio": 1.0,
+          "correctness": {
+            "checked_edges": 67,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {
+            "coordinated": 281,
+            "coordination_free": 4,
+            "coordination_free_rate": 0.013333333333333334,
+            "total": 300
+          },
+          "latency_ns": {
+            "50": 72406285,
+            "90": 384663560,
+            "99": 515699317,
+            "99.9": 525316831,
+            "100": 525316831
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "causal-store",
+          "throughput_ops_per_s": 533.51
+        }
+      ],
+      "total-order-baseline": [
+        {
+          "acceptance_rate": 1.0,
+          "contention_ratio": 0.0,
+          "correctness": {
+            "checked_edges": 0,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {},
+          "latency_ns": {
+            "50": 1543668,
+            "90": 1758070,
+            "99": 1896809,
+            "99.9": 1898571,
+            "100": 1898571
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "total-order-baseline",
+          "throughput_ops_per_s": 50051.88
+        },
+        {
+          "acceptance_rate": 1.0,
+          "contention_ratio": 0.05,
+          "correctness": {
+            "checked_edges": 4,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {},
+          "latency_ns": {
+            "50": 1415130,
+            "90": 1507439,
+            "99": 1525470,
+            "99.9": 1526603,
+            "100": 1526603
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "total-order-baseline",
+          "throughput_ops_per_s": 52915.06
+        },
+        {
+          "acceptance_rate": 1.0,
+          "contention_ratio": 0.1,
+          "correctness": {
+            "checked_edges": 4,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {},
+          "latency_ns": {
+            "50": 1390811,
+            "90": 1451321,
+            "99": 1460323,
+            "99.9": 1461122,
+            "100": 1461122
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "total-order-baseline",
+          "throughput_ops_per_s": 52050.59
+        },
+        {
+          "acceptance_rate": 1.0,
+          "contention_ratio": 0.25,
+          "correctness": {
+            "checked_edges": 24,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {},
+          "latency_ns": {
+            "50": 1486363,
+            "90": 1687907,
+            "99": 1787389,
+            "99.9": 1789107,
+            "100": 1789107
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "total-order-baseline",
+          "throughput_ops_per_s": 47746.79
+        },
+        {
+          "acceptance_rate": 1.0,
+          "contention_ratio": 0.5,
+          "correctness": {
+            "checked_edges": 41,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {},
+          "latency_ns": {
+            "50": 1432625,
+            "90": 1481362,
+            "99": 1513728,
+            "99.9": 1524762,
+            "100": 1524762
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "total-order-baseline",
+          "throughput_ops_per_s": 47767.0
+        },
+        {
+          "acceptance_rate": 1.0,
+          "contention_ratio": 0.75,
+          "correctness": {
+            "checked_edges": 53,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {},
+          "latency_ns": {
+            "50": 1370402,
+            "90": 1415421,
+            "99": 1428910,
+            "99.9": 1436678,
+            "100": 1436678
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "total-order-baseline",
+          "throughput_ops_per_s": 52123.99
+        },
+        {
+          "acceptance_rate": 1.0,
+          "contention_ratio": 1.0,
+          "correctness": {
+            "checked_edges": 67,
+            "ok": true,
+            "violation_count": 0
+          },
+          "diagnostics": {},
+          "latency_ns": {
+            "50": 1705835,
+            "90": 1814107,
+            "99": 1827779,
+            "99.9": 1832525,
+            "100": 1832525
+          },
+          "n_ops": 300,
+          "status": "OK",
+          "system": "total-order-baseline",
+          "throughput_ops_per_s": 45305.16
+        }
+      ]
+    },
+    "honest_scope": {
+      "competitor_availability": {
+        "cockroachdb": "UNAVAILABLE: cockroachdb: no DSN configured - pass a real postgres-wire connection string (see docs/benchmark-harness-spec.md's runbook)",
+        "tiga": "UNAVAILABLE: tiga: no stable public client library or packaged release; building requires cloning and compiling the research prototype from source, which this harness does not automate. See docs/benchmark-harness-spec.md's Tiga section for the design doc's own guidance: report this gap and proceed with the other competitors rather than half-configuring Tiga.",
+        "yugabytedb": "UNAVAILABLE: yugabytedb: no DSN configured - pass a real postgres-wire connection string (see docs/benchmark-harness-spec.md's runbook)"
+      },
+      "mode": "LOCAL_LOOPBACK",
+      "note": "single in-process run; 0ns loopback network cost. This is NOT the design doc's cross-region measurement (see docs/benchmark-harness-spec.md section 8/D1)."
+    },
+    "report_version": "1",
+    "topology": {
+      "measured_at_unix_ns": null,
+      "mode": "LOCAL_LOOPBACK",
+      "results": {
+        "eu-west-1": {
+          "host": null,
+          "jitter_ns": 0,
+          "port": null,
+          "rtt_ns_max": 0,
+          "rtt_ns_median": 0,
+          "rtt_ns_min": 0,
+          "verdict": "LOOPBACK"
+        },
+        "us-east-1": {
+          "host": null,
+          "jitter_ns": 0,
+          "port": null,
+          "rtt_ns_max": 0,
+          "rtt_ns_median": 0,
+          "rtt_ns_min": 0,
+          "verdict": "LOOPBACK"
+        },
+        "us-east-2": {
+          "host": null,
+          "jitter_ns": 0,
+          "port": null,
+          "rtt_ns_max": 0,
+          "rtt_ns_median": 0,
+          "rtt_ns_min": 0,
+          "verdict": "LOOPBACK"
+        },
+        "us-west-2": {
+          "host": null,
+          "jitter_ns": 0,
+          "port": null,
+          "rtt_ns_max": 0,
+          "rtt_ns_median": 0,
+          "rtt_ns_min": 0,
+          "verdict": "LOOPBACK"
+        }
+      }
+    }
+  },
+  "program": "causal-store",
+  "promotion_allowed": false,
+  "python_version": "3.11.15",
+  "source_hashes": {
+    "benchmark_harness/__init__.py": "7fb822916177900f00f3cd5e30f69ae5c0ef1a412b371c8eceb2c6fbd35a11e4",
+    "benchmark_harness/adapters/__init__.py": "5bb8bda086048bf43769d6f89b2fa1f90af41b48dcf5ae2891ab24177c997fb1",
+    "benchmark_harness/adapters/base.py": "bfcc90946e9deded3733d8c73b1c3f0e340edd1657f911f02f8ee072ac79468b",
+    "benchmark_harness/adapters/baseline_adapter.py": "dd838f8679e2fbe4e430e99ee2dc6f0ff417691bb6599b9713fa37a77c890db0",
+    "benchmark_harness/adapters/causalstore_adapter.py": "c5c4b7371b22c694cc7750fabbfbf2911c5326c4133a486adc0dc46a293227c4",
+    "benchmark_harness/adapters/cockroach_adapter.py": "d3d9aeba6cd2962f512a723c6d1655dd392adefe4ac78836e7630b13422a60d9",
+    "benchmark_harness/adapters/sql_common.py": "6a296b66c33f061df2ae2df3d50b22da3fc2e3953bf1404778de76945b0de8ce",
+    "benchmark_harness/adapters/tiga_adapter.py": "133f4fe63486dc71c2466ae920997f6aeec12d6fb7a797b5be05a2bcc14cd75a",
+    "benchmark_harness/adapters/yugabyte_adapter.py": "cd293f99eb887604bb2244c1fcff87fcb63b9e064bb1b526438e8b642a367d19",
+    "benchmark_harness/collect.py": "0b0d1e060eff2d6204d6828f4e9526e7d02e48cd70fe73c76a0b8e4645cda3d8",
+    "benchmark_harness/driver.py": "c63a4e19f7e411bf3daab9b93ebfc361a3ef60cfbc40de14e51b46c3f5929fc7",
+    "benchmark_harness/report.py": "6758863ad122149211d9f41d314549ed4d13b8b26bb0888b3f16d213ce148091",
+    "benchmark_harness/topology_probe.py": "878fd00e484fee3f3723ff9d9b5d0946183a58e2e946e5bb25e319712a44d69a",
+    "benchmark_harness/verify_order.py": "17df4c4e328ebb35e518b27a25407ce09e19a7cf4645e90d3d64807dacf3e40a",
+    "benchmark_harness/workload_gen.py": "b6823ceba27633d63cf8c3838d723af9d91c2a482864337e661e4e859d0e5e49"
+  },
+  "thesis": "harness self-check: the benchmark harness (workload generation, dependency-respecting driver, ground-truth correctness gate, percentile/report assembly, adapter contract) is correct, run here against a LOCAL LOOPBACK topology with causal-store and the total-order baseline - NOT the design doc's live cross-region comparison (see docs/benchmark-harness-spec.md)",
+  "unit_convention": {
+    "c": 299792458,
+    "c_units": "nm/ns (exact integer)",
+    "position": "nanometers (int)",
+    "time": "nanoseconds (int)"
+  }
+}

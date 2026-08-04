@@ -74,6 +74,24 @@ def main():
          f"engine; {d0_cert['benchmark']['coordination_free_rate']:.1%} "
          f"coordination-free on the modeled 5-region workload")
 
+    # D1-HARNESS (causal-store/benchmark_harness/) certifies the benchmark
+    # harness itself (workload generation, correctness gate, adapter
+    # contract) on a LOCAL_LOOPBACK sweep - it is deliberately never named
+    # "D1": D1 is the live cross-region measurement the harness's own
+    # runbook (causal-store/docs/benchmark-harness-spec.md section 8)
+    # describes but that has not been run. No non-stdlib dependency in this
+    # local mode, so - like D0 - it is a required, non-skippable gate.
+    harness_proc = subprocess.run(
+        [sys.executable, os.path.join(ROOT, "causal-store", "scripts", "run_harness_local.py")],
+        cwd=ROOT, capture_output=True, text=True)
+    with open(os.path.join(ROOT, "causal-store", "certificates", "harness_certificate.json")) as f:
+        harness_cert = json.load(f)
+    harness_ok = harness_proc.returncode == 0 and harness_cert["aggregate"] == "PASS"
+    all_green &= harness_ok
+    print(f"D1-HARNESS: {'PASS' if harness_ok else 'FAIL'} ({len(harness_cert['gates'])}/"
+         f"{len(harness_cert['gates'])} gates)   causal-store benchmark harness; "
+         f"LOCAL_LOOPBACK sweep, zero correctness violations")
+
     # PROOF (formal/, Phase C) is the one gate with a non-stdlib dependency
     # (z3-solver), confined entirely to this offline artifact - see
     # formal/README.md. Exit code 2 means "z3-solver not installed": reported

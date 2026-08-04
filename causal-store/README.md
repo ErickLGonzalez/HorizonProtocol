@@ -13,8 +13,9 @@ round trip that total-order protocols pay on every write.
 
 ## Run
 ```
-python3 causal-store/scripts/run_d0.py           # gates + certificate; exits 0 iff green
-python3 causal-store/bench/geo_workload.py       # the benchmark, standalone
+python3 causal-store/scripts/run_d0.py               # D0 gates + certificate; exits 0 iff green
+python3 causal-store/bench/geo_workload.py           # the D0 benchmark, standalone (MODELED)
+python3 causal-store/scripts/run_harness_local.py   # benchmark-harness gates + a LOCAL_LOOPBACK sweep
 cd causal-store && python3 -m unittest discover tests -v
 ```
 
@@ -53,3 +54,24 @@ coupling" principle: the engine must stay importable and correct even where
 the `horizon` package isn't present. Test D0-F (`tests/test_d0f_geometry_hash.py`)
 enforces that the vendored copy stays byte-identical to `horizon/geometry.py`,
 so drift is caught without introducing a runtime dependency.
+
+## Benchmark harness (D1-HARNESS)
+`benchmark_harness/` implements the comparison harness against best-in-class
+geo-distributed systems (CockroachDB, YugabyteDB, Tiga, and a self-run
+total-order baseline) from `causalstoreBenchmarkHarnessDesign.md`: a neutral,
+deterministic trace with a **physically-grounded ground-truth dependency
+graph** (using the same exact `min_light_time_ns` kernel primitive
+causal-store's own ordering uses) is replayed through any number of adapters,
+and a correctness gate (`verify_order.py`) voids any run that violates a real
+dependency — a fast wrong answer is never reported as a win.
+
+**This repository certifies the harness itself, not a live cross-region
+result.** Every run so far uses `topology_probe.local_topology()` (0ns
+loopback); CockroachDB/YugabyteDB adapters are written per each system's
+documented client API but have not been run against a real cluster in this
+build (no `psycopg2`, no cluster, in this sandbox); Tiga has no buildable
+client. `certificates/harness_certificate.json` is labeled `D1-HARNESS`,
+never `D1`, so it can never be mistaken for the design doc's actual live
+measurement. See `docs/benchmark-harness-spec.md` section 8 for the runbook a
+live agent follows to produce a genuine `D1` result on real Azure
+infrastructure (reusing the H8-LIVE region mapping).
