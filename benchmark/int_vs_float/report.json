@@ -1,0 +1,1209 @@
+{
+  "float_variants": [
+    "float64_strict",
+    "float64_toleranced",
+    "float32_strict",
+    "float32_toleranced"
+  ],
+  "hypotheses": {
+    "IF_H1_float_mismatch_gt_zero_and_grows": {
+      "float_ever_mismatches": true,
+      "integer_mismatch_vs_exact": 0,
+      "mismatch_grows_with_magnitude": true,
+      "verdict": "supported"
+    },
+    "IF_H2_float_reproducibility_divergence_gt_zero": {
+      "float_ever_diverges_across_settings": true,
+      "integer_divergence_is_zero": true,
+      "verdict": "supported"
+    },
+    "IF_H3_honest_speed_reported_without_spin": {
+      "integer_ever_slower_than_float64": false,
+      "note": "reported as measured in both directions; a speed loss for the integer gate is expected at large magnitude (bignum growth) and is not evidence against the soundness thesis"
+    }
+  },
+  "note": "informational only - not a security gate, not a certificate; always exits 0. The claim is soundness and cross-platform reproducibility, proven for the integer gate by T1 (formal/kernel_proof.py), NOT speed - see docs/int-vs-float-results.md",
+  "offsets_nm": [
+    0,
+    1,
+    -1,
+    10,
+    -10,
+    100,
+    -100,
+    1000,
+    -1000,
+    10000,
+    -10000,
+    100000,
+    -100000,
+    1000000,
+    -1000000
+  ],
+  "reproducibility_settings": [
+    "float64_xyz_sumsq",
+    "float64_zyx_sumsq",
+    "float64_xyz_hypot",
+    "float32_xyz_sumsq"
+  ],
+  "test1_example_flips": [
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "metric (~1 m)",
+      "offset_nm": 1,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        899377375,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 3,
+      "variant": "float32_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "metric (~1 m)",
+      "offset_nm": 1,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        899377375,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 3,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "metric (~1 m)",
+      "offset_nm": 10,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        899377384,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 3,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "metric (~1 m)",
+      "offset_nm": 100,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        899377474,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 3,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 1,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043186735,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float64_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 1,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043186735,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float32_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 1,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043186735,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 10,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043186744,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float64_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 10,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043186744,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float32_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 10,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043186744,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 100,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043186834,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float64_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 100,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043186834,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float32_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 100,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043186834,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 1000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043187734,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float64_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 1000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043187734,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float32_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 1000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043187734,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 10000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043196734,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float64_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 10000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043196734,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float32_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 10000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043196734,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 100000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043286734,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float64_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 100000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043286734,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float32_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 100000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000043286734,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 1000000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000044186734,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float64_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 1000000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000044186734,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float32_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "continental (~3,000 km)",
+      "offset_nm": 1000000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        3000000044186734,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 10006923,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": true,
+      "flip": "timelike/null pair REJECTED (should ADMIT)",
+      "float_admissible": false,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 0,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132328790,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float64_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 1,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132328791,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float64_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 1,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132328791,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float32_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 1,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132328791,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": true,
+      "flip": "timelike/null pair REJECTED (should ADMIT)",
+      "float_admissible": false,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": -1,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132328789,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float64_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 10,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132328800,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float64_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 10,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132328800,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float32_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 10,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132328800,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": true,
+      "flip": "timelike/null pair REJECTED (should ADMIT)",
+      "float_admissible": false,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": -10,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132328780,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float64_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 100,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132328890,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float64_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 100,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132328890,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float32_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 100,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132328890,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": true,
+      "flip": "timelike/null pair REJECTED (should ADMIT)",
+      "float_admissible": false,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": -100,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132328690,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float64_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 1000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132329790,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float64_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 1000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132329790,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float32_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 1000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132329790,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": true,
+      "flip": "timelike/null pair REJECTED (should ADMIT)",
+      "float_admissible": false,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": -1000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132327790,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float64_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 10000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132338790,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float64_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 10000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132338790,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float32_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 10000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132338790,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 100000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132428790,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float64_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 100000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132428790,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float32_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 100000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000132428790,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float32_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 1000000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000133328790,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float64_toleranced"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 1000000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000133328790,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float32_strict"
+    },
+    {
+      "exact_admissible": false,
+      "flip": "spacelike pair ADMITTED (should REJECT)",
+      "float_admissible": true,
+      "magnitude": "interplanetary (~78,000,000 km, Earth-Mars opposition)",
+      "offset_nm": 1000000,
+      "p1": [
+        0,
+        0,
+        0
+      ],
+      "p2": [
+        78000000000133328790,
+        0,
+        0
+      ],
+      "t1": 0,
+      "t2": 260179994255,
+      "variant": "float32_toleranced"
+    }
+  ],
+  "test1_verdict_mismatch_by_magnitude": {
+    "continental (~3,000 km)": {
+      "mismatch_counts": {
+        "float32_strict": 7,
+        "float32_toleranced": 7,
+        "float64_strict": 0,
+        "float64_toleranced": 7
+      },
+      "mismatch_rate": {
+        "float32_strict": 0.4666666666666667,
+        "float32_toleranced": 0.4666666666666667,
+        "float64_strict": 0.0,
+        "float64_toleranced": 0.4666666666666667
+      },
+      "n_pairs": 15
+    },
+    "interplanetary (~78,000,000 km, Earth-Mars opposition)": {
+      "mismatch_counts": {
+        "float32_strict": 7,
+        "float32_toleranced": 7,
+        "float64_strict": 5,
+        "float64_toleranced": 7
+      },
+      "mismatch_rate": {
+        "float32_strict": 0.4666666666666667,
+        "float32_toleranced": 0.4666666666666667,
+        "float64_strict": 0.3333333333333333,
+        "float64_toleranced": 0.4666666666666667
+      },
+      "n_pairs": 15
+    },
+    "metric (~1 m)": {
+      "mismatch_counts": {
+        "float32_strict": 1,
+        "float32_toleranced": 3,
+        "float64_strict": 0,
+        "float64_toleranced": 0
+      },
+      "mismatch_rate": {
+        "float32_strict": 0.06666666666666667,
+        "float32_toleranced": 0.2,
+        "float64_strict": 0.0,
+        "float64_toleranced": 0.0
+      },
+      "n_pairs": 15
+    }
+  },
+  "test2_divergent_examples": [
+    {
+      "magnitude": "metric (~1 m)",
+      "offset_nm": 1,
+      "verdicts": {
+        "float32_xyz_sumsq": true,
+        "float64_xyz_hypot": false,
+        "float64_xyz_sumsq": false,
+        "float64_zyx_sumsq": false
+      }
+    },
+    {
+      "magnitude": "metric (~1 m)",
+      "offset_nm": 10,
+      "verdicts": {
+        "float32_xyz_sumsq": true,
+        "float64_xyz_hypot": false,
+        "float64_xyz_sumsq": false,
+        "float64_zyx_sumsq": false
+      }
+    },
+    {
+      "magnitude": "metric (~1 m)",
+      "offset_nm": 100,
+      "verdicts": {
+        "float32_xyz_sumsq": true,
+        "float64_xyz_hypot": false,
+        "float64_xyz_sumsq": false,
+        "float64_zyx_sumsq": false
+      }
+    }
+  ],
+  "test2_reproducibility_by_magnitude": {
+    "continental (~3,000 km)": {
+      "float_reproducibility_divergence": 0.0,
+      "integer_reproducibility_divergence": 0.0,
+      "n_pairs": 15,
+      "settings_compared": [
+        "float64_xyz_sumsq",
+        "float64_zyx_sumsq",
+        "float64_xyz_hypot",
+        "float32_xyz_sumsq"
+      ]
+    },
+    "interplanetary (~78,000,000 km, Earth-Mars opposition)": {
+      "float_reproducibility_divergence": 0.0,
+      "integer_reproducibility_divergence": 0.0,
+      "n_pairs": 15,
+      "settings_compared": [
+        "float64_xyz_sumsq",
+        "float64_zyx_sumsq",
+        "float64_xyz_hypot",
+        "float32_xyz_sumsq"
+      ]
+    },
+    "metric (~1 m)": {
+      "float_reproducibility_divergence": 0.2,
+      "integer_reproducibility_divergence": 0.0,
+      "n_pairs": 15,
+      "settings_compared": [
+        "float64_xyz_sumsq",
+        "float64_zyx_sumsq",
+        "float64_xyz_hypot",
+        "float32_xyz_sumsq"
+      ]
+    }
+  },
+  "test3_speed_ns_per_call": {
+    "continental (~3,000 km)": {
+      "float32_caveat": "Python has no native float32 arithmetic; this number is the cost of struct-based per-operation emulation (see float_gate.py), NOT representative of real float32 hardware speed",
+      "float32_ns_per_call": 7262.1432,
+      "float64_ns_per_call": 666.51775,
+      "integer_ns_per_call": 463.3114,
+      "integer_vs_float64_ratio": 0.69512237296006
+    },
+    "interplanetary (~78,000,000 km, Earth-Mars opposition)": {
+      "float32_caveat": "Python has no native float32 arithmetic; this number is the cost of struct-based per-operation emulation (see float_gate.py), NOT representative of real float32 hardware speed",
+      "float32_ns_per_call": 7376.4356,
+      "float64_ns_per_call": 756.88575,
+      "integer_ns_per_call": 547.03905,
+      "integer_vs_float64_ratio": 0.7227498337761016
+    },
+    "metric (~1 m)": {
+      "float32_caveat": "Python has no native float32 arithmetic; this number is the cost of struct-based per-operation emulation (see float_gate.py), NOT representative of real float32 hardware speed",
+      "float32_ns_per_call": 7209.6594,
+      "float64_ns_per_call": 649.8202,
+      "integer_ns_per_call": 393.0548,
+      "integer_vs_float64_ratio": 0.6048670078277038
+    }
+  },
+  "type": "int_vs_float_benchmark_report"
+}

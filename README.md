@@ -167,6 +167,19 @@ broken predicate. Fixed to route through genuine free variables so the proof
 is actually sensitive to the kernel it's supposed to be checking, with a
 regression test asserting exactly that sensitivity going forward.
 
+**What T1 costs a floating-point implementation, in numbers:**
+`benchmark/int_vs_float/` builds a faithful (not strawman) floating-point
+control for the same predicate and measures the gap T1 proves away -
+verdict-mismatch rate near the boundary, cross-setting reproducibility
+divergence, and the honest speed line (`docs/int-vs-float-results.md`). The
+claim is soundness and reproducibility, not speed: at interplanetary
+magnitude a zero-tolerance float64 gate falsely rejects genuinely timelike
+pairs, and a "reasonable" relative tolerance admits spacelike pairs up to
+78 meters off the light cone, while the integer gate is exactly correct
+(T1) and bit-identical across every setting tested; the honest speed line
+shows the integer gate faster than naive float64 at every magnitude tested
+in this environment, not the other way around.
+
 ## Companion program: independent red-team harness (RT1, extended by H9)
 
 `redteam/` is a separate attacker module (own certificate, own program
