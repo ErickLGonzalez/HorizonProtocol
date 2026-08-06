@@ -26,6 +26,18 @@ enters the computation.
 from horizon.geometry import causally_admissible
 
 
+def _require_int(value, what):
+    """Reject anything but an exact Python int at a public boundary — the
+    AST float-guard (tests/test_float_guard.py) only catches float SYNTAX
+    written inside this module; it cannot see a float a caller passes in
+    at runtime (e.g. a float velocity component), which would otherwise
+    flow straight through `//` (float // int is still float) into the
+    frozen kernel. This is the runtime half of the exactness rule."""
+    if not isinstance(value, int):
+        raise TypeError(f"{what} must be an exact int, got {type(value).__name__}: {value!r}")
+    return value
+
+
 class Worldline:
     """A trajectory: `position_at(t_ns)` -> exact integer `(x_nm, y_nm, z_nm)`."""
 
@@ -38,9 +50,10 @@ class FixedWorldline(Worldline):
     special case. `position_at` ignores `t_ns` and always returns `pos_nm`."""
 
     def __init__(self, pos_nm):
-        self.pos_nm = tuple(pos_nm)
+        self.pos_nm = tuple(_require_int(c, "pos_nm component") for c in pos_nm)
 
     def position_at(self, t_ns: int):
+        _require_int(t_ns, "t_ns")
         return self.pos_nm
 
 
@@ -50,11 +63,14 @@ def _as_rational(component):
     `(num, den)` tuple is taken as-is (sign folded into the numerator)."""
     if isinstance(component, tuple):
         num, den = component
+        _require_int(num, "velocity numerator")
+        _require_int(den, "velocity denominator")
         if den == 0:
             raise ValueError("velocity denominator must be nonzero")
         if den < 0:
             num, den = -num, -den
         return (num, den)
+    _require_int(component, "velocity component")
     return (component, 1)
 
 
@@ -68,11 +84,12 @@ class LinearWorldline(Worldline):
     is always floor-divided (`//`) to an integer nm — never a float."""
 
     def __init__(self, p0_nm, t0_ns: int, v_nm_per_ns):
-        self.p0_nm = tuple(p0_nm)
-        self.t0_ns = t0_ns
+        self.p0_nm = tuple(_require_int(c, "p0_nm component") for c in p0_nm)
+        self.t0_ns = _require_int(t0_ns, "t0_ns")
         self.v_nm_per_ns = tuple(_as_rational(c) for c in v_nm_per_ns)
 
     def position_at(self, t_ns: int):
+        _require_int(t_ns, "t_ns")
         dt = t_ns - self.t0_ns
         return tuple(
             p0 + (num * dt) // den

@@ -89,6 +89,27 @@ class TestSP0BLinearExactness(unittest.TestCase):
         with self.assertRaises(ValueError):
             LinearWorldline((0, 0, 0), 0, ((1, 0), (0, 1), (0, 1)))
 
+    def test_runtime_float_inputs_rejected_not_silently_widened(self):
+        # a float passed in at a public boundary must be rejected, not
+        # silently propagated through `//` into a float position (which
+        # would then flow into the frozen integer kernel unnoticed) -
+        # the AST float-guard only catches float syntax written in this
+        # module, not a runtime value a caller supplies.
+        with self.assertRaises(TypeError):
+            FixedWorldline((1.5, 0, 0))
+        with self.assertRaises(TypeError):
+            FixedWorldline((0, 0, 0)).position_at(1.0)
+        with self.assertRaises(TypeError):
+            LinearWorldline((1.0, 0, 0), 0, (0, 0, 0))
+        with self.assertRaises(TypeError):
+            LinearWorldline((0, 0, 0), 0.0, (0, 0, 0))
+        with self.assertRaises(TypeError):
+            LinearWorldline((0, 0, 0), 0, (0.5, 0, 0))
+        with self.assertRaises(TypeError):
+            LinearWorldline((0, 0, 0), 0, ((1, 2.0), (0, 1), (0, 1)))
+        with self.assertRaises(TypeError):
+            LinearWorldline((0, 0, 0), 0, (0, 0, 0)).position_at(4.0)
+
     def test_t0_offset_and_reversal_are_exact(self):
         # a ship coasting at exactly c/2 (integer nm/ns) from a nonzero t0
         v_half_c = C_NM_PER_NS // 2
