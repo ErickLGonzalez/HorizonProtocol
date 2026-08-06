@@ -41,10 +41,24 @@ def _dot(a, b):
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 
 
+def _require_int(value, what):
+    """Reject anything but an exact Python int at a public boundary — same
+    rationale as `horizon.worldline._require_int`: `radius_nm` never passes
+    through a `Worldline.position_at` call (which already guards `t_ns` and
+    every position component), so a caller-supplied float here would
+    silently switch `r2` to floating point and reintroduce exactly the
+    rounding gap the integer kernel exists to remove (a body just beyond
+    `radius_nm` at large scale can round into "occulting")."""
+    if not isinstance(value, int):
+        raise TypeError(f"{what} must be an exact int, got {type(value).__name__}: {value!r}")
+    return value
+
+
 def is_link_down(t_ns: int, endpoint_a, endpoint_b, body, radius_nm: int) -> bool:
     """True iff the straight segment between `endpoint_a.position_at(t_ns)`
     and `endpoint_b.position_at(t_ns)` passes within `radius_nm` of
     `body.position_at(t_ns)` — exact integer arithmetic only."""
+    _require_int(radius_nm, "radius_nm")
     a = endpoint_a.position_at(t_ns)
     b = endpoint_b.position_at(t_ns)
     c = body.position_at(t_ns)

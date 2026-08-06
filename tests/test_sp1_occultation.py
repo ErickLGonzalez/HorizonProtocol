@@ -119,6 +119,20 @@ class TestSP1AOccultationGeometry(unittest.TestCase):
         p2 = self.ship.position_at(50_000)
         self.assertTrue(causally_admissible(1_000, p1, 50_000, p2))
 
+    def test_runtime_float_radius_rejected_not_silently_widened(self):
+        # a float radius_nm never passes through a Worldline.position_at
+        # call (unlike t_ns and every position component, which are
+        # already guarded there), so it must be validated directly here -
+        # otherwise r2 = radius_nm*radius_nm silently switches to floating
+        # point and can misjudge occultation at large magnitude (float64
+        # cannot resolve radius**2 once radius is on the order of 1e18 nm).
+        a = FixedWorldline((0, 0, 0))
+        b = FixedWorldline((2 * 10**18, 0, 0))
+        c = FixedWorldline((10**18, 10**18 + 1, 0))  # 1 nm beyond radius=10**18
+        self.assertFalse(is_link_down(0, a, b, c, 10**18))
+        with self.assertRaises(TypeError):
+            is_link_down(0, a, b, c, float(10**18))
+
     def test_is_link_down_pointwise_branches_hand_verified(self):
         # interior projection: line x=0..10 (y=z=0); point (5,3,0) is
         # exactly 3 nm off the line, projecting at x=5 (inside [0,10])
@@ -180,19 +194,40 @@ class TestSP1BBlackoutBlocksDelivery(unittest.TestCase):
         self.assertEqual(got, expected)
 
     def test_write_during_blackout_delayed_until_after_exit(self):
+        # is_link_down(t_exit) is True (the interval is inclusive - see
+        # test_boundary_of_interval_is_exact), so line-of-sight only
+        # actually reopens at t_exit + 1; a signal can't leave AT t_exit
+        # itself, only from the first unblocked instant.
+        self.assertTrue(is_link_down(self.t_exit, self.ship, self.ground,
+                                      self.body, TOY_R))
+        t_reopen = self.t_exit + 1
+        self.assertFalse(is_link_down(t_reopen, self.ship, self.ground,
+                                       self.body, TOY_R))
         for t_emit in (self.t_enter + 5, (self.t_enter + self.t_exit) // 2,
-                       self.t_exit - 5):
+                       self.t_exit - 5, self.t_exit):
             naive = t_emit + min_light_time_ns(self.ship.position_at(t_emit),
                                                 self.ground.position_at(t_emit))
-            from_exit = self.t_exit + min_light_time_ns(
-                self.ship.position_at(self.t_exit),
-                self.ground.position_at(self.t_exit))
-            expected = max(naive, from_exit)
+            from_reopen = t_reopen + min_light_time_ns(
+                self.ship.position_at(t_reopen),
+                self.ground.position_at(t_reopen))
+            expected = max(naive, from_reopen)
             got = delivery_time_ns(t_emit, self.ship, self.ground, self.interval)
             self.assertEqual(got, expected, f"t_emit={t_emit}")
             # the whole point of the blackout: delivery is pushed past the
-            # naive same-instant light-time estimate
-            self.assertGreaterEqual(got, self.t_exit)
+            # naive same-instant light-time estimate, to no earlier than
+            # the first actually-unblocked instant
+            self.assertGreaterEqual(got, t_reopen)
+
+    def test_emission_exactly_at_t_exit_still_waits_for_reopen(self):
+        # regression for the off-by-one where a write emitted AT t_exit
+        # (still blacked out, per is_link_down(t_exit) == True) was
+        # incorrectly allowed to leave from its own still-blocked instant
+        # instead of waiting for t_exit + 1.
+        got = delivery_time_ns(self.t_exit, self.ship, self.ground, self.interval)
+        t_reopen = self.t_exit + 1
+        expected = t_reopen + min_light_time_ns(self.ship.position_at(t_reopen),
+                                                 self.ground.position_at(t_reopen))
+        self.assertEqual(got, expected)
 
     def test_no_occultation_argument_is_plain_light_time(self):
         t_emit = 4_700
@@ -333,12 +368,15 @@ class TestSP1DSubstrateHoldsAcrossOccultation(unittest.TestCase):
         self.assertEqual(g["status"], "CONFLICT")
         self.assertEqual({c["value"] for c in g["candidates"]}, {"ship_v", "ground_v"})
 
-        # and the reverse supersession claim is rejected too - concurrency
-        # is symmetric; neither side may clobber the other
-        reverse_bad = self.mem.put("k_concurrent_rev", "ship_v", "ship", c_ship)
-        reverse_claim = self.mem.put("k_concurrent_rev", "ground_v", "ground", c_ground,
+        # and the OTHER direction is rejected too - concurrency is
+        # symmetric; neither side may clobber the other. This inserts
+        # ground FIRST and has ship claim to supersede it (the mirror of
+        # the ship-first/ground-claims case above, not a repeat of it).
+        reverse_bad = self.mem.put("k_concurrent_rev", "ground_v", "ground", c_ground)
+        reverse_claim = self.mem.put("k_concurrent_rev", "ship_v", "ship", c_ship,
                                      supersedes=[reverse_bad["wid"]])
         self.assertEqual(reverse_claim["verdict"], "REJECTED")
+        self.assertEqual(reverse_claim["reason"], "supersedes_non_ancestor")
 
     def test_asymmetric_post_reconnect_supersession_respects_direction(self):
         # ground@4750 (during blackout, local write) genuinely IS in
