@@ -1,18 +1,24 @@
 """Cross-node event reconciliation under proper-time divergence.  [SOUND]
 
-SP-3 (see docs/sp3-spec.md), built on SP-0's `Worldline` /
-`causally_admissible_wl`, SP-2's `TrajectoryEnvelope` / `two_floor_verdict`,
-and the causal substrate's vector clocks (`mnemesis.vclock`) — all
-imported, never modified.
+SP-3 (see docs/sp3-spec.md), built on SP-0's `Worldline`, SP-2's
+`TrajectoryEnvelope` / `two_floor_verdict`, and the causal substrate's
+vector clocks (`mnemesis.vclock`) — all imported, never modified.
 
 Ordering between two nodes' events is decided ONLY by:
 
   1. causal lineage — vector-clock happens-before (`mnemesis.vclock`,
      unmodified), and
-  2. light-cone admissibility of that lineage claim — `causally_admissible_wl`
-     (SP-0) at the worldline-evaluated coordinate positions, or, when a
-     node's position is only known as an SP-2 `TrajectoryEnvelope`, the
-     `two_floor_verdict` (SP-2) instead.
+  2. the physical check on that claimed edge — `two_floor_verdict` (SP-2),
+     evaluated at the worldline-evaluated coordinate positions of each
+     side. `two_floor_verdict` handles a definite position OR an SP-2
+     `TrajectoryEnvelope` uniformly on EITHER side (including both at
+     once, by summing the radii); with two definite positions its
+     `r1 = r2 = 0` case collapses exactly to `causally_admissible`'s own
+     boolean condition (see `horizon/two_floor.py`'s module docstring), so
+     a plain `Worldline`-vs-`Worldline` claim and an
+     uncertain-source-or-target claim go through the identical code path
+     — there is no separate special case for "both sides are exact" that
+     could silently diverge from the uncertain-side logic.
 
 NEVER by comparing the two nodes' `ProperTimeStamp`s directly —
 `horizon.proper_time.ProperTimeStamp`'s comparison operators raise for a
@@ -34,7 +40,6 @@ both vocabularies are visible and traceable to which check produced them.
 """
 from mnemesis.vclock import happens_before
 
-from horizon.worldline import causally_admissible_wl
 from horizon.two_floor import two_floor_verdict
 from horizon.uncertainty import TrajectoryEnvelope
 
@@ -69,18 +74,27 @@ class Event:
         self.proper_time_stamp = proper_time_stamp
 
 
+def _locator_arg(event: Event):
+    """What `two_floor_verdict` expects for one side: the `TrajectoryEnvelope`
+    itself if this event's position is uncertain, else its definite
+    position at this event's own coordinate time (evaluated from its
+    `Worldline` — `two_floor_verdict` itself only accepts a plain position
+    or an envelope, never a `Worldline` object, so this resolution has to
+    happen here)."""
+    if isinstance(event.locator, TrajectoryEnvelope):
+        return event.locator
+    return event.locator.position_at(event.t_coord_ns)
+
+
 def _physical_verdict(from_event: Event, to_event: Event):
     """ADMITTED/REJECTED/APPARATUS_LIMITED for whether `from_event` could
-    causally precede `to_event`, dispatching on whether `to_event`'s
-    position is exact (`Worldline`) or an SP-2 `TrajectoryEnvelope`."""
-    if isinstance(to_event.locator, TrajectoryEnvelope):
-        p_from = from_event.locator.position_at(from_event.t_coord_ns)
-        result = two_floor_verdict(from_event.t_coord_ns, p_from,
-                                   to_event.t_coord_ns, to_event.locator)
-        return result["verdict"], result["witness"]
-    ok = causally_admissible_wl(from_event.locator, from_event.t_coord_ns,
-                                to_event.locator, to_event.t_coord_ns)
-    return ("ADMITTED" if ok else "REJECTED"), {"kind": "worldline_pair"}
+    causally precede `to_event`. EITHER side may be a definite `Worldline`
+    position or an SP-2 `TrajectoryEnvelope` — including an uncertain
+    CAUSAL SOURCE, not just an uncertain target: `two_floor_verdict`
+    accounts for uncertainty on both sides uniformly by summing radii."""
+    result = two_floor_verdict(from_event.t_coord_ns, _locator_arg(from_event),
+                               to_event.t_coord_ns, _locator_arg(to_event))
+    return result["verdict"], result["witness"]
 
 
 def reconcile(event_a: Event, event_b: Event) -> dict:

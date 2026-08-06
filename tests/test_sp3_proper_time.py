@@ -200,6 +200,26 @@ class TestSP3DConcurrentUnderDivergence(unittest.TestCase):
         self.assertEqual(res["witness"]["physical_check"]["verdict"], "REJECTED")
 
 
+class TestSP3EnvelopeOnEitherSide(unittest.TestCase):
+    """reconcile() must handle an uncertain CAUSAL SOURCE, not just an
+    uncertain target: a lineage-earlier event whose position is only known
+    via a TrajectoryEnvelope must still resolve to BEFORE/AFTER/
+    APPARATUS_LIMITED via the physical check, never crash."""
+
+    def test_uncertain_source_exact_target_resolves_without_crashing(self):
+        ground = FixedWorldline((0, 0, 0))
+        source_env = TrajectoryEnvelope(FixedWorldline((100, 0, 0)), 0, 1000, 1)
+        # lineage: the uncertain-position event is the ANCESTOR
+        ev_source = Event("ship", {"ship": 1}, 100, source_env)
+        ev_target = Event("ground", {"ship": 1, "ground": 1}, 200, ground)
+        res = reconcile(ev_source, ev_target)
+        self.assertEqual(res["verdict"], "BEFORE")
+        phys = res["witness"]["physical_check"]
+        self.assertEqual(phys["verdict"], "ADMITTED")
+        self.assertEqual(phys["radius1_nm"], source_env.radius_at(100))
+        self.assertEqual(phys["radius2_nm"], 0)
+
+
 def _closed_form_ymax(dx, r):
     def down(y):
         return y * y * (dx * dx - r * r) <= r * r * dx * dx

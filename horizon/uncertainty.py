@@ -48,6 +48,19 @@ def _require_int(value, what):
     return value
 
 
+def _require_nonneg_int(value, what):
+    """`_require_int` plus a `>= 0` check: `v_unc`, `a_max`, and
+    `u_measured` are magnitudes (an uncertainty *radius* can't shrink the
+    envelope), so a negative value here would let `radius_at` return a
+    negative radius — violating the `r >= 0` assumption the two-floor
+    inequalities (`horizon.two_floor`) are built on and producing a
+    meaningless definitive verdict instead of an honest one."""
+    _require_int(value, what)
+    if value < 0:
+        raise ValueError(f"{what} must be non-negative, got {value!r}")
+    return value
+
+
 class TrajectoryEnvelope:
     """`nominal`: a `Worldline` (e.g. `LinearWorldline`) giving the
     best-estimate center position at any time. `t_c`: the last contact
@@ -64,9 +77,9 @@ class TrajectoryEnvelope:
                  a_max_nm_per_ns2: int, u_measured_nm: int = 0):
         self.nominal = nominal
         self.t_c = _require_int(t_c, "t_c")
-        self.v_unc = _require_int(v_unc_nm_per_ns, "v_unc_nm_per_ns")
-        self.a_max = _require_int(a_max_nm_per_ns2, "a_max_nm_per_ns2")
-        self.u_measured = _require_int(u_measured_nm, "u_measured_nm")
+        self.v_unc = _require_nonneg_int(v_unc_nm_per_ns, "v_unc_nm_per_ns")
+        self.a_max = _require_nonneg_int(a_max_nm_per_ns2, "a_max_nm_per_ns2")
+        self.u_measured = _require_nonneg_int(u_measured_nm, "u_measured_nm")
 
     def center_at(self, t_ns: int):
         return self.nominal.position_at(t_ns)

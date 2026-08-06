@@ -77,6 +77,17 @@ class TestSP2AEnvelopeGrowthExactAndMonotone(unittest.TestCase):
             TrajectoryEnvelope(NOMINAL, 0, 1, 1.0)
         with self.assertRaises(TypeError):
             TrajectoryEnvelope(NOMINAL, 0, 1, 1, u_measured_nm=0.5)
+
+    def test_negative_uncertainty_bounds_rejected(self):
+        # v_unc/a_max/u_measured are magnitudes; a negative one would let
+        # radius_at return a negative radius, breaking the r >= 0
+        # assumption two_floor_verdict's inequalities depend on
+        with self.assertRaises(ValueError):
+            TrajectoryEnvelope(NOMINAL, 0, -1, 1)
+        with self.assertRaises(ValueError):
+            TrajectoryEnvelope(NOMINAL, 0, 1, -1)
+        with self.assertRaises(ValueError):
+            TrajectoryEnvelope(NOMINAL, 0, 1, 1, u_measured_nm=-1)
         with self.assertRaises(TypeError):
             self.env.radius_at(100.0)
 
@@ -154,6 +165,52 @@ class TestSP2CThreeVerdicts(unittest.TestCase):
         res = two_floor_verdict(500, P1, 100, self.env)
         self.assertEqual(res["verdict"], "REJECTED")
         self.assertEqual(res["witness"]["reason"], "negative_dt")
+
+    def test_negative_dt_rejected_even_when_t2_precedes_envelope_contact(self):
+        # regression: the negative-dt check must run BEFORE radius_at is
+        # ever called on either side, since radius_at raises for a query
+        # time before that envelope's OWN contact time - a t2 that is both
+        # earlier than t1 AND earlier than the envelope's t_c must still
+        # cleanly resolve to REJECTED, not propagate a ValueError
+        env = TrajectoryEnvelope(NOMINAL, 500, 1000, 1)
+        res = two_floor_verdict(1000, P1, 100, env)  # t2=100 < t1 and < t_c=500
+        self.assertEqual(res["verdict"], "REJECTED")
+        self.assertEqual(res["witness"]["reason"], "negative_dt")
+
+    def test_runtime_float_t1_or_position_component_rejected(self):
+        with self.assertRaises(TypeError):
+            two_floor_verdict(0.0, P1, 100, self.env)
+        with self.assertRaises(TypeError):
+            two_floor_verdict(T1, (0.0, 0, 0), 100, self.env)
+
+
+class TestSP2FUncertaintyOnBothSides(unittest.TestCase):
+    """two_floor_verdict must account for uncertainty on the CAUSAL
+    SOURCE, not just the target: a TrajectoryEnvelope passed as `p1` is
+    resolved to its center/radius exactly like the `envelope` argument,
+    and the two radii are summed."""
+
+    def test_envelope_as_p1_does_not_crash_and_sums_radii(self):
+        source_env = TrajectoryEnvelope(FixedWorldline((100, 0, 0)), 0, 1000, 1)
+        target = FixedWorldline((0, 0, 0))
+        target_env = TrajectoryEnvelope(target, 0, 0, 0)  # zero-radius envelope
+        res_plain = two_floor_verdict(100, (100, 0, 0), 200, target_env)
+        res_uncertain_source = two_floor_verdict(100, source_env, 200, target_env)
+        self.assertNotEqual(res_plain["witness"]["radius_nm"],
+                            res_uncertain_source["witness"]["radius_nm"])
+        self.assertEqual(res_uncertain_source["witness"]["radius1_nm"],
+                         source_env.radius_at(100))
+        self.assertEqual(res_uncertain_source["witness"]["radius_nm"],
+                         source_env.radius_at(100) + target_env.radius_at(200))
+
+    def test_definite_definite_matches_causally_admissible_exactly(self):
+        # r1=r2=0 must collapse to the plain kernel boolean, no straddle
+        for t2, expected in ((999, False), (1000, True), (1050, True)):
+            p2 = NOMINAL.position_at(t2)
+            expected_verdict = "ADMITTED" if expected else "REJECTED"
+            res = two_floor_verdict(T1, P1, t2, p2)
+            self.assertEqual(res["verdict"], expected_verdict, f"t2={t2}")
+            self.assertEqual(res["witness"]["radius_nm"], 0)
 
 
 class TestSP2DTwoFloorAsymmetry(unittest.TestCase):
