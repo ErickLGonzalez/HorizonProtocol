@@ -26,6 +26,8 @@ TRUSTED_MODULES = [
     "horizon/worldline.py",
     "horizon/occultation.py",
     "horizon/light_delay.py",
+    "horizon/uncertainty.py",
+    "horizon/two_floor.py",
     "horizon/events.py",
     "horizon/certificate.py",
     "horizon/ledger.py",
