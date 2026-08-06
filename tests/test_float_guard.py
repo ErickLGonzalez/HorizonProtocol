@@ -28,6 +28,8 @@ TRUSTED_MODULES = [
     "horizon/light_delay.py",
     "horizon/uncertainty.py",
     "horizon/two_floor.py",
+    "horizon/proper_time.py",
+    "horizon/reconcile.py",
     "horizon/events.py",
     "horizon/certificate.py",
     "horizon/ledger.py",
