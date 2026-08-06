@@ -11,6 +11,24 @@ Persistence is behind an interface (StoreBackend). A minimal in-memory backend
 ships for testing; a real database/memory layer plugs in via the same contract
 WITHOUT the engine importing it.
 
+(CK2-05, protocol/causal-kernel-v2 SPEC.md, gate G-CK2-3: `ordering.concurrent()`
+is True both for a pair PROVEN independent (spacelike / decided logically
+concurrent) and for a pair that is merely apparatus-limited -- clock
+uncertainty straddles the light-time floor and the true relation is
+undecided (`GeometricOrdering.resolves()` is False for one or both
+directions). Only the former is safe to authorize a coordination-free
+commit for; treating an apparatus-limited pair as proven-independent is
+exactly the failure mode this gate exists to close. `write()` therefore
+additionally requires `ordering.resolves(a, b) and ordering.resolves(b, a)`
+before taking the coordination-free branch on a concurrent pair --
+`resolves()` is accordingly now part of the required Ordering contract
+below, not an optional extra only `HybridOrdering` happened to consult.
+`LogicalOrdering`/`HybridOrdering` already return `True` unconditionally
+(vector clocks always decide; Hybrid always produces a decided answer via
+geometric-or-logical-fallback), so this changes behavior only for
+`GeometricOrdering` used standalone -- exactly the combination the erratum
+below already flags as the risky one.)
+
 (Erratum: an earlier version of `write()` classified a new write's relation to
 the frontier by testing only "is the write after every frontier member?" and
 "is the write concurrent with every frontier member?", falling through to the
@@ -148,8 +166,16 @@ class CausalStore:
             self.stats["coordination_free"] += 1
             return CommitResult(eid, "causal_supersede", False, "ADMITTED",
                                 supersedes=ev["supersedes"])
-        if all(self.ordering.concurrent(f, ev) for f in frontier):
-            # spacelike to everything current: COMMIT FREE, retained as concurrent
+        if all(
+            self.ordering.concurrent(f, ev)
+            and self.ordering.resolves(f, ev)
+            and self.ordering.resolves(ev, f)
+            for f in frontier
+        ):
+            # spacelike/decided-concurrent to everything current: COMMIT
+            # FREE, retained as concurrent. The resolves() checks (G-CK2-3,
+            # see module docstring) are what keep an apparatus-limited pair
+            # from being mistaken for this proven-independent case.
             self.backend.append(ev)
             self.stats["coordination_free"] += 1
             return CommitResult(eid, "coordination_free", False, "ADMITTED")

@@ -24,9 +24,29 @@ import hashlib
 import json
 
 
-def _wid(key, value, observer, clock):
+def _wid(key, value, observer, clock, preds):
+    # CK2-05 (protocol/causal-kernel-v2 SPEC.md §4): `preds` (the write's
+    # claimed dependency/supersession edges) is bound into the identity, not
+    # just key/value/observer/clock. Two writes that agree on everything
+    # else but claim DIFFERENT predecessors are asserting different
+    # dependency claims and must be different events -- if they hashed to
+    # the same id, `put()`'s idempotent-retry path would silently discard
+    # whichever claim lost the race, rather than independently validating
+    # (and, for a bogus claim, rejecting/auditing) it. See
+    # `tests/test_mnx_geometric.py::test_differing_supersedes_claim_is_a_
+    # different_write_not_silently_discarded` for the regression this closes.
+    #
+    # `preds` is a SET of claimed predecessors, not an ordered sequence --
+    # `sort_keys=True` only canonicalizes dict key order, not list element
+    # order, so the same predecessor set passed in a different order would
+    # otherwise hash to a different id, be admitted as a distinct write, and
+    # (since neither supersedes the other) surface as a spurious CONFLICT
+    # between two identical resolutions. Sort + dedupe before hashing so the
+    # id depends only on the SET of claimed predecessors, matching how
+    # `Write.preds`/`put()`'s validation loop already treat it.
     body = json.dumps({"key": key, "value": value, "observer": observer,
-                       "clock": clock}, sort_keys=True).encode()
+                       "clock": clock, "preds": sorted(set(preds))},
+                       sort_keys=True).encode()
     return hashlib.sha256(body).hexdigest()[:16]
 
 
@@ -39,7 +59,7 @@ class Write:
         self.observer = observer
         self.clock = clock            # {"time_ns":..,"pos_nm":..} or {"vc":{..}}
         self.preds = tuple(preds)     # wids this write claims to supersede
-        self.wid = _wid(key, value, observer, clock)
+        self.wid = _wid(key, value, observer, clock, self.preds)
 
     def provenance(self):
         return {"wid": self.wid, "key": self.key, "value": self.value,
@@ -98,13 +118,17 @@ class CausalMemory:
     def put(self, key, value, observer, clock, supersedes=()):
         w = Write(key, value, observer, clock, supersedes)
         if w.wid in self.writes:
-            # idempotent retry: (key, value, observer, clock) hashes to a
-            # wid already recorded. Return the ORIGINAL admission rather
-            # than re-appending to by_key (which would make _frontier see
-            # the same write twice and _get_ falsely report CONFLICT) or
+            # idempotent retry: (key, value, observer, clock, preds) hashes
+            # to a wid already recorded -- true retransmission of the exact
+            # same claim, nothing more. (CK2-05: `preds` is now part of the
+            # identity, so a retry with a DIFFERENT supersedes claim gets a
+            # different wid and falls through to normal validation below,
+            # rather than colliding here and having its differing claim
+            # silently discarded.) Return the ORIGINAL admission rather than
+            # re-appending to by_key (which would make _frontier see the
+            # same write twice and _get_ falsely report CONFLICT) or
             # overwriting self.writes (which would silently rewrite an
-            # append-only entry's provenance if this retry declared a
-            # different `supersedes`).
+            # append-only entry's provenance).
             existing = self.writes[w.wid]
             return {"wid": existing.wid, "verdict": "ADMITTED",
                     "provenance": existing.provenance()}
