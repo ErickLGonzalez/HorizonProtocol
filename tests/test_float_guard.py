@@ -23,6 +23,7 @@ TRUSTED_MODULES = [
     "horizon/__init__.py",
     "mnemesis/__init__.py",
     "horizon/geometry.py",
+    "horizon/worldline.py",
     "horizon/events.py",
     "horizon/certificate.py",
     "horizon/ledger.py",
