@@ -103,8 +103,18 @@ def admissibility_witness_float(t1_ns, p1_nm, t2_ns, p2_nm, precision="float64",
     else:
         lhs = _mul(c, dt_s, precision)
         dist = _distance_m(dx, dy, dz, precision, order, algorithm)
-        tol = eps * max(1.0, abs(lhs), abs(dist))
-        admissible = (lhs + tol) >= dist
+        # eps and the tolerance/comparison arithmetic must be routed through
+        # the same per-operation precision casting as every other step here
+        # - otherwise "float32" silently computes its tolerance and final
+        # comparison in double precision, understating float32's real
+        # rounding behavior (see the P1 review that caught this: a
+        # skipped-cast version can systematically look MORE sound than
+        # genuine float32 hardware arithmetic actually is).
+        eps_c = _cast(eps, precision)
+        bound = max(1.0, abs(lhs), abs(dist))  # selects an already precision-safe operand; no new rounding
+        tol = _mul(eps_c, bound, precision)
+        total = _add(lhs, tol, precision)
+        admissible = total >= dist
     return {
         "precision": precision, "eps": eps, "order": order, "algorithm": algorithm,
         "dt_s": dt_s, "c_m_per_s": c, "lhs_c_dt_m": lhs, "rhs_dist_m": dist,

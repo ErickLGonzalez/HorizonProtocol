@@ -3,12 +3,22 @@
 For a chosen magnitude and integer dt (ns), `C_NM_PER_NS * dt` is an EXACT
 integer nanometer radius sitting exactly on the null cone - not an
 approximation of a target distance, a genuine point on it, because C and dt
-are both integers. Placing the second event at that exact radius along one
-axis and then perturbing the axis coordinate by `k` nanometers sweeps
-straight through the boundary: k=0 is exactly null (admissible, the closed
-future cone includes its own boundary), k>0 is spacelike (must be
-rejected), k<0 is timelike (must be admitted) - and the integer gate gets
-every one of these exactly right by construction (T1, faithfulness).
+are both integers. `boundary_dt_ns` snaps dt to a multiple of 3 so that
+radius, dx0 = radius/3, dy0 = dz0 = 2*radius/3 form an exact Pythagorean
+quadruple (1:2:2:3, since 1^2+2^2+2^2=3^2): (dx0, dy0, dz0) is a genuine
+on-cone point with all THREE coordinates nonzero, not one. This matters for
+Test 2 (reproducibility): a single-nonzero-coordinate vector makes
+`dx^2+dy^2+dz^2` degenerate to one nonzero term regardless of summation
+order, so neither "sum in a different order" nor "sum via a different
+algorithm" can exhibit the non-associativity they're meant to probe - a
+one-axis vector cannot distinguish `xyz` from `zyx` summation, nor
+`sumsq` from `hypot`, because there is nothing to reorder. Perturbing only
+the dx0 axis by `k` nanometers then sweeps straight through the boundary
+exactly as before: k=0 is exactly null (admissible, the closed future cone
+includes its own boundary), k>0 is spacelike (must be rejected), k<0 is
+timelike (must be admitted) - and the integer gate gets every one of these
+exactly right by construction (T1, faithfulness), independent of which
+axis the perturbation lands on.
 
 The offsets span nine orders of magnitude (1 nm to 1,000,000 nm) precisely
 so the sweep crosses the point where each float format's mantissa can no
@@ -45,25 +55,36 @@ for mag in (1, 10, 100, 1_000, 10_000, 100_000, 1_000_000):
 
 
 def boundary_dt_ns(target_radius_nm):
-    """Nearest integer dt (ns) to target_radius_nm / C, via exact integer
-    division (no float division of a possibly-huge int) - rounds to
-    nearest, ties away from zero, minimum 1 ns."""
+    """Nearest integer dt (ns) to target_radius_nm / C, snapped down to a
+    multiple of 3 (via exact integer division - no float division of a
+    possibly-huge int) so C*dt is exactly divisible by 3, minimum 3 ns.
+    The multiple-of-3 snap is what makes the 1:2:2:3 multi-axis
+    decomposition in `boundary_pairs` exact - see module docstring."""
     q, r = divmod(target_radius_nm, C_NM_PER_NS)
     if 2 * r >= C_NM_PER_NS:
         q += 1
-    return max(q, 1)
+    dt = max(q, 1)
+    dt -= dt % 3
+    return max(dt, 3)
 
 
 def boundary_pairs(label):
     """Yield one boundary-vector dict per offset in OFFSETS_NM for the given
-    magnitude label (a key of MAGNITUDES_NM)."""
+    magnitude label (a key of MAGNITUDES_NM). The unperturbed point
+    (dx0, dy0, dz0) is an exact on-cone Pythagorean quadruple with all
+    three coordinates nonzero (see module docstring); `k` perturbs only
+    the dx0 axis, same as sweeping a single coordinate before, but now
+    against a genuinely multi-axis baseline."""
     target_radius_nm = MAGNITUDES_NM[label]
     dt_ns = boundary_dt_ns(target_radius_nm)
     radius_nm = C_NM_PER_NS * dt_ns  # exact: a genuine point on the null cone
+    third = radius_nm // 3
+    assert third * 3 == radius_nm  # exact by construction (dt_ns is a multiple of 3)
+    dx0, dy0, dz0 = third, 2 * third, 2 * third  # 1^2+2^2+2^2 = 3^2
     t1, t2 = 0, dt_ns
     p1 = (0, 0, 0)
     for k in OFFSETS_NM:
-        p2 = (radius_nm + k, 0, 0)
+        p2 = (dx0 + k, dy0, dz0)
         exact_admissible = causally_admissible(t1, p1, t2, p2)
         yield {
             "magnitude": label,
