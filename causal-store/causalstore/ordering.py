@@ -109,7 +109,19 @@ class GeometricOrdering:
 
 
 class LogicalOrdering:
-    """Vector-clock happens-before — the always-available fallback."""
+    """Vector-clock happens-before — the always-available fallback.
+
+    (Erratum 3: `before()` used raw dict inequality (`x != y`) as the strict
+    half of the partial order instead of `leq(x, y) and not leq(y, x)`. Two
+    vector clocks that are the same logical instant up to zero-padding - e.g.
+    `{"n1": 1}` and `{"n1": 1, "n2": 0}`, which every component-wise
+    comparison treats as equal - are a DIFFERENT dict, so `x != y` was True
+    for both orderings while `leq` also held both ways, making `before(a, b)`
+    and `before(b, a)` simultaneously True: an antisymmetry violation of the
+    causal partial order this class exists to provide. Fixed to derive strict
+    order from `leq` alone, matching the normalized pattern already proven in
+    `mnemesis/vclock.py::happens_before`.)
+    """
 
     def _vc(self, e):
         return e["clock"]["vc"]
@@ -120,7 +132,7 @@ class LogicalOrdering:
 
     def before(self, a, b):
         x, y = self._vc(a), self._vc(b)
-        return x != y and self._leq(x, y)
+        return self._leq(x, y) and not self._leq(y, x)
 
     def concurrent(self, a, b):
         return (not self.before(a, b)) and (not self.before(b, a))

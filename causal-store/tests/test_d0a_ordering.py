@@ -79,6 +79,24 @@ class TestOrdering(unittest.TestCase):
         self.assertTrue(o.before(vc(n1=1), vc(n1=2, n2=1)))
         self.assertTrue(o.concurrent(vc(n1=1), vc(n2=1)))
 
+    def test_logical_zero_padding_is_antisymmetric_not_double_before(self):
+        # Regression for the fixed bug (see ordering.py erratum 3): {"n1": 1}
+        # and {"n1": 1, "n2": 0} are the SAME logical instant (n2's absence
+        # and an explicit 0 are equivalent), but they are different dicts, so
+        # the old `x != y and leq(x, y)` formula reported `before` in BOTH
+        # directions at once - antisymmetry violated.
+        o = LogicalOrdering()
+        a, b = vc(n1=1), vc(n1=1, n2=0)
+        self.assertFalse(o.before(a, b))
+        self.assertFalse(o.before(b, a))
+        self.assertTrue(o.concurrent(a, b))  # equivalent, not strictly ordered
+
+    def test_logical_before_strict_even_with_extra_zero_keys(self):
+        o = LogicalOrdering()
+        a, b = vc(n1=1, n2=0), vc(n1=2, n2=0)
+        self.assertTrue(o.before(a, b))
+        self.assertFalse(o.before(b, a))
+
     def test_hybrid_uses_geometry_when_resolved_logic_when_not(self):
         h = HybridOrdering()
         # events carry both clocks
