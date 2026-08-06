@@ -27,6 +27,33 @@ class TestStore(unittest.TestCase):
         self.assertEqual(r["status"], "CONFLICT")
         self.assertEqual(len(r["candidates"]), 2)
 
+    def test_apparatus_limited_pair_requires_coordination_not_committed_free(self):
+        # CK2-05/G-CK2-3: this pair straddles the exact light-time floor
+        # (required_ns == 100; dt=100, combined_u=1 -> the true dt could be
+        # 99 or 101, i.e. genuinely undecidable, not proven spacelike) -- the
+        # OLD `concurrent()`-only gate would have called this "coordination
+        # free" (concurrent() is True for apparatus-limited pairs too);
+        # `resolves()` must now block that and force coordination instead.
+        a = self.s.write("straddle", "A", "n1", {"time_ns": 0, "pos_nm": [0, 0, 0], "u_ns": 1})
+        self.assertFalse(a.coordinated)  # first write to the key: always free
+        ordering = GeometricOrdering()
+        self.assertTrue(ordering.concurrent(
+            {"clock": {"time_ns": 0, "pos_nm": [0, 0, 0], "u_ns": 1}},
+            {"clock": {"time_ns": 100, "pos_nm": [29_979_245_800, 0, 0], "u_ns": 0}},
+        ))  # sanity: the OLD gate alone really would call this "concurrent"
+        self.assertFalse(ordering.resolves(
+            {"clock": {"time_ns": 0, "pos_nm": [0, 0, 0], "u_ns": 1}},
+            {"clock": {"time_ns": 100, "pos_nm": [29_979_245_800, 0, 0], "u_ns": 0}},
+        ))
+        b = self.s.write(
+            "straddle", "B", "n2",
+            {"time_ns": 100, "pos_nm": [29_979_245_800, 0, 0], "u_ns": 0},
+        )
+        self.assertTrue(b.coordinated)
+        self.assertEqual(b.mode, "conflict_retained")
+        r = self.s.read("straddle")
+        self.assertEqual(r["status"], "CONFLICT")
+
     def test_causal_supersede_no_coordination(self):
         r1 = self.s.write("x", "v1", "n", clk(0, x=0))
         # later write inside the future cone supersedes v1, no coordination

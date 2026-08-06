@@ -71,14 +71,31 @@ class TestGeometricMemory(unittest.TestCase):
         self.assertEqual(g["status"], "RESOLVED")
         self.assertEqual(g["value"], "v1")
 
-    def test_repeated_put_does_not_overwrite_provenance(self):
+    def test_differing_supersedes_claim_is_a_different_write_not_silently_discarded(self):
+        # CK2-05 (protocol/causal-kernel-v2 SPEC.md §4): a write claiming a
+        # DIFFERENT set of dependencies is a different event, even if
+        # key/value/observer/clock all match -- the differing claim must be
+        # independently validated (and, here, explicitly REJECTED as an
+        # unknown predecessor), never silently discarded while returning
+        # the original's stale provenance as if nothing happened.
         c = clk(0, 0, 0)
         r1 = self.m.put("cfg", "v1", "A", c)
-        # a retry claiming a (bogus) supersession must not silently rewrite
-        # the original, already-admitted write's provenance
         r2 = self.m.put("cfg", "v1", "A", c, supersedes=["nonexistent"])
-        self.assertEqual(r2["wid"], r1["wid"])
-        self.assertEqual(r2["provenance"]["supersedes"], [])
+        self.assertNotEqual(r2["wid"], r1["wid"])
+        self.assertEqual(r2["verdict"], "REJECTED")
+        self.assertEqual(r2["reason"], "unknown_predecessor")
+        # the original, already-admitted write's provenance is untouched
+        self.assertEqual(self.m.writes[r1["wid"]].provenance()["supersedes"], [])
+
+    def test_repeated_identical_put_with_same_claim_stays_idempotent(self):
+        # the true idempotent-retry path (same key/value/observer/clock AND
+        # same claimed predecessors) still collapses to one write.
+        c = clk(0, 0, 0)
+        r1 = self.m.put("cfg", "v1", "A", c)
+        r2 = self.m.put("cfg", "v2", "A", clk(1_000_000, 0, 0), supersedes=[r1["wid"]])
+        r2_retry = self.m.put("cfg", "v2", "A", clk(1_000_000, 0, 0), supersedes=[r1["wid"]])
+        self.assertEqual(r2["wid"], r2_retry["wid"])
+        self.assertEqual(r2_retry["verdict"], "ADMITTED")
 
     def test_resolve_rejects_write_id_outside_frontier(self):
         self.m.put("cfg", "vA", "A", clk(0, 0, 0))

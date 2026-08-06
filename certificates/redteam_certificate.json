@@ -49,6 +49,12 @@
       "bypass_count": 0,
       "bypasses": [],
       "trials": 3
+    },
+    {
+      "attack": "edge_claim_forgery_fuzz",
+      "bypass_count": 0,
+      "bypasses": [],
+      "trials": 2000
     }
   ],
   "benchmark_id": "RT1",
@@ -72,16 +78,16 @@
   ],
   "program": "HorizonProtocol Red-Team Harness",
   "promotion_allowed": false,
-  "python_version": "3.12.3",
+  "python_version": "3.11.15",
   "seeds": [
     "REDTEAM-FROZEN-SEED-v1"
   ],
   "source_hashes": {
     "redteam/__init__.py": "0f28ffd5d8ec72eb6b24d8ce5263ab6370df18c12630f1bd19e1c43928615abf",
-    "redteam/attacks.py": "4923e1cee6dca95148bc5559f03dc637d6a6a7df47483a7d75d5a74c45cd21ea"
+    "redteam/attacks.py": "b8a65ce20b0d6da4731e95ba3886b7db0af6822b270e0d29bf2acc50b38475a3"
   },
   "total_bypasses": 0,
-  "total_trials": 13003,
+  "total_trials": 15003,
   "unit_convention": {
     "c": 299792458,
     "c_units": "nm/ns (exact integer)",

@@ -354,6 +354,80 @@ def attack_ledger_named_scenarios():
            "bypasses": bypasses}
 
 
+# ---- RT-H: CK2-05 edge-claim forgery/conflation attack ----------------------
+def attack_edge_claim_forgery_fuzz(rng, trials=2000):
+    """CK2-05 (protocol/causal-kernel-v2 SPEC.md §4): physical admissibility
+    must never be treated as observed dependency. Random events, random
+    admit/reject edges, random dependency-claim attempts (including
+    deliberately malformed ones); verify the invariants that rule this out
+    ALWAYS hold, not just on the hand-picked cases in
+    tests/test_ck205_edge_claims.py:
+
+      1. `has_observed_dependency(a, b)` is True iff a claim of kind
+         declared/observed/attested was explicitly recorded for that EXACT
+         (a, b) pair -- never merely because `add_edge(a, b)` admitted.
+      2. Every `physical_admissibility` claim in `edge_claims` corresponds
+         1:1 to an edge actually present in `edges` (admitted) -- a
+         REJECTED `add_edge` call must never leave one behind.
+      3. `add_dependency_claim` never accepts `EdgeKind.PHYSICAL_ADMISSIBILITY`
+         as its kind (that claim may only be produced by `add_edge` itself).
+    """
+    from horizon.edge_claims import EdgeKind
+
+    bypasses = []
+    for i in range(trials):
+        ledger = CausalLedger()
+        pts = []
+        for j in range(3):
+            t = rng.randint(0, 10**12)
+            p = (rng.randint(0, 10**14), rng.randint(0, 10**14), rng.randint(0, 10**14))
+            eid = f"E{i}-{j}"
+            ledger.add_event(eid, t, p)
+            pts.append(eid)
+        a, b, c = pts
+
+        admitted_pairs = set()
+        for (x, y) in ((a, b), (b, c), (a, c)):
+            if ledger.add_edge(x, y)["verdict"] == "ADMITTED":
+                admitted_pairs.add((x, y))
+
+        # invariant 2: physical_admissibility claims <-> admitted edges, 1:1
+        pa_claims = [c2 for c2 in ledger.edge_claims if c2.kind == EdgeKind.PHYSICAL_ADMISSIBILITY]
+        pa_pairs = {(c2.from_event, c2.to_event) for c2 in pa_claims}
+        if pa_pairs != admitted_pairs or len(pa_claims) != len(admitted_pairs):
+            bypasses.append({"trial": i, "kind": "admissibility_claim_mismatch",
+                             "admitted": sorted(admitted_pairs), "claimed": sorted(pa_pairs)})
+
+        # invariant 3: PHYSICAL_ADMISSIBILITY is never accepted as a
+        # caller-asserted dependency kind
+        try:
+            ledger.add_dependency_claim(a, b, EdgeKind.PHYSICAL_ADMISSIBILITY,
+                                        asserted_by="attacker", asserted_at="1")
+            bypasses.append({"trial": i, "kind": "physical_admissibility_accepted_as_dependency"})
+        except ValueError:
+            pass
+
+        # invariant 1: has_observed_dependency before ANY explicit claim
+        if ledger.has_observed_dependency(a, b) and (a, b) not in admitted_pairs:
+            bypasses.append({"trial": i, "kind": "observed_dependency_without_edge_or_claim"})
+        elif ledger.has_observed_dependency(a, b):
+            # (a, b) may be admitted (physical_admissibility only) -- that
+            # ALONE must never satisfy has_observed_dependency.
+            bypasses.append({"trial": i, "kind": "admissibility_alone_satisfied_observed_dependency"})
+
+        # now explicitly assert a real dependency claim and confirm it (and
+        # ONLY it) is now visible -- forging the OTHER direction must not
+        # leak into this one.
+        kind = rng.choice(sorted(EdgeKind.DEPENDENCY_KINDS))
+        ledger.add_dependency_claim(a, b, kind, asserted_by="agent", asserted_at=str(i))
+        if not ledger.has_observed_dependency(a, b):
+            bypasses.append({"trial": i, "kind": "explicit_claim_not_visible"})
+        if ledger.has_observed_dependency(b, a):
+            bypasses.append({"trial": i, "kind": "claim_leaked_to_reverse_direction"})
+
+    return {"attack": "edge_claim_forgery_fuzz", "trials": trials, "bypasses": bypasses}
+
+
 def run_all(seed: str):
     import random
     rng = random.Random(seed)
@@ -366,4 +440,5 @@ def run_all(seed: str):
         attack_h8_replay_fuzz(rng),
         attack_h8_boundary_skew_fuzz(rng),
         attack_ledger_named_scenarios(),
+        attack_edge_claim_forgery_fuzz(rng),
     ]

@@ -157,7 +157,7 @@
   ],
   "program": "HorizonProtocol",
   "promotion_allowed": false,
-  "python_version": "3.12.3",
+  "python_version": "3.11.15",
   "seeds": [
     "H2-FROZEN-SEED-v1"
   ],
@@ -188,6 +188,7 @@
     "horizon/deepspace.py": "8e3beebfe2d059dedc14c212edb49efa876729a8a61c285b2ae6d970d9a26b60",
     "horizon/deepspace_protocol.py": "f8c32b3634ed839490d05aee736c161b5469a486a467f9d89164df5e764f94cc",
     "horizon/distance.py": "ac0b89d9e74467ab80931b144f14bebd95c858795caf63193e88c47ea2c87c7f",
+    "horizon/edge_claims.py": "bfbf6b8427f989709fa84311acc2d4ba250be5efa6ddd2e0434a2660521ae848",
     "horizon/events.py": "be117a3145df1a89d44bab130391b35e502bddb2fbdfa69430bea578a29cbda2",
     "horizon/fixtures.py": "6ec3c564086400e439080df0020ef02984eab4ac6e24f2ec086654c4f2aaa37f",
     "horizon/geo_fixtures.py": "5d12cf8c4774ef5c8481c14740c8e2b72ed9a9f11be2b93351197f613474b745",
@@ -196,14 +197,21 @@
     "horizon/geometry.py": "d9e7a851b2284a963f7ca7b43f6e99a57408406093aed85ef7fcf4caec1c0240",
     "horizon/h6_capture.py": "3aea5cac4812f186f3f5143693402e9418b8ed57ceca1ed8bec4464f28008ecf",
     "horizon/latency_gate.py": "0b56a1d309b09021c0689714282a39eca6bb9f5270d530acae708b161c788152",
-    "horizon/ledger.py": "9ec41e53b3a20b8616aef4ccf21d212a6d76410904d416a74011de5cedacdfb2",
+    "horizon/ledger.py": "ea2ac1ae42583811ea99478820d823f0a6361f7b406fd7e5dcbbe65e7887f60c",
+    "horizon/light_delay.py": "377c80ead81714e4bcd7676264d665f19ce71ab68ee6b8fb87e049f703edded9",
     "horizon/measure.py": "30561ea7fa0c6d5cf4f642dd04295f136046c4266e1fedbfcbb30be8bf27aa73",
+    "horizon/occultation.py": "c2f9caaed311481b3d2e3749973653dcced5d0f0b3b1d229aeea5f22cace4aa2",
+    "horizon/proper_time.py": "c6aecae9f6dc1aabcdcc94cd4d75c9af65df25033498be9baaaa9be52afd6019",
     "horizon/quantum_interface.py": "5f697680806342bdfe7c6654b173fc26ec69309f358bc688054f0c25a98e49d6",
     "horizon/qubit_sim.py": "891b6e2677ff95b80212a25dd1e3e062713fc1be4c5a29d8f2f1d33e0a6712c9",
     "horizon/reachability_cache.py": "1e4b09f0e75159b3ca3a3ad21ecb38d008718f77992d7e304796c7ccecd1f7c8",
+    "horizon/reconcile.py": "be9d1e930fb1f56fd05913b9e10c69aea8ce52a50fde685da3b8fd703134ac0b",
     "horizon/signed_capture.py": "56c3fe47e65e3d8ad0086300ff75225cd8c45bccd73199e7c8d8f120a524debb",
     "horizon/simulate.py": "a6b1760848f0a6b7f821999e7820d912b3edc741ddac834c4f38ef708ce7d1ce",
-    "horizon/stations.py": "25d3ab2d40fd20d7fcad81b25e43c17e7f1385ed3acd52cb7dd8af31b2755830"
+    "horizon/stations.py": "25d3ab2d40fd20d7fcad81b25e43c17e7f1385ed3acd52cb7dd8af31b2755830",
+    "horizon/two_floor.py": "2fa203c031aabfc4e83b2a537163860d2c23c6c5338508865b9e640185fb0137",
+    "horizon/uncertainty.py": "a320b6681731c8c512938da3876e37969a680256baf082e815bee34f144e915f",
+    "horizon/worldline.py": "3fbe540c29dac9907dd6c4564c45bad3e53feeaf0f5db3cc6be560e49f2175f4"
   },
   "sustained_isolation": {
     "detail": "round period plus response window shorter than one-way light time; consecutive rounds at alternating sites remain causally isolated",

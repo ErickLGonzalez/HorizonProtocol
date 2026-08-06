@@ -5,7 +5,17 @@ THE CONTRACT (the only coupling point in the whole system):
     class Ordering:
         def before(self, a, b) -> bool      # is event a in event b's causal past?
         def concurrent(self, a, b) -> bool  # neither before the other?
+        def resolves(self, a, b) -> bool    # is a-vs-b decided, or apparatus-limited?
         def witness(self, a, b) -> dict     # evidence for the decision
+
+CK2-05 (protocol/causal-kernel-v2 SPEC.md, gate G-CK2-3): `resolves` is now
+part of the required contract, not an optional extra. `concurrent()` alone
+cannot distinguish a pair PROVEN independent from one that is merely
+apparatus-limited (clock uncertainty straddles the light-time floor), and
+`causalstore.store.CausalStore.write()`'s coordination-free path must never
+treat the latter as the former. All three implementations below already
+provided `resolves()`; this only makes it load-bearing for every consumer,
+not just `HybridOrdering`'s internal fallback choice.
 
 Events carry a `clock` dict, one of:
     {"time_ns": int, "pos_nm": [x,y,z], "u_ns": int}   # geometric
