@@ -5,6 +5,7 @@ requiring different evidence and must never be conflated -- these tests
 prove `CausalLedger` keeps them separate rather than silently upgrading one
 into the other.
 """
+import dataclasses
 import unittest
 
 from horizon.edge_claims import EdgeClaim, EdgeKind, compute_edge_id
@@ -62,6 +63,17 @@ class TestAdmissibilityIsNotObservedDependency(unittest.TestCase):
                 asserted_by="agent-1", asserted_at="1",
             )
 
+    def test_retrying_add_edge_does_not_duplicate_the_admissibility_claim(self):
+        # review fix: add_edge(a, b) is idempotent for `edges` (a set) but
+        # was unconditionally appending a new claim on every call --
+        # breaking the 1:1 correspondence between admitted edges and
+        # physical_admissibility claims on a retry.
+        self.L.add_edge("A", "B")
+        self.L.add_edge("A", "B")
+        self.L.add_edge("A", "B")
+        claims = [c for c in self.L.edge_claims if c.from_event == "A" and c.to_event == "B"]
+        self.assertEqual(len(claims), 1)
+
     def test_rejected_edge_still_records_no_dependency_claim(self):
         # A REJECTED admissibility check must not manufacture any claim.
         self.L.add_event("C", 0, (C_NM_PER_NS, 0, 0))  # spacelike to A
@@ -106,6 +118,22 @@ class TestEdgeClaimConstruction(unittest.TestCase):
         d = c.as_dict()
         self.assertNotIn("evidence_refs", d)
         self.assertNotIn("relation_decision_ref", d)
+
+    def test_claim_is_genuinely_immutable_not_just_by_docstring(self):
+        # review fix: __slots__ alone does not prevent reassignment; the
+        # class must actually raise on mutation, including for the field
+        # that has_observed_dependency() reads (`kind`) and the one
+        # edge_id's own hash was derived from (`from_event`).
+        c = EdgeClaim("A", "B", EdgeKind.OBSERVED_DEPENDENCY, "agent-1", "1")
+        for field, value in (
+            ("kind", EdgeKind.DECLARED_DEPENDENCY),
+            ("from_event", "C"),
+            ("to_event", "C"),
+            ("evidence_refs", ("forged",)),
+            ("edge_id", "sha256:" + "0" * 64),
+        ):
+            with self.assertRaises(dataclasses.FrozenInstanceError, msg=field):
+                setattr(c, field, value)
 
     def test_as_dict_includes_populated_optional_fields(self):
         c = EdgeClaim(

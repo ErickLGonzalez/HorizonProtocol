@@ -35,8 +35,17 @@ def _wid(key, value, observer, clock, preds):
     # (and, for a bogus claim, rejecting/auditing) it. See
     # `tests/test_mnx_geometric.py::test_differing_supersedes_claim_is_a_
     # different_write_not_silently_discarded` for the regression this closes.
+    #
+    # `preds` is a SET of claimed predecessors, not an ordered sequence --
+    # `sort_keys=True` only canonicalizes dict key order, not list element
+    # order, so the same predecessor set passed in a different order would
+    # otherwise hash to a different id, be admitted as a distinct write, and
+    # (since neither supersedes the other) surface as a spurious CONFLICT
+    # between two identical resolutions. Sort + dedupe before hashing so the
+    # id depends only on the SET of claimed predecessors, matching how
+    # `Write.preds`/`put()`'s validation loop already treat it.
     body = json.dumps({"key": key, "value": value, "observer": observer,
-                       "clock": clock, "preds": list(preds)},
+                       "clock": clock, "preds": sorted(set(preds))},
                        sort_keys=True).encode()
     return hashlib.sha256(body).hexdigest()[:16]
 

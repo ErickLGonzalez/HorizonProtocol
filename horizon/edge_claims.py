@@ -13,6 +13,7 @@ asserting `observed_dependency` must supply its own evidence for that claim.
 """
 import hashlib
 import json
+from dataclasses import dataclass, field
 
 
 class EdgeKind:
@@ -48,33 +49,38 @@ def compute_edge_id(from_event, to_event, kind, asserted_by, asserted_at):
     return "sha256:" + hashlib.sha256(canonical).hexdigest()
 
 
+@dataclass(frozen=True)
 class EdgeClaim:
     """One typed claim about the relationship between two events.
-    Immutable once constructed -- claims are additive evidence, never
-    edited; a mistaken claim is superseded/invalidated by a NEW claim of
-    kind `invalidates`, never mutated in place."""
+    Genuinely immutable once constructed (`frozen=True` -- attribute
+    assignment raises `dataclasses.FrozenInstanceError`, not just
+    discouraged by docstring/`__slots__`) -- claims are additive evidence,
+    never edited; a mistaken claim is superseded/invalidated by a NEW claim
+    of kind `invalidates`, never mutated in place."""
 
-    __slots__ = (
-        "edge_id", "from_event", "to_event", "kind", "evidence_refs",
-        "asserted_by", "asserted_at", "relation_decision_ref",
-    )
+    from_event: str
+    to_event: str
+    kind: str
+    asserted_by: str
+    asserted_at: str
+    evidence_refs: tuple = ()
+    relation_decision_ref: object = None
+    edge_id: str = field(init=False, default="")
 
-    def __init__(self, from_event, to_event, kind, asserted_by, asserted_at,
-                 evidence_refs=None, relation_decision_ref=None):
-        if kind not in EdgeKind.ALL:
-            raise ValueError(f"unknown EdgeKind: {kind!r}")
-        if not asserted_by:
+    def __post_init__(self):
+        if self.kind not in EdgeKind.ALL:
+            raise ValueError(f"unknown EdgeKind: {self.kind!r}")
+        if not self.asserted_by:
             raise ValueError("asserted_by is required")
-        if not asserted_at:
+        if not self.asserted_at:
             raise ValueError("asserted_at is required")
-        self.from_event = from_event
-        self.to_event = to_event
-        self.kind = kind
-        self.asserted_by = asserted_by
-        self.asserted_at = asserted_at
-        self.evidence_refs = tuple(evidence_refs or ())
-        self.relation_decision_ref = relation_decision_ref
-        self.edge_id = compute_edge_id(from_event, to_event, kind, asserted_by, asserted_at)
+        # object.__setattr__ bypasses the frozen-dataclass guard -- the only
+        # sanctioned way to set a field, and only from inside __post_init__,
+        # never after construction.
+        object.__setattr__(self, "evidence_refs", tuple(self.evidence_refs or ()))
+        object.__setattr__(self, "edge_id", compute_edge_id(
+            self.from_event, self.to_event, self.kind, self.asserted_by, self.asserted_at,
+        ))
 
     def as_dict(self):
         d = {

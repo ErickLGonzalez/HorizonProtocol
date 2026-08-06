@@ -53,16 +53,24 @@ class CausalLedger:
                                   eb["time_ns"], eb["pos_nm"])
         w["strictly_later"] = strictly_later
         if admissible:
+            is_new = (a, b) not in self.edges
             self.edges.add((a, b))
-            self._adjacency_cache = None  # invalidate: precedes_fast() rebuilds lazily
-            # `asserted_at` ties this claim to the exact geometric facts that
-            # produced it (deterministic, no wall-clock dependency) rather
-            # than a separate, unmodeled assertion timestamp.
-            self.edge_claims.append(EdgeClaim(
-                from_event=a, to_event=b, kind=EdgeKind.PHYSICAL_ADMISSIBILITY,
-                asserted_by="horizon.geometry.causally_admissible",
-                asserted_at=str(eb["time_ns"]),
-            ))
+            if is_new:
+                # Only mint a NEW claim the first time this edge is admitted
+                # -- add_edge(a, b) retried on an already-admitted pair is a
+                # no-op for `self.edges` (a set) and must be a no-op for
+                # `edge_claims` too, or a retry would keep appending
+                # identical physical_admissibility claims and break the
+                # one-to-one correspondence with admitted edges.
+                self._adjacency_cache = None  # invalidate: precedes_fast() rebuilds lazily
+                # `asserted_at` ties this claim to the exact geometric facts
+                # that produced it (deterministic, no wall-clock dependency)
+                # rather than a separate, unmodeled assertion timestamp.
+                self.edge_claims.append(EdgeClaim(
+                    from_event=a, to_event=b, kind=EdgeKind.PHYSICAL_ADMISSIBILITY,
+                    asserted_by="horizon.geometry.causally_admissible",
+                    asserted_at=str(eb["time_ns"]),
+                ))
             return {"edge": [a, b], "verdict": "ADMITTED", "witness": w}
         rec = {"edge": [a, b], "verdict": "REJECTED", "witness": w}
         self.rejections.append(rec)

@@ -87,6 +87,27 @@ class TestGeometricMemory(unittest.TestCase):
         # the original, already-admitted write's provenance is untouched
         self.assertEqual(self.m.writes[r1["wid"]].provenance()["supersedes"], [])
 
+    def test_wid_is_independent_of_supersedes_claim_order(self):
+        # CK2-05 review fix: `_wid` must depend on the SET of claimed
+        # predecessors, not the order they're listed in -- otherwise the
+        # same logical write, submitted with its predecessor list in a
+        # different order, gets a DIFFERENT id, both copies are admitted,
+        # and since neither supersedes the other, read() reports a
+        # spurious CONFLICT between two identical resolutions.
+        r1 = self.m.put("k1", "v1", "A", clk(0, 0))
+        r2 = self.m.put("k2", "v2", "A", clk(0, 100))
+        later = clk(1_000_000, 0)
+        forward = self.m.put("k3", "v3", "B", later, supersedes=[r1["wid"], r2["wid"]])
+
+        m2 = CausalMemory(GeometricOrdering())
+        s1 = m2.put("k1", "v1", "A", clk(0, 0))
+        s2 = m2.put("k2", "v2", "A", clk(0, 100))
+        reversed_order = m2.put("k3", "v3", "B", later, supersedes=[s2["wid"], s1["wid"]])
+
+        self.assertEqual(forward["wid"], reversed_order["wid"])
+        self.assertEqual(forward["verdict"], "ADMITTED")
+        self.assertEqual(reversed_order["verdict"], "ADMITTED")
+
     def test_repeated_identical_put_with_same_claim_stays_idempotent(self):
         # the true idempotent-retry path (same key/value/observer/clock AND
         # same claimed predecessors) still collapses to one write.
