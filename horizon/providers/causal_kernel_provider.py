@@ -23,15 +23,18 @@ any notion of per-event clock uncertainty (`CausalLedger` events are exact
 `(time_ns, pos_nm)` pairs) -- `causal-store/causalstore/ordering.py`'s
 `GeometricOrdering` is the only HorizonProtocol module that models
 uncertainty at all, and it lives in that same unimportable subproject. The
-formula below (`resolves`, `_geometric_decision`) is the SAME one already
-proven correct in two other places in this program
-(`causalstore.ordering.GeometricOrdering.resolves`/`before`, and MnemesisOS's
-`classify_geometric_v2` in both `spikes/causal-substrate/rust` and
-`crates/causal-kernel`) -- re-derived against this repo's production
-`horizon.geometry` primitives (`causally_admissible`, `min_light_time_ns`),
-not invented fresh, and covered by this module's own test suite including
-the exact CK2-03 interval-boundary regression case those other
-implementations already carry.
+four-way interval decision in `classify_geometric` matches MnemesisOS's
+`classify_geometric_v2` (`spikes/causal-substrate/rust` and
+`crates/causal-kernel`) exactly -- symmetric interval comparisons against
+`required_ns` (from this repo's own `horizon.geometry.min_light_time_ns`),
+not a separately-computed "resolves" boolean composed with directional
+admissibility checks (an earlier version of this file did that, mirroring
+`causalstore.ordering.GeometricOrdering.resolves`/`before` too literally --
+that composition is unsound because `resolves()` is not symmetric under
+argument order; see the review-fix comment in `classify_geometric` for the
+concrete counterexample). Not invented fresh, and covered by this module's
+own test suite including the exact CK2-03 interval-boundary regression case
+those other implementations already carry.
 
 `classify_logical` has one disclosed protocol-fidelity gap: HorizonProtocol's
 native vector-clock representation (`mnemesis.vclock`, plain
@@ -43,7 +46,7 @@ advertises `"logical"` support (the core happens-before/concurrent
 comparison is fully correct and CK2-02-hardened), but a caller relying on
 epoch-change detection specifically must not expect it from this provider.
 """
-from horizon.geometry import causally_admissible, min_light_time_ns
+from horizon.geometry import min_light_time_ns
 from mnemesis.vclock import leq
 
 SCHEMA_VERSION = "2.0.0"
@@ -100,16 +103,6 @@ def classify_logical(vector_a: dict, vector_b: dict) -> dict:
     return _decision("logically_concurrent", "logical", "LOGICAL_DISJOINT_CONCURRENT")
 
 
-def _resolves(dt_ns: int, combined_u_ns: int, required_ns: int) -> bool:
-    """Mirrors `causalstore.ordering.GeometricOrdering.resolves` /
-    `causal_kernel::classify_geometric_v2` exactly: true iff the interval
-    `[dt-combined_u, dt+combined_u]` (every value clock uncertainty could
-    make the true elapsed time) stays entirely on one side of the required
-    light-time floor -- straddling it is exactly the apparatus-limited
-    case."""
-    return (dt_ns - combined_u_ns >= required_ns) or (dt_ns + combined_u_ns < required_ns)
-
-
 def classify_geometric(
     time_ns_a: int,
     pos_nm_a,
@@ -142,12 +135,22 @@ def classify_geometric(
         "uncertainty_high_ns": dt + combined_u,
     }
 
-    if not _resolves(dt, combined_u, required_ns):
-        return _decision(
-            "apparatus_limited", "geometric", "GEOMETRIC_INTERVAL_STRADDLES_FLOOR", **extra
-        )
-    if dt >= 0 and causally_admissible(time_ns_a, pos_nm_a, time_ns_b, pos_nm_b):
+    # Codex review (PR #16, P1): the previous version computed a single
+    # `resolves(a, b)` boolean (mirroring `causalstore.ordering`'s
+    # `resolves()`, which is NOT symmetric under argument order -- e.g.
+    # dt=-2, combined_u=2, required_ns=1 gives `resolves(a,b)=True` but
+    # `resolves(b,a)=False`) and then gated separate `causally_admissible`
+    # checks in each direction against it, so a genuinely apparatus-limited
+    # reverse-direction pair could be reported as a certain `after`.
+    # Matches MnemesisOS's `classify_geometric_v2` exactly instead: four
+    # mutually exclusive interval comparisons, symmetric by construction,
+    # with no separate "resolves" flag to misapply.
+    if abs(dt) + combined_u < required_ns:
+        return _decision("spacelike", "geometric", "GEOMETRIC_INTERVAL_SPACELIKE", **extra)
+    if dt - combined_u >= required_ns:
         return _decision("before", "geometric", "GEOMETRIC_INTERVAL_CERTAIN_BEFORE", **extra)
-    if dt <= 0 and causally_admissible(time_ns_b, pos_nm_b, time_ns_a, pos_nm_a):
+    if (-dt) - combined_u >= required_ns:
         return _decision("after", "geometric", "GEOMETRIC_INTERVAL_CERTAIN_AFTER", **extra)
-    return _decision("spacelike", "geometric", "GEOMETRIC_INTERVAL_SPACELIKE", **extra)
+    return _decision(
+        "apparatus_limited", "geometric", "GEOMETRIC_INTERVAL_STRADDLES_FLOOR", **extra
+    )

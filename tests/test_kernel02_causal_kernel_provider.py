@@ -135,6 +135,25 @@ class TestClassifyGeometric(unittest.TestCase):
         self.assertEqual(d["relation"], "apparatus_limited")
         self.assertEqual(d["reason_code"], "GEOMETRIC_INTERVAL_STRADDLES_FLOOR")
 
+    def test_reverse_direction_straddling_the_boundary_is_apparatus_limited_not_after(self):
+        # Codex review (PR #16, P1): b measured BEFORE a (dt negative), but
+        # the uncertainty band straddles the reverse light-time floor too --
+        # this must be APPARATUS_LIMITED, not a certain `after`. The fixed
+        # bug: a single `resolves(a, b)`-style boolean (not symmetric under
+        # argument order) was composed with directional `causally_admissible`
+        # checks, so this exact shape (required_ns=1, dt=-2, combined_u=2,
+        # true interval [-4, 0]) was wrongly reported `after` -- and the
+        # argument-swapped case wrongly reported `apparatus_limited`,
+        # proving the asymmetry directly.
+        pos_a = (0, 0, 0)
+        pos_b = (C_NM_PER_NS, 0, 0)  # required_ns == 1
+        d_ab = classify_geometric(2, pos_a, 1, 0, pos_b, 1, "f", "f")  # dt = 0 - 2 = -2
+        self.assertEqual(d_ab["required_light_time_ns"], 1)
+        self.assertEqual(d_ab["measured_dt_ns"], -2)
+        self.assertEqual(d_ab["relation"], "apparatus_limited")
+        d_ba = classify_geometric(0, pos_b, 1, 2, pos_a, 1, "f", "f")  # swapped: dt = +2
+        self.assertEqual(d_ba["relation"], "apparatus_limited")
+
     def test_witness_fields_are_populated_for_a_decided_geometric_relation(self):
         d = classify_geometric(0, (0, 0, 0), 0, 100, (C_NM_PER_NS, 0, 0), 0, "f", "f")
         self.assertEqual(d["measured_dt_ns"], 100)
